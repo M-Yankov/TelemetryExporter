@@ -20,7 +20,7 @@ const int GpxPictureWidthPixels = 1000;
 const int GpxPictureOffsetPixels = 50;
 
 GPSContainer.Instance.PictureOffsetPixels = GpxPictureOffsetPixels;
-GPSContainer.Instance.PictureWidthPixels = GpxPictureOffsetPixels;
+GPSContainer.Instance.PictureWidthPixels = GpxPictureWidthPixels;
 
 const int ElevationPictureWidthPixels = 700;
 const int ElevationPictureHeightPixels = 250;
@@ -289,14 +289,14 @@ static void ProcessMethod(FitMessages fitMessages)
             SKPoint imageCoords = GPSContainer.Instance.CalculateImageCoordinates(lastKnownGpsLocation.Value.X, lastKnownGpsLocation.Value.Y);
             imageCoords.AddOffset(GpxPictureOffsetPixels);
 
-            // That's wrong - it missed some frames - always render a frame
-            // SaveTraceImage(drawPath, imageCoords, frameFileName);
+            SaveTraceImage(tracePath, imageCoords, frameFileName);
         }
-        // SavePaceImage(pace, frameFileName);
+        
+        SavePaceImage(pace, frameFileName);
 
         // This needs to be checked if the field doesn't exist or if the field is null;
         float? totalDistance = fitMessages.SessionMesgs[0].GetTotalDistance();
-        // SaveDistanceImage(distance, totalDistance.Value, frameFileName);
+        SaveDistanceImage(distance, totalDistance.Value, frameFileName);
 
         SKPoint elevationPoint = SKPoint.Empty;
         if (altitude.HasValue)
@@ -536,7 +536,6 @@ static void SaveElevationImage(SKPath path, double? altitude, SKPoint point, str
     {
         Color = SKColors.White,
         IsAntialias = true,
-        // Style = SKPaintStyle.Fill,
         Typeface = SKTypeface.FromFamilyName("Consolas"),
         TextSize = 35,
     };
