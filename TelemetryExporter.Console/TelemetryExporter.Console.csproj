@@ -12,4 +12,13 @@
     <PackageReference Include="SkiaSharp" Version="2.88.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Images\radial_6.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\radial_6_dial.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

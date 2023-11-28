@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 // Check this: /activity-service/activity/12092921949/details
 
-// below that speed it's assumed as walking
+// below that speed it's assumed as walking (For running only)
 // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
 const double SpeedCutoff = 0.5556;
 
@@ -166,7 +166,7 @@ static void ProcessMethod(FitMessages fitMessages)
 
     TimeSpan activeTimeDuration = TimeSpan.Zero;
 
-    RecordMesg currentRecord = queue.Dequeue(); // default (nullable);
+    RecordMesg currentRecord = queue.Dequeue();
 
     StringBuilder textResult = new();
 
@@ -175,7 +175,9 @@ static void ProcessMethod(FitMessages fitMessages)
 
     SKPath tracePath = BuildTracePath(fitMessages.RecordMesgs);
     SKPath elevationPath = BuildElevationPath(fitMessages.RecordMesgs);
-    
+
+    float? maxSpeed = fitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed());
+
     do
     {
         double? speed = null;
@@ -191,7 +193,7 @@ static void ProcessMethod(FitMessages fitMessages)
             System.DateTime recordDate = nextRcordMesg.GetTimestamp().GetDateTime();
             System.DateTime? currentRecordDate = currentRecord.GetTimestamp().GetDateTime();
 
-            if (currentRecordDate < currentTimeFrame && currentTimeFrame < recordDate /*&& currentRecord != null*/ && isActiveTime)
+            if (currentRecordDate < currentTimeFrame && currentTimeFrame < recordDate && isActiveTime)
             {
                 CalculateModel speedMetrics = new(
                     currentRecordDate.Value,
@@ -236,8 +238,7 @@ static void ProcessMethod(FitMessages fitMessages)
                 longitude = (int?)GetValueBetweenDates(longitudeMetrics);
             }
 
-            if ((currentRecordDate.HasValue && recordDate > currentRecordDate && currentTimeFrame >= recordDate)
-                /*|| currentRecord == null*/)
+            if (currentRecordDate.HasValue && recordDate > currentRecordDate && currentTimeFrame >= recordDate)
             {
                 if (isActiveTime)
                 {
@@ -247,7 +248,6 @@ static void ProcessMethod(FitMessages fitMessages)
                 queue.Dequeue();
             }
         }
-
 
         if (isActiveTime)
         {
@@ -289,14 +289,14 @@ static void ProcessMethod(FitMessages fitMessages)
             SKPoint imageCoords = GPSContainer.Instance.CalculateImageCoordinates(lastKnownGpsLocation.Value.X, lastKnownGpsLocation.Value.Y);
             imageCoords.AddOffset(GpxPictureOffsetPixels);
 
-            SaveTraceImage(tracePath, imageCoords, frameFileName);
+            // SaveTraceImage(tracePath, imageCoords, frameFileName);
         }
         
-        SavePaceImage(pace, frameFileName);
+        // SavePaceImage(pace, frameFileName);
 
         // This needs to be checked if the field doesn't exist or if the field is null;
         float? totalDistance = fitMessages.SessionMesgs[0].GetTotalDistance();
-        SaveDistanceImage(distance, totalDistance.Value, frameFileName);
+        // SaveDistanceImage(distance, totalDistance.Value, frameFileName);
 
         SKPoint elevationPoint = SKPoint.Empty;
         if (altitude.HasValue)
@@ -308,7 +308,9 @@ static void ProcessMethod(FitMessages fitMessages)
             elevationPoint = ElevationContainer.Instance.CalculateImageCoordinates((float)altitude.Value, indexOfRecord, orderedRecordMessages.Count);
         }
 
-        SaveElevationImage(elevationPath, altitude, elevationPoint, frameFileName);
+        speed ??= 0;
+        // SaveElevationImage(elevationPath, altitude, elevationPoint, frameFileName);
+        SaveSpeedImage(speed.Value * 3.6, maxSpeed.Value * 3.6, frameFileName);
 
         // this will result 2 fps https://fpstoms.com/
         int millsecondsStep = 1000 / FPS;
@@ -803,6 +805,82 @@ static void SavePaceImage(double paceValue, string fileName)
 
     using SKImage image = surface.Snapshot();
     using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+
+    using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, fileName));
+    data.SaveTo(stream);
+}
+
+static void SaveSpeedImage(double speed, double maxSpeed, string fileName)
+{
+    string folderName = Path.Combine("Telemetry", "Speed");
+    if (!Directory.Exists(folderName))
+    {
+        Directory.CreateDirectory(folderName);
+    }
+
+    using SKBitmap radial = SKBitmap.FromImage(SKImage.FromEncodedData(Path.Combine("Images", "radial_6.png")));
+    using SKBitmap dial = SKBitmap.FromImage(SKImage.FromEncodedData(Path.Combine("Images", "radial_6_dial.png")));
+
+     SKImageInfo info = new(radial.Width, radial.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+     using SKSurface surface = SKSurface.Create(info);
+    
+    using SKCanvas canvas = surface.Canvas;
+
+    using SKPaint blendPaint = new()
+    {
+        ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(200, 0, 0, 255), SKBlendMode.SrcIn)
+    };
+
+    canvas.DrawBitmap(radial, 0 ,0, blendPaint);
+
+    using SKPaint textPaint = new()
+    {
+        Color = SKColors.White,
+        TextSize = 16,
+        TextAlign = SKTextAlign.Center,
+        Typeface = SKTypeface.FromFamilyName("Consolas"),
+        IsAntialias = true
+    };
+
+    // could use the scale from garmin
+    SKPoint textZeroValueCoords = new(70, 250);
+    SKPoint textMaxValueCoords = new(230, 250);
+    SKPoint textAverageValueCoords = new(radial.Width / 2, 28);
+    SKPoint textCurrentValueCoords = new(radial.Width / 2, 250);
+
+    SKPoint textUnitValueCoords = new(radial.Width / 2, 250 + 45);
+
+    canvas.DrawText("0", textZeroValueCoords, textPaint);
+    canvas.DrawText($"{maxSpeed:0}", textMaxValueCoords, textPaint);
+    canvas.DrawText($"{(maxSpeed / 2):0}", textAverageValueCoords, textPaint);
+
+    textPaint.TextSize = 48;
+    canvas.DrawText($"{speed:0}", textCurrentValueCoords, textPaint);
+    canvas.DrawText("KM/H", textUnitValueCoords, textPaint);
+
+    canvas.SaveLayer();
+
+    // Move anchor point to the center
+    SKPoint centerPoint = new(radial.Width / 2f, radial.Height / 2f);
+    canvas.Translate(centerPoint);
+
+    // -130; 130 = 260
+    double percentage = speed / maxSpeed;
+    percentage = double.IsNaN(percentage) ? 0 : percentage;
+    double percentageDial = 260 * percentage;
+    double dialDegrees = -130 + percentageDial;
+
+    canvas.RotateDegrees((float)dialDegrees);
+
+    canvas.Translate(-centerPoint.X, -centerPoint.Y);
+
+    // ToDO draw the arc after the dial
+    canvas.DrawBitmap(dial, 0, 0);
+
+    canvas.Restore();
+
+    using SKImage imageExport = surface.Snapshot();
+    using SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
 
     using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, fileName));
     data.SaveTo(stream);
