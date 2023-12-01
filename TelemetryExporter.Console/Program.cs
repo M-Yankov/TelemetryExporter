@@ -839,8 +839,24 @@ static void SaveSpeedImage(double speed, double maxSpeed, string fileName)
         TextSize = 16,
         TextAlign = SKTextAlign.Center,
         Typeface = SKTypeface.FromFamilyName("Consolas"),
-        IsAntialias = true
+        IsAntialias = true,
     };
+
+    // -130; 130 = 260
+    double percentage = speed / maxSpeed;
+    percentage = double.IsNaN(percentage) ? 0 : percentage;
+    double percentageDial = 260 * percentage;
+    double dialDegrees = -130 + percentageDial;
+
+    using SKPaint radialTrailPaint = new()
+    {
+        Color = new SKColor(255, 255, 255, 100),
+        IsAntialias = true,
+        Style = SKPaintStyle.Stroke,
+        StrokeWidth = 20
+    };
+
+    canvas.DrawArc(SKRect.Create(57, 57, 186, 186), 140, (float)percentageDial, false, radialTrailPaint);
 
     // could use the scale from garmin
     SKPoint textZeroValueCoords = new(70, 250);
@@ -857,24 +873,18 @@ static void SaveSpeedImage(double speed, double maxSpeed, string fileName)
     textPaint.TextSize = 48;
     canvas.DrawText($"{speed:0}", textCurrentValueCoords, textPaint);
     canvas.DrawText("KM/H", textUnitValueCoords, textPaint);
-
+    
     canvas.SaveLayer();
 
     // Move anchor point to the center
     SKPoint centerPoint = new(radial.Width / 2f, radial.Height / 2f);
     canvas.Translate(centerPoint);
 
-    // -130; 130 = 260
-    double percentage = speed / maxSpeed;
-    percentage = double.IsNaN(percentage) ? 0 : percentage;
-    double percentageDial = 260 * percentage;
-    double dialDegrees = -130 + percentageDial;
-
+    
     canvas.RotateDegrees((float)dialDegrees);
 
     canvas.Translate(-centerPoint.X, -centerPoint.Y);
 
-    // ToDO draw the arc after the dial
     canvas.DrawBitmap(dial, 0, 0);
 
     canvas.Restore();
