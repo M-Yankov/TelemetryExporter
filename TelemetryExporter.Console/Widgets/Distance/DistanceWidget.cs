@@ -1,0 +1,84 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using SkiaSharp;
+
+using TelemetryExporter.Console.Models;
+using TelemetryExporter.Console.Widgets.Interfaces;
+
+namespace TelemetryExporter.Console.Widgets.Distance
+{
+    internal class DistanceWidget : IWidget
+    {
+        public void GenerateImage(SessionData sessionData, FrameData currentData)
+        {
+            string folderName = Path.Combine("Telemetry", "Distance");
+            if (!Directory.Exists(folderName))
+            {
+                Directory.CreateDirectory(folderName);
+            }
+
+            const int DistanceImageWidth = 700;
+            const int DistanceImageHeight = 100;
+
+            SKImageInfo info = new(DistanceImageWidth, DistanceImageHeight, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+            using SKPaint transparentDistancePaint = new()
+            {
+                Color = new SKColor(0, 0, 0, 170),
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
+
+            using SKPaint trasparentBlack = new()
+            {
+                Color = new SKColor(0, 0, 0, 100),
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+            };
+
+            using SKPaint textDistancePaint = new()
+            {
+                Color = SKColors.White,
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                Typeface = SKTypeface.FromFamilyName("Consolas"),
+                TextSize = 35,
+            };
+
+            using SKPaint textDistanceNumbersPaint = textDistancePaint.Clone();
+            textDistanceNumbersPaint.TextSize += (textDistanceNumbersPaint.TextSize * .15f);
+
+            using SKSurface surface = SKSurface.Create(info);
+
+            SKCanvas canvas = surface.Canvas;
+            canvas.DrawPaint(trasparentBlack);
+
+            string distanceAsText;
+            if (currentData.Distance.HasValue)
+            {
+                // https://www.calculatorsoup.com/calculators/math/percentage.php
+                double currentDistancePercentage = currentData.Distance.Value / sessionData.TotalDistance;
+                float imagePixelsDistanceX = DistanceImageWidth * (float)currentDistancePercentage;
+                canvas.DrawRect(0, 0, imagePixelsDistanceX, DistanceImageHeight, transparentDistancePaint);
+                distanceAsText = $"{currentData.Distance / 1000f:F3} KM";
+            }
+            else
+            {
+                distanceAsText = $"-- KM";
+            }
+
+            // the Points should be percentage, not hardcoded
+            canvas.DrawText("DISTANCE", new SKPoint(25, 35), textDistancePaint);
+            canvas.DrawText(distanceAsText, new SKPoint(25, 75), textDistanceNumbersPaint);
+
+            using SKImage image = surface.Snapshot();
+            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+
+            using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
+            data.SaveTo(stream);
+        }
+    }
+}
