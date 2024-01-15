@@ -4,6 +4,6 @@ namespace TelemetryExporter.Console.Widgets.Interfaces
 {
     internal interface IWidget
     {
-        void GenerateImage(SessionData sessionData, FrameData currentData);
+        Task GenerateImageAsync(SessionData sessionData, FrameData currentData);
     }
 }

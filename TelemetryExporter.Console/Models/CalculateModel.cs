@@ -1,30 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TelemetryExporter.Console.Models
+﻿namespace TelemetryExporter.Console.Models
 {
-    public class CalculateModel
+    public class CalculateModel(DateTime previousDate, DateTime nextDate, double? previousValue, double? nextValue, DateTime calculateAt)
     {
-        public CalculateModel(System.DateTime previousDate, System.DateTime nextDate, double? previousValue, double? nextValue, System.DateTime calculateAt)
-        {
-            PreviousDate = previousDate;
-            NextDate = nextDate;
-            PreviousValue = previousValue;
-            NextValue = nextValue;
-            CalculateAt = calculateAt;
-        }
+        public DateTime PreviousDate { get; set; } = previousDate;
 
-        public System.DateTime PreviousDate { get; set; }
+        public DateTime NextDate { get; set; } = nextDate;
 
-        public System.DateTime NextDate { get; set; }
+        public double? PreviousValue { get; set; } = previousValue;
 
-        public double? PreviousValue { get; set; }
+        public double? NextValue { get; set; } = nextValue;
 
-        public double? NextValue { get; set; }
-
-        public System.DateTime CalculateAt { get; set; }
+        public DateTime CalculateAt { get; set; } = calculateAt;
     }
 }

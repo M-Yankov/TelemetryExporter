@@ -85,7 +85,14 @@ namespace TelemetryExporter.Console
             #endregion
         }
 
+        static decimal ConvertToDegreesFromSemicircles(int value)
+        {
+            decimal result = (long)int.MaxValue + 1;
+            decimal res = 180M / result;
 
+            decimal res2 = result / 180M;
 
+            return value * res;
+        }
     }
 }

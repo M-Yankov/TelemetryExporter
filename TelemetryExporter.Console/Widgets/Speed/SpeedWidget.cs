@@ -1,13 +1,15 @@
 ﻿using SkiaSharp;
 
+using TelemetryExporter.Console.Attributes;
 using TelemetryExporter.Console.Models;
 using TelemetryExporter.Console.Widgets.Interfaces;
 
 namespace TelemetryExporter.Console.Widgets.Speed
 {
+    [WidgetData(Index = 1)]
     internal class SpeedWidget : IWidget
     {
-        public void GenerateImage(SessionData sessionData, FrameData currentData)
+        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
         {
             string folderName = Path.Combine("Telemetry", "Speed");
             if (!Directory.Exists(folderName))
@@ -77,7 +79,6 @@ namespace TelemetryExporter.Console.Widgets.Speed
             SKPoint centerPoint = new(radial.Width / 2f, radial.Height / 2f);
             canvas.Translate(centerPoint);
 
-
             canvas.RotateDegrees((float)dialDegrees);
 
             canvas.Translate(-centerPoint.X, -centerPoint.Y);
@@ -90,7 +91,9 @@ namespace TelemetryExporter.Console.Widgets.Speed
             using SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
 
             using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            data.SaveTo(stream);
+            using Stream s = data.AsStream();
+            await s.CopyToAsync(stream);
+            await stream.FlushAsync();
         }
     }
 }

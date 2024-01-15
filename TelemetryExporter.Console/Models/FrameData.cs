@@ -15,12 +15,12 @@
         /// <summary>
         /// Y
         /// </summary>
-        public int? Latitude { get; set; }
+        public float? Latitude { get; set; }
 
         /// <summary>
         /// X
         /// </summary>
-        public int? Longitude { get; set; }
+        public float? Longitude { get; set; }
 
         public double? Altitude { get; set; }
 

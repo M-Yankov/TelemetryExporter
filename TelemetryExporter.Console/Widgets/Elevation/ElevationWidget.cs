@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 
 using Dynastream.Fit;
 
 using SkiaSharp;
 
+using TelemetryExporter.Console.Attributes;
 using TelemetryExporter.Console.Models;
 using TelemetryExporter.Console.Utilities;
 using TelemetryExporter.Console.Widgets.Interfaces;
 
 namespace TelemetryExporter.Console.Widgets.Elevation
 {
+    [WidgetData(Index = 5)]
     internal class ElevationWidget : IWidget
     {
         const int ElevationPictureWidthPixels = 700;
@@ -31,7 +26,7 @@ namespace TelemetryExporter.Console.Widgets.Elevation
             elevationPath = lineChartData.LinePath;
         }
 
-        public void GenerateImage(SessionData sessionData, FrameData currentData)
+        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(ElevationPictureWidthPixels, ElevationPictureHeightPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -122,7 +117,9 @@ namespace TelemetryExporter.Console.Widgets.Elevation
             using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
             using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            data.SaveTo(stream);
+            using Stream s = data.AsStream();
+            await s.CopyToAsync(stream);
+            await stream.FlushAsync();
         }
     }
 }

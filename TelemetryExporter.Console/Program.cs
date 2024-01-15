@@ -1,11 +1,14 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Text;
-using SkiaSharp;
+﻿using System.Reflection;
+
 using Dynastream.Fit;
 
+using SkiaSharp;
+
+using TelemetryExporter.Console.Attributes;
 using TelemetryExporter.Console.Models;
+using TelemetryExporter.Console.Utilities;
+using TelemetryExporter.Console.Widgets.Interfaces;
+
 // Check this: /activity-service/activity/12092921949/details
 
 // below that speed it's assumed as walking (For running only)
@@ -22,12 +25,12 @@ FileInfo fitFile = new(@"C:\Users\M.Yankov\Desktop\12027002954_Lidl_Run_ACTIVITY
 using FileStream fitStream = fitFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 decode.Read(fitStream);
 
-ProcessMethod(fitListener.FitMessages);
+await ProcessMethod(fitListener.FitMessages);
 return 0;
 
-static void ProcessMethod(FitMessages fitMessages)
+static async Task ProcessMethod(FitMessages fitMessages)
 {
-    List<(System.DateTime start, System.DateTime end)> activePeriods = new();
+    List<(System.DateTime start, System.DateTime end)> activePeriods = [];
 
     List<EventMesg> eventMessages = fitMessages.EventMesgs.OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
 
@@ -61,7 +64,7 @@ static void ProcessMethod(FitMessages fitMessages)
         }
     }
 
-    if (!fitMessages.RecordMesgs.Any())
+    if (fitMessages.RecordMesgs.Count == 0)
     {
         return;
     }
@@ -83,16 +86,18 @@ static void ProcessMethod(FitMessages fitMessages)
 
     RecordMesg currentRecord = queue.Dequeue();
 
-    Point? lastKnownGpsLocation = null;
+    SKPoint? lastKnownGpsLocation = null;
     int frame = default;
 
     SessionData sessionData = new()
     {
-        MaxSpeed = fitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed()) ?? 0,
+        MaxSpeed = fitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
         TotalDistance = fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
         CountOfRecords = orderedRecordMessages.Count
     };
 
+    List<FrameData> framesList = [];
+ 
     do
     {
         double? speed = null;
@@ -145,12 +150,12 @@ static void ProcessMethod(FitMessages fitMessages)
                     nextRcordMesg.GetPositionLong(),
                     currentTimeFrame);
 
-                speed = GetValueBetweenDates(speedMetrics);
-                distance = GetValueBetweenDates(distanceMetrics);
-                altitude = GetValueBetweenDates(altitudeMetrics);
+                speed = Helper.GetValueBetweenDates(speedMetrics);
+                distance = Helper.GetValueBetweenDates(distanceMetrics);
+                altitude = Helper.GetValueBetweenDates(altitudeMetrics);
 
-                lattitude = (int?)GetValueBetweenDates(lattitudeMetrics);
-                longitude = (int?)GetValueBetweenDates(longitudeMetrics);
+                lattitude = (int?)Helper.GetValueBetweenDates(lattitudeMetrics);
+                longitude = (int?)Helper.GetValueBetweenDates(longitudeMetrics);
             }
 
             if (currentRecordDate.HasValue && recordDate > currentRecordDate && currentTimeFrame >= recordDate)
@@ -189,23 +194,22 @@ static void ProcessMethod(FitMessages fitMessages)
 
         FrameData frameData = new() 
         {
-            FileName = $"frame_{++frame}.png",
+            FileName = $"frame_{$"{++frame}".PadLeft(6, '0')}.png",
             Altitude = altitude,
             Distance = distance,
             Pace = pace,
-            Speed = speed.Value,
+            Speed = speed * 3.6 ?? 0,
             IndexOfCurrentRecord = orderedRecordMessages.IndexOf(currentRecord) + 1,
             Longitude = lastKnownGpsLocation?.X,
             Latitude = lastKnownGpsLocation?.Y,
         };
 
+        framesList.Add(frameData);
+
         TimeSpan duration = (currentTimeFrame - startDate);
 
         float? hr = currentRecord?.GetHeartRate(); // beats per minute  
         sbyte? t = currentRecord?.GetTemperature();
-
-        // instead of directly generate images I can made model with ready points for drawing calculating - it could take more memory
-        // textResult.AppendLine($"{duration,16} - speed: {(int)pace,3}:{(int)paceSeconds:D2}, {activeTimeDuration,16}, Dist: {distance / 1000,4:F2}km, {altitude,4:F1}↑ ♥{hr,3}, {t,2}℃");
 
         // this will result 2 fps https://fpstoms.com/
         int millsecondsStep = 1000 / FPS;
@@ -218,20 +222,17 @@ static void ProcessMethod(FitMessages fitMessages)
 
     } while (currentTimeFrame <= endDate);
 
-    // using FileStream fileStream = new("results.txt", FileMode.OpenOrCreate);
-    // using StreamWriter w = new(fileStream);
-    // w.WriteLine(textResult.ToString());
 
-    /// Do I need this at all ?
-    static decimal ConvertToDegreesFromSemicircles(int value)
+    IEnumerable<IWidget> widgets = GetWidgetList([4], fitMessages.RecordMesgs);
+
+    List<Task> renderTasks = [];
+    foreach (IWidget widget in widgets)
     {
-        decimal result = (long)int.MaxValue + 1;
-        decimal res = 180M / result;
-
-        decimal res2 = result / 180M;
-
-        return value * res;
+        // task.ConfigureAwait(false);
+        renderTasks.Add(ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, widget));
     }
+
+    await Task.WhenAll(renderTasks);
 
     static bool IsRecordInActiveTime(System.DateTime date, IReadOnlyCollection<(System.DateTime start, System.DateTime end)> activePeriods)
     {
@@ -240,53 +241,28 @@ static void ProcessMethod(FitMessages fitMessages)
     }
 }
 
-static double? GetValueBetweenDates(CalculateModel calculateModel)
+static IEnumerable<IWidget> GetWidgetList(IReadOnlyCollection<int> selectedIds, IReadOnlyCollection<RecordMesg> recordData)
 {
-    System.DateTime previousDate = calculateModel.PreviousDate;
-    System.DateTime nextDate = calculateModel.NextDate;
-    System.DateTime dateForCalculation = calculateModel.CalculateAt;
+    List<int?> searchableList = selectedIds.Cast<int?>().ToList();
+    IEnumerable<Type> types = Assembly
+        .GetExecutingAssembly()
+        .GetTypes()
+        .Where(t => t.IsAssignableTo(typeof(IWidget)) && searchableList.Contains(t.GetCustomAttribute<WidgetDataAttribute>()?.Index));
 
-    double? previousValue = calculateModel.PreviousValue;
-    double? nextValue = calculateModel.NextValue;
-
-    if ((previousDate < dateForCalculation && dateForCalculation < nextDate) == false)
+    List<IWidget> result = [];
+    foreach (Type type in types)
     {
-        throw new ArgumentException("dateForCalculation should be between previous and next records!");
-    }
+        List<object?> parameters = [];
+        if (type.GetConstructor([recordData.GetType()]) != null)
+        {
+            parameters.Add(recordData);
+        }
 
-    TimeSpan timeDifference = nextDate - previousDate;
-    TimeSpan timeForCalculationInRange = dateForCalculation - previousDate;
-
-    double? difference = nextValue - previousValue;
-
-    if (!difference.HasValue || previousValue.HasValue == false)
-    {
-        return null;
-    }
-
-    // no change in speed. Return the same speed
-    if (difference.HasValue && difference.Value == 0)
-    {
-        return previousValue.Value;
-    }
-
-    double valueDifference = Math.Abs(difference.Value);
-
-    // should we use seconds here !
-    double percentageOfTotalTime = timeForCalculationInRange / timeDifference;
-
-    bool isAscending = nextValue - previousValue > 0;
-    bool isDescending = nextValue - previousValue < 0;
-
-    double result = previousValue.Value;
-
-    if (isAscending)
-    {
-        result += (valueDifference * percentageOfTotalTime);
-    }
-    else if (isDescending)
-    {
-        result -= (valueDifference * percentageOfTotalTime);
+        object? createdInstance = Activator.CreateInstance(type, [.. parameters]);
+        if (createdInstance is IWidget widget)
+        {
+            result.Add(widget);
+        }
     }
 
     return result;

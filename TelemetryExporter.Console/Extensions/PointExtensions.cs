@@ -10,13 +10,7 @@ namespace TelemetryExporter.Console.Extensions
 
         public static decimal Latitude(this Point point) => ConvertFromSemiCircles(point.Y);
 
-        public static void AddOffset(this ref SKPoint skPoint, float offset) => skPoint.AddOffset(offset, offset);
-
-        public static void AddOffset(this ref SKPoint skPoint, float xOffset, float yOffset)
-        {
-            skPoint.X += xOffset;
-            skPoint.Y += yOffset;
-        }
+        public static void AddOffset(this ref SKPoint skPoint, float offset) => skPoint.Offset(offset, offset);
 
         private static decimal ConvertFromSemiCircles(int value)
         {

@@ -7,7 +7,7 @@ using SkiaSharp;
 namespace TelemetryExporter.Console.Utilities
 {
     /// <summary>
-    /// X axis is time, Y axis is the value at that moment
+    /// X axis is time, Y axis is the value at that moment.
     /// </summary>
     internal class LineChartData
     {
@@ -15,21 +15,21 @@ namespace TelemetryExporter.Console.Utilities
 
         public LineChartData(ReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentageY)
         {
-            lineChart = BuildPath(dataMessages);
             PictureHeightPixels = heightPixels;
             PictureWidthPixels = widthPixels;
             OffsetPixelsY = heightPixels * offsetPercentageY;
+
+            lineChart = BuildPath(dataMessages);
         }
 
         public SKPath LinePath => lineChart;
 
-        public float MinY { get; set; }
+        public float MinY { get; set; } = float.MaxValue;
 
-        public float MaxY { get; set; }
+        public float MaxY { get; set; } = float.MinValue;
 
         public float TotalValue { get => Math.Abs(MaxY - MinY); }
 
-        #region PicruteData
         public int PictureWidthPixels { get; set; }
 
         public int PictureHeightPixels { get; set; }
@@ -39,7 +39,7 @@ namespace TelemetryExporter.Console.Utilities
         /// <summary>
         /// Calculates the point according to value and given time at index.
         /// </summary>
-        /// <param name="currentValueY">It's the value of Y axis between MinY and MaxY..</param>
+        /// <param name="currentValueY">It's the value of Y axis between MinY and MaxY.</param>
         /// <param name="currentIndex">The index of X axis according to <paramref name="totalValuesX"/>.</param>
         /// <param name="totalValuesX">Count of total values of X axis.</param>
         /// <returns></returns>
@@ -58,7 +58,6 @@ namespace TelemetryExporter.Console.Utilities
 
             return new(x, y);
         }
-        #endregion
 
         private SKPath BuildPath(ReadOnlyCollection<RecordMesg> dataMessages)
         {
@@ -104,6 +103,5 @@ namespace TelemetryExporter.Console.Utilities
 
             return skPath;
         }
-
     }
 }

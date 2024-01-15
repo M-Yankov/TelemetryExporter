@@ -4,16 +4,19 @@ using Dynastream.Fit;
 
 using SkiaSharp;
 
+using TelemetryExporter.Console.Attributes;
+using TelemetryExporter.Console.Extensions;
 using TelemetryExporter.Console.Models;
 using TelemetryExporter.Console.Utilities;
 using TelemetryExporter.Console.Widgets.Interfaces;
 
 namespace TelemetryExporter.Console.Widgets.Trace
 {
+    [WidgetData(Index = 3)]
     internal class TraceWidget : IWidget
     {
         private const int GpxPictureWidthPixels = 1000;
-        private const int GpxPictureOffsetPixels = 50;
+        private const float GpxPictureOffsetPercentage = .05f;
 
         private readonly TraceChartData traceChart;
         private readonly SKPath tracePath;
@@ -21,11 +24,11 @@ namespace TelemetryExporter.Console.Widgets.Trace
         public TraceWidget(ReadOnlyCollection<RecordMesg> dataMessages)
         {
             // It's square
-            traceChart = new TraceChartData(dataMessages, GpxPictureWidthPixels, GpxPictureWidthPixels, GpxPictureOffsetPixels);
+            traceChart = new TraceChartData(dataMessages, GpxPictureWidthPixels, GpxPictureWidthPixels, GpxPictureOffsetPercentage);
             tracePath = traceChart.TracePath;
         }
 
-        public void GenerateImage(SessionData sessionData, FrameData currentData)
+        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -59,6 +62,7 @@ namespace TelemetryExporter.Console.Widgets.Trace
             if (currentData.Longitude.HasValue && currentData.Latitude.HasValue)
             {
                 gpxPoint = traceChart.CalculateImageCoordinates(currentData.Longitude.Value, currentData.Latitude.Value);
+                gpxPoint.AddOffset(GpxPictureWidthPixels * GpxPictureOffsetPercentage);
             }
 
             if (!gpxPoint.IsEmpty)
@@ -71,7 +75,9 @@ namespace TelemetryExporter.Console.Widgets.Trace
             using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
             using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            data.SaveTo(stream);
+            using Stream s = data.AsStream();
+            await s.CopyToAsync(stream);
+            await stream.FlushAsync();
         }
     }
 }

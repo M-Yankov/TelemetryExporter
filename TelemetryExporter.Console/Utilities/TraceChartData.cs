@@ -14,11 +14,12 @@ namespace TelemetryExporter.Console.Utilities
 
         public TraceChartData(ReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentage)
         {
-            tracePath = BuildPath(dataMessages);
             PictureHeightPixels = heightPixels;
             PictureWidthPixels = widthPixels;
             OffsetPixelsY = heightPixels * offsetPercentage;
             OffsetPixelsX = widthPixels * offsetPercentage;
+
+            tracePath = BuildPath(dataMessages);
         }
 
         public SKPath TracePath { get => tracePath; }
@@ -31,13 +32,13 @@ namespace TelemetryExporter.Console.Utilities
 
         public float OffsetPixelsX { get; set; }
 
-        private SKPoint FarTopPoint { get; set; }
+        private SKPoint FarTopPoint { get; set; } = new(0, float.MinValue);
 
-        private SKPoint FarBottomPoint { get; set; }
+        private SKPoint FarBottomPoint { get; set; } = new(0, float.MaxValue);
 
-        private SKPoint FarLeftPoint { get; set; }
+        private SKPoint FarLeftPoint { get; set; } = new(float.MaxValue, 0);
 
-        private SKPoint FarRightPoint { get; set; }
+        private SKPoint FarRightPoint { get; set; } = new(float.MinValue, 0);
 
         public SKPoint CalculateImageCoordinates(float longitude, float latitude)
         {
@@ -96,7 +97,7 @@ namespace TelemetryExporter.Console.Utilities
             }
 
             SKPath path = new();
-            if (!points.Any())
+            if (points.Count == 0)
             {
                 return path;
             }
@@ -107,7 +108,7 @@ namespace TelemetryExporter.Console.Utilities
                 float longitude = points[i].X;
 
                 SKPoint p0 = CalculateImageCoordinates(longitude, latitude);
-                p0.AddOffset(OffsetPixelsX, OffsetPixelsY);
+                p0.Offset(OffsetPixelsX, OffsetPixelsY);
 
                 if (i == 0)
                 {

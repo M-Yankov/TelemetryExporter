@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SkiaSharp;
 
-using SkiaSharp;
-
+using TelemetryExporter.Console.Attributes;
 using TelemetryExporter.Console.Models;
 using TelemetryExporter.Console.Widgets.Interfaces;
 
 namespace TelemetryExporter.Console.Widgets.Distance
 {
+    [WidgetData(Index = 2)]
     internal class DistanceWidget : IWidget
     {
-        public void GenerateImage(SessionData sessionData, FrameData currentData)
+        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
         {
             string folderName = Path.Combine("Telemetry", "Distance");
             if (!Directory.Exists(folderName))
@@ -70,7 +66,7 @@ namespace TelemetryExporter.Console.Widgets.Distance
                 distanceAsText = $"-- KM";
             }
 
-            // the Points should be percentage, not hardcoded
+            // the Points should be percentage, not hard-coded
             canvas.DrawText("DISTANCE", new SKPoint(25, 35), textDistancePaint);
             canvas.DrawText(distanceAsText, new SKPoint(25, 75), textDistanceNumbersPaint);
 
@@ -78,7 +74,10 @@ namespace TelemetryExporter.Console.Widgets.Distance
             using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
             using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            data.SaveTo(stream);
+            //data.SaveTo(stream);
+            using Stream s = data.AsStream();
+            await s.CopyToAsync(stream);
+            await stream.FlushAsync();
         }
     }
 }

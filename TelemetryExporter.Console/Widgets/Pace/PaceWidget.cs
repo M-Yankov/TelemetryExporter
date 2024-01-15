@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
 using SkiaSharp;
 
+using TelemetryExporter.Console.Attributes;
 using TelemetryExporter.Console.Models;
 using TelemetryExporter.Console.Widgets.Interfaces;
 
 namespace TelemetryExporter.Console.Widgets.Pace
 {
+    [WidgetData(Index = 4)]
     internal class PaceWidget : IWidget
     {
-        public void GenerateImage(SessionData sessionData, FrameData frameData)
+        public async Task GenerateImageAsync(SessionData sessionData, FrameData frameData)
         {
             const int PaceImageWidth = 400;
             const int PaceImageHeight = 100;
@@ -93,7 +90,7 @@ namespace TelemetryExporter.Console.Widgets.Pace
 
             if (frameData.Pace > 0)
             {
-                text = $"{(int)frameData.Pace}:{paceSeconds:D2}".PadLeft(5, ' ');
+                text = $"{(int)frameData.Pace}:{(int)paceSeconds:D2}".PadLeft(5, ' ');
             }
             else
             {
@@ -114,7 +111,9 @@ namespace TelemetryExporter.Console.Widgets.Pace
             using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
             using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, frameData.FileName));
-            data.SaveTo(stream);
+            using Stream s = data.AsStream();
+            await s.CopyToAsync(stream);
+            await stream.FlushAsync();
         }
     }
 }
