@@ -206,8 +206,10 @@ static async Task ProcessMethod(FitMessages fitMessages)
 
         framesList.Add(frameData);
 
+        // this is the duration (feature widget)
         TimeSpan duration = (currentTimeFrame - startDate);
 
+        // data for future widgets
         float? hr = currentRecord?.GetHeartRate(); // beats per minute  
         sbyte? t = currentRecord?.GetTemperature();
 
@@ -222,15 +224,8 @@ static async Task ProcessMethod(FitMessages fitMessages)
 
     } while (currentTimeFrame <= endDate);
 
-
     IEnumerable<IWidget> widgets = GetWidgetList([4], fitMessages.RecordMesgs);
-
-    List<Task> renderTasks = [];
-    foreach (IWidget widget in widgets)
-    {
-        // task.ConfigureAwait(false);
-        renderTasks.Add(ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, widget));
-    }
+    IEnumerable<Task> renderTasks = widgets.Select(w => ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, w));
 
     await Task.WhenAll(renderTasks);
 
@@ -253,6 +248,8 @@ static IEnumerable<IWidget> GetWidgetList(IReadOnlyCollection<int> selectedIds, 
     foreach (Type type in types)
     {
         List<object?> parameters = [];
+
+        // let's assume there are two types of widget, parameterless constructor and constructor with recordMessages
         if (type.GetConstructor([recordData.GetType()]) != null)
         {
             parameters.Add(recordData);
