@@ -11,8 +11,15 @@ namespace TelemetryExporter.Console.Widgets.Pace
     [WidgetData(Index = 4)]
     internal class PaceWidget : IWidget
     {
+        // below that speed it's assumed as walking (For running only)
+        // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
+        private const double SpeedCutoff = 0.5556;
+
         public async Task GenerateImageAsync(SessionData sessionData, FrameData frameData)
         {
+            double currentSpeed = frameData.Speed < SpeedCutoff ? 0 : frameData.Speed;
+            double pace = currentSpeed > 0 ? 60 / (currentSpeed * 3.6) : default;
+
             const int PaceImageWidth = 400;
             const int PaceImageHeight = 100;
 
@@ -85,12 +92,12 @@ namespace TelemetryExporter.Console.Widgets.Pace
             string text;
 
             // it is to take 0.86214 from 7.86214
-            double paceHundreds = frameData.Pace - (int)frameData.Pace;
+            double paceHundreds = pace - (int)pace;
             double paceSeconds = (paceHundreds * 60);
 
-            if (frameData.Pace > 0)
+            if (pace > 0)
             {
-                text = $"{(int)frameData.Pace}:{(int)paceSeconds:D2}".PadLeft(5, ' ');
+                text = $"{(int)pace}:{(int)paceSeconds:D2}".PadLeft(5, ' ');
             }
             else
             {

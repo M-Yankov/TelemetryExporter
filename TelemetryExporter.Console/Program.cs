@@ -11,10 +11,6 @@ using TelemetryExporter.Console.Widgets.Interfaces;
 
 // Check this: /activity-service/activity/12092921949/details
 
-// below that speed it's assumed as walking (For running only)
-// https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
-const double SpeedCutoff = 0.5556;
-
 const int FPS = 2;
 
 Decode decode = new();
@@ -72,7 +68,7 @@ static async Task ProcessMethod(FitMessages fitMessages)
     // if this is always = true (not runtime calculated) the code could generate the transition (fake) frames.
     // my options is that it's not necessary since the activity is in pause mode. The user can be at one place, not moving, different heart beat
     // but on the other hand the fake frames are something average moving (similar to strava flyBy mode when some one has paused an activity, but was resume far later)
-    bool isActiveTime = true; 
+    bool isActiveTime = true;
 
     List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
 
@@ -97,7 +93,7 @@ static async Task ProcessMethod(FitMessages fitMessages)
     };
 
     List<FrameData> framesList = [];
- 
+
     do
     {
         double? speed = null;
@@ -184,20 +180,11 @@ static async Task ProcessMethod(FitMessages fitMessages)
             }
         }
 
-        // for run only !
-        if (speed < SpeedCutoff)
-        {
-            speed = 0;
-        }
-
-        double pace = speed > 0 ? 60 / (speed.Value * 3.6) : default;
-
-        FrameData frameData = new() 
+        FrameData frameData = new()
         {
             FileName = $"frame_{$"{++frame}".PadLeft(6, '0')}.png",
             Altitude = altitude,
             Distance = distance,
-            Pace = pace,
             Speed = speed * 3.6 ?? 0,
             IndexOfCurrentRecord = orderedRecordMessages.IndexOf(currentRecord) + 1,
             Longitude = lastKnownGpsLocation?.X,
@@ -224,7 +211,7 @@ static async Task ProcessMethod(FitMessages fitMessages)
 
     } while (currentTimeFrame <= endDate);
 
-    IEnumerable<IWidget> widgets = GetWidgetList([4], fitMessages.RecordMesgs);
+    IEnumerable<IWidget> widgets = GetWidgetList([1, 2, 3, 4, 5], fitMessages.RecordMesgs);
     IEnumerable<Task> renderTasks = widgets.Select(w => ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, w));
 
     await Task.WhenAll(renderTasks);
