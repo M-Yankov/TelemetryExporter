@@ -8,30 +8,28 @@
         /// <summary>
         /// Name of the current frame file. Like frame_001, frame_002.
         /// </summary>
-        public required string FileName { get; set; }
-
-        public double Pace { get; set; }
+        public required string FileName { get; init; }
 
         /// <summary>
         /// Y
         /// </summary>
-        public float? Latitude { get; set; }
+        public float? Latitude { get; init; }
 
         /// <summary>
         /// X
         /// </summary>
-        public float? Longitude { get; set; }
+        public float? Longitude { get; init; }
 
-        public double? Altitude { get; set; }
+        public double? Altitude { get; init; }
 
-        public double? Distance { get; set; }
+        public double? Distance { get; init; }
 
-        public double Speed { get; set; }
+        public double Speed { get; init; }
 
         /// <summary>
         /// This is the current index of working <see cref="Dynastream.Fit.RecordMesg"/>. 
         /// Multiple frames can have same index of record. It depends on the used FPS and the interval (dates) between records.
         /// </summary>
-        public int IndexOfCurrentRecord { get; set; }
+        public int IndexOfCurrentRecord { get; init; }
     }
 }
