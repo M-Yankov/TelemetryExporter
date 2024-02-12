@@ -9,17 +9,16 @@
             InitializeComponent();
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+        // SemanticScreenReader.Announce(CounterBtn.Text);
+
+        private void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
         {
-            count++;
+            TheBorder.Stroke = Colors.Red;
+        }
 
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+        private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
+        {
+            TheBorder.Stroke = Colors.White;
         }
     }
-
 }
