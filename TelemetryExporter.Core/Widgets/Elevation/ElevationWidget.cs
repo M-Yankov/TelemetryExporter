@@ -12,7 +12,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 namespace TelemetryExporter.Core.Widgets.Elevation
 {
     [WidgetData(Index = 5)]
-    internal class ElevationWidget : IWidget
+    public class ElevationWidget : IWidget
     {
         const int ElevationPictureWidthPixels = 700;
         const int ElevationPictureHeightPixels = 250;
@@ -26,7 +26,7 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             elevationPath = lineChartData.LinePath;
         }
 
-        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
+        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(ElevationPictureWidthPixels, ElevationPictureHeightPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -67,11 +67,11 @@ namespace TelemetryExporter.Core.Widgets.Elevation
                 Style = SKPaintStyle.Fill
             };
 
-            string folderName = Path.Combine("Telemetry", "Elevation");
-            if (!Directory.Exists(folderName))
-            {
-                Directory.CreateDirectory(folderName);
-            }
+            //string folderName = Path.Combine("Telemetry", "Elevation");
+            //if (!Directory.Exists(folderName))
+            //{
+            //    Directory.CreateDirectory(folderName);
+            //}
 
             using SKSurface surface = SKSurface.Create(info);
             SKCanvas canvas = surface.Canvas;
@@ -114,12 +114,13 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             }
 
             using SKImage image = surface.Snapshot();
-            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
-            using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            using Stream s = data.AsStream();
-            await s.CopyToAsync(stream);
-            await stream.FlushAsync();
+            return data;
+            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
+            //using Stream s = data.AsStream();
+            //await s.CopyToAsync(stream);
+            //await stream.FlushAsync();
         }
     }
 }

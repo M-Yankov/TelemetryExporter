@@ -15,7 +15,7 @@ namespace TelemetryExporter.Core.Widgets.Pace
         // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
         private const double SpeedCutoff = 0.5556;
 
-        public async Task GenerateImageAsync(SessionData sessionData, FrameData frameData)
+        public SKData GenerateImage(SessionData sessionData, FrameData frameData)
         {
             double currentSpeed = frameData.Speed < SpeedCutoff ? 0 : frameData.Speed;
             double pace = currentSpeed > 0 ? 60 / (currentSpeed * 3.6) : default;
@@ -25,11 +25,11 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
             float percentageOffsetWidth = PaceImageWidth * .05f;
 
-            string folderName = Path.Combine("Telemetry", "Pace");
-            if (!Directory.Exists(folderName))
-            {
-                Directory.CreateDirectory(folderName);
-            }
+            //string folderName = Path.Combine("Telemetry", "Pace");
+            //if (!Directory.Exists(folderName))
+            //{
+            //    Directory.CreateDirectory(folderName);
+            //}
 
             SKImageInfo info = new(PaceImageWidth, PaceImageHeight, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -115,12 +115,12 @@ namespace TelemetryExporter.Core.Widgets.Pace
             canvas.DrawLine(bottomLeftDrawArea, bottomRightDrawArea, linePaint);
 
             using SKImage image = surface.Snapshot();
-            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-
-            using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, frameData.FileName));
-            using Stream s = data.AsStream();
-            await s.CopyToAsync(stream);
-            await stream.FlushAsync();
+            SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return data;
+            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, frameData.FileName));
+            //using Stream s = data.AsStream();
+            //await s.CopyToAsync(stream);
+            //await stream.FlushAsync();
         }
     }
 }

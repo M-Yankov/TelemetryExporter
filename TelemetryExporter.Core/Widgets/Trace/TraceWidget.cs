@@ -28,7 +28,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
             tracePath = traceChart.TracePath;
         }
 
-        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
+        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -47,11 +47,11 @@ namespace TelemetryExporter.Core.Widgets.Trace
                 StrokeWidth = 2
             };
 
-            string folderName = Path.Combine("Telemetry", "Trace");
-            if (!Directory.Exists(folderName))
-            {
-                Directory.CreateDirectory(folderName);
-            }
+            //string folderName = Path.Combine("Telemetry", "Trace");
+            //if (!Directory.Exists(folderName))
+            //{
+            //    Directory.CreateDirectory(folderName);
+            //}
 
             using SKSurface surface = SKSurface.Create(info);
 
@@ -72,12 +72,12 @@ namespace TelemetryExporter.Core.Widgets.Trace
             }
 
             using SKImage image = surface.Snapshot();
-            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-
-            using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            using Stream s = data.AsStream();
-            await s.CopyToAsync(stream);
-            await stream.FlushAsync();
+            SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return data;
+            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
+            //using Stream s = data.AsStream();
+            //await s.CopyToAsync(stream);
+            //await stream.FlushAsync();
         }
     }
 }

@@ -9,13 +9,13 @@ namespace TelemetryExporter.Core.Widgets.Speed
     [WidgetData(Index = 1)]
     internal class SpeedWidget : IWidget
     {
-        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
+        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
         {
-            string folderName = Path.Combine("Telemetry", "Speed");
-            if (!Directory.Exists(folderName))
-            {
-                Directory.CreateDirectory(folderName);
-            }
+            //string folderName = Path.Combine("Telemetry", "Speed");
+            //if (!Directory.Exists(folderName))
+            //{
+            //    Directory.CreateDirectory(folderName);
+            //}
 
             using SKBitmap radial = SKBitmap.FromImage(SKImage.FromEncodedData(Path.Combine("Images", "radial_6.png")));
             using SKBitmap dial = SKBitmap.FromImage(SKImage.FromEncodedData(Path.Combine("Images", "radial_6_dial.png")));
@@ -88,12 +88,13 @@ namespace TelemetryExporter.Core.Widgets.Speed
             canvas.Restore();
 
             using SKImage imageExport = surface.Snapshot();
-            using SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
+            SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
+            return data;
 
-            using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            using Stream s = data.AsStream();
-            await s.CopyToAsync(stream);
-            await stream.FlushAsync();
+            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
+            //using Stream s = data.AsStream();
+            //await s.CopyToAsync(stream);
+            //await stream.FlushAsync();
         }
     }
 }

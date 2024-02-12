@@ -9,13 +9,13 @@ namespace TelemetryExporter.Core.Widgets.Distance
     [WidgetData(Index = 2)]
     internal class DistanceWidget : IWidget
     {
-        public async Task GenerateImageAsync(SessionData sessionData, FrameData currentData)
+        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
         {
-            string folderName = Path.Combine("Telemetry", "Distance");
-            if (!Directory.Exists(folderName))
-            {
-                Directory.CreateDirectory(folderName);
-            }
+            //string folderName = Path.Combine("Telemetry", "Distance");
+            //if (!Directory.Exists(folderName))
+            //{
+            //    Directory.CreateDirectory(folderName);
+            //}
 
             const int DistanceImageWidth = 700;
             const int DistanceImageHeight = 100;
@@ -71,13 +71,15 @@ namespace TelemetryExporter.Core.Widgets.Distance
             canvas.DrawText(distanceAsText, new SKPoint(25, 75), textDistanceNumbersPaint);
 
             using SKImage image = surface.Snapshot();
-            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return data;
 
-            using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            //data.SaveTo(stream);
-            using Stream s = data.AsStream();
-            await s.CopyToAsync(stream);
-            await stream.FlushAsync();
+
+            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
+            ////data.SaveTo(stream);
+            //using Stream s = data.AsStream();
+            //await s.CopyToAsync(stream);
+            //await stream.FlushAsync();
         }
     }
 }

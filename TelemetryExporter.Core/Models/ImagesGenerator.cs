@@ -8,7 +8,7 @@ namespace TelemetryExporter.Core.Models
         {
             foreach (FrameData frame in frameData)
             {
-                await widget.GenerateImageAsync(sessionData, frame);
+                var _ = widget.GenerateImage(sessionData, frame);
             }
         }
 

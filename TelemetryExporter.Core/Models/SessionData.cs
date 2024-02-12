@@ -3,7 +3,7 @@
     /// <summary>
     /// Contains constant data that is same for all frames.
     /// </summary>
-    internal class SessionData
+    public class SessionData
     {
         public double TotalDistance { get; init; }
 

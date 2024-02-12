@@ -3,7 +3,7 @@
     /// <summary>
     /// This class contains variable data for the current frame. Each frame contains different values.
     /// </summary>
-    internal class FrameData
+    public class FrameData
     {
         /// <summary>
         /// Name of the current frame file. Like frame_001, frame_002.
