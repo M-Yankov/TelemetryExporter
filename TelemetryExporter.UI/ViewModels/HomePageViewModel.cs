@@ -1,39 +1,41 @@
 ﻿using System.ComponentModel;
 using System.Windows.Input;
 
-using SkiaSharp;
-
-using TelemetryExporter.Core.Models;
-using TelemetryExporter.Core.Utilities;
-using TelemetryExporter.Core.Widgets.Elevation;
+using TelemetryExporter.UI.Resources;
 
 
 namespace TelemetryExporter.UI.ViewModels
 {
     public class HomePageViewModel : INotifyPropertyChanged
     {
-        private ImageSource? elevationProfileImage;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
+        private string selectedFileName;
 
         // Button to be with cursor-hand
         // https://vladislavantonyuk.github.io/articles/Setting-a-cursor-for-.NET-MAUI-VisualElement/
         public HomePageViewModel()
         {
-            OpenActivityFileCommand = new Command(() => DoPickActivityFile());
+            OpenActivityFileCommand = new Command(DoPickActivityFile);
         }
 
         public ICommand OpenActivityFileCommand { get; set; }
 
-        public ImageSource? MyImage
-        {
-            get => elevationProfileImage;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-            set
-            {
-                elevationProfileImage = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyImage)));
+        public string SelectedFileName
+        {
+            get => $"Selected: {selectedFileName}";
+            set 
+            { 
+                selectedFileName = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedFileName)));
             }
+        }
+
+
+        // Not implemented!
+        internal void DropGestureRecognizer_Drop(object? sender, DropEventArgs e)
+        {
+
         }
 
         private async void DoPickActivityFile()
@@ -68,61 +70,17 @@ namespace TelemetryExporter.UI.ViewModels
             {
                 FileResult? result = await FilePicker.PickAsync(options);
 
-                if (result != null)
+                if (result != null && string.Equals(Path.GetExtension(result.FileName).ToLowerInvariant(), ".fit"))
                 {
-                    // var size = await GetStreamSizeAsync(result);
+                    Stream stream = await result.OpenReadAsync();
+                    this.SelectedFileName = result.FileName;
 
-                    // Text = $"File Name: {result.FileName} ({size:0.00} KB)";
-
-                    string ext = Path.GetExtension(result.FileName).ToLowerInvariant();
-                    if (ext == ".fit")
+                    Dictionary<string, object> navigationParameter = new()
                     {
-                        Stream stream = await result.OpenReadAsync();
+                        { TEConstants.QueryKeys.FitStreamKey, stream },
+                    };
 
-                        var fitMessages = new FitDecoder(stream).FitMessages;
-                        ElevationWidget elevationProfile = new(fitMessages.RecordMesgs);
-
-                        SessionData sessionData = new()
-                        {
-                            MaxSpeed = fitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
-                            TotalDistance = fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
-                            CountOfRecords = fitMessages.RecordMesgs.Count
-                        };
-
-                        const string FileName = "elevationProfile.png";
-                        SKData data = elevationProfile.GenerateImage(sessionData, new FrameData()
-                        {
-                            FileName = FileName,
-                            Altitude = null,
-                            Distance = 0,
-                            Latitude = 0,
-                            IndexOfCurrentRecord = default,
-                            Longitude = default,
-                            Speed = default
-                        });
-
-                        MemoryStream memoryStream = new(data.ToArray());
-                        // data.SaveTo(memoryStream);
-                        //using Stream s = data.AsStream();
-                        //await s.CopyToAsync(memoryStream);
-                        //await memoryStream.FlushAsync();
-
-                        byte[] a = File.ReadAllBytes(@"C:\Users\M.Yankov\Documents\GitHub\TelemetryExporter\TelemetryExporter.UI\Resources\Images\dotnet_bot.png");
-
-
-
-                        MyImage = ImageSource.FromStream(() => memoryStream);
-
-                        // IsImageVisible = true;
-                    }
-                    else
-                    {
-                        /// IsImageVisible = false;
-                    }
-                }
-                else
-                {
-                    // Text = $"Pick canceled.";
+                    await Shell.Current.GoToAsync(AppShellRouterConfig.WidgetsRoute, navigationParameter);
                 }
 
                 return result;

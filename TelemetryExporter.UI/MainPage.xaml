@@ -2,57 +2,48 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:TelemetryExporter.UI.ViewModels"
-             x:Class="TelemetryExporter.UI.MainPage">
+             x:Class="TelemetryExporter.UI.MainPage"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
-    <ContentPage.BindingContext>
+    <!--<ContentPage.BindingContext>
         <local:HomePageViewModel />
-    </ContentPage.BindingContext>
+    </ContentPage.BindingContext>-->
     <ScrollView>
-            <Border x:Name="TheBorder"
+        <Border x:Name="TheBorder"
                 Stroke="White"
                     StrokeThickness="2"
                     Padding="2"
                     >
-        <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
+            <VerticalStackLayout
+                Padding="30,0"
+                Spacing="25">
                 <VerticalStackLayout.GestureRecognizers>
-                    
-                    <DropGestureRecognizer DragOver="DropGestureRecognizer_DragOver" DragLeave="DropGestureRecognizer_DragLeave" />
+                    <DropGestureRecognizer 
+                        DragOver="DropGestureRecognizer_DragOver"
+                        DragLeave="DropGestureRecognizer_DragLeave"
+                        AllowDrop="False"
+                        x:Name="HomeScreenDropGestureRecognizer"
+                        />
                 </VerticalStackLayout.GestureRecognizers>
-            
-            
-            <!--<Image
-                Source="dotnet_bot.png"
-                HeightRequest="185"
-                Aspect="AspectFit"
-                SemanticProperties.Description="dot net bot in a race car number eight" />-->
 
                 <!-- &#10  - means encoded new line -->
 
-            <Label
-                Text="Drag your files here... or browse from PC"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Drag files in the window or browse from P C" />
+                <Label
+                    x:Name="LabelDrop"
+                    Text="{StaticResource DefaultTextDrop}"
+                    Style="{StaticResource SubHeadline}"
+                    SemanticProperties.HeadingLevel="Level2"
+                    SemanticProperties.Description="Drag files in the window or browse from P C" />
 
                 <Button x:Name="BrowseButton"
-                        Command="{Binding OpenActivityFileCommand}"
                         Text="Browse..." SemanticProperties.Hint="Open activity file" />
 
-                <!-- <Button
-                    x:Name="CounterBtn"
-                    Text="Click me" 
-                    SemanticProperties.Hint="Counts the number of times you click"
-                    Clicked="OnCounterClicked"
-                    HorizontalOptions="Fill" /> -->
+                <Label 
+                    x:Name="LabelFileName"
+                    />
 
-                <Image Source="{Binding MyImage}"
-                       HorizontalOptions="FillAndExpand"
-                       VerticalOptions="FillAndExpand" />
-            
             </VerticalStackLayout>
-            </Border>
+        </Border>
     </ScrollView>
 
 </ContentPage>
