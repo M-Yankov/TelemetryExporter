@@ -3,7 +3,6 @@ using System.Windows.Input;
 
 using TelemetryExporter.UI.Resources;
 
-
 namespace TelemetryExporter.UI.ViewModels
 {
     public class HomePageViewModel : INotifyPropertyChanged
@@ -24,8 +23,8 @@ namespace TelemetryExporter.UI.ViewModels
         public string SelectedFileName
         {
             get => $"Selected: {selectedFileName}";
-            set 
-            { 
+            set
+            {
                 selectedFileName = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedFileName)));
             }
@@ -41,7 +40,7 @@ namespace TelemetryExporter.UI.ViewModels
         private async void DoPickActivityFile()
         {
             // .gpx files will be added in future
-            string[] fileTiles = [".fit"];
+            string[] fileTiles = [TEConstants.Extensions.GarminActivity];
 
             FilePickerFileType customFileType =
                 new(new Dictionary<DevicePlatform, IEnumerable<string>>
@@ -70,7 +69,9 @@ namespace TelemetryExporter.UI.ViewModels
             {
                 FileResult? result = await FilePicker.PickAsync(options);
 
-                if (result != null && string.Equals(Path.GetExtension(result.FileName).ToLowerInvariant(), ".fit"))
+                if (result != null && string.Equals(
+                    Path.GetExtension(result.FileName).ToLowerInvariant(),
+                    TEConstants.Extensions.GarminActivity))
                 {
                     Stream stream = await result.OpenReadAsync();
                     this.SelectedFileName = result.FileName;

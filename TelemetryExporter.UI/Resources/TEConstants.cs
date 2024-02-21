@@ -11,5 +11,10 @@
         {
             public const string FitStreamKey = "FitStream";
         }
+
+        internal static class Extensions
+        {
+            public const string GarminActivity = ".fit";
+        }
     }
 }

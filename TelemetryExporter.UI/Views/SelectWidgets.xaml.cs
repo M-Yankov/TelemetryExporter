@@ -7,7 +7,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 {
 	public SelectWidgets()
 	{
-		InitializeComponent();
+        InitializeComponent();
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
