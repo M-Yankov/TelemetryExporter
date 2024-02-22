@@ -26,15 +26,16 @@
                         />
                 </VerticalStackLayout.GestureRecognizers>
 
-                <!-- &#10  - means encoded new line -->
+                <!-- &#10;  - means encoded new line -->
 
                 <Label
                     x:Name="LabelDrop"
-                    Text="{StaticResource DefaultTextDrop}"
+                    Text="{StaticResource DefaultTextBrowse}"
                     Style="{StaticResource SubHeadline}"
                     SemanticProperties.HeadingLevel="Level2"
                     SemanticProperties.Description="Drag files in the window or browse from P C" />
 
+                <Label Text="{StaticResource FutureDropNotice}" HorizontalTextAlignment="Center" FontAttributes="Italic" />
                 <Button x:Name="BrowseButton"
                         Text="Browse..." SemanticProperties.Hint="Open activity file" />
 

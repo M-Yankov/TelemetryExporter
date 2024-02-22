@@ -1,68 +1,147 @@
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
-using Microsoft.Maui.Controls.Shapes;
+using MAUI = Microsoft.Maui.Controls.Shapes;
 
 namespace TelemetryExporter.UI.CustomControls;
 
-public class RangeSlider : ContentView
+// MAke Range slider Generic and initialize it from code behind.
+// For example RangeSlider<T> where T : Struct (or something comparable)
+public class RangeSlider : ContentView, INotifyPropertyChanged
 {
-    private readonly Rectangle startPoint;
-    private readonly Rectangle endPoint;
-   
+    private readonly MAUI.Path startPoint;
+    private readonly MAUI.Path endPoint;
+
+    private DateTime startValue;
+    private DateTime endValue;
+
     private double accumolatedX = 0;
     private double accumolatedXEnd = 0;
     private double lastUsedWidth = 0;
 
-    private readonly Rectangle selectedRange;
+    private readonly MAUI.Rectangle selectedRange;
+
+    public event RangeSliderChangedEventHandler<DateTime>? OnSliderValuesChanged;
 
     public RangeSlider()
-	{
-        PanGestureRecognizer panGesture = new ();
+    {
+        // Entire logic should be moved into XAML
+        PanGestureRecognizer panGesture = new();
         panGesture.PanUpdated += OnPanUpdated;
         PanGestureRecognizer endPanGesture = new();
         endPanGesture.PanUpdated += EndPointOnPanUpdated;
 
-        startPoint = new Rectangle()
+        startPoint = new MAUI.Path()
         {
-            WidthRequest = 110,
+            WidthRequest = 20,
             HeightRequest = 60,
             Fill = Colors.Black,
+            Stroke = Colors.Black,
+            StrokeThickness = 2,
+            Data = (MAUI.Geometry?)new MAUI.PathGeometryConverter()
+                .ConvertFromInvariantString("M0,0 L0,60 20,60 20,45 0,20 Z")
         };
 
-        endPoint = new Rectangle()
+        endPoint = new MAUI.Path()
         {
-            WidthRequest = 110,
+            WidthRequest = 20,
             HeightRequest = 60,
-            Fill = Colors.DarkRed,
+            Fill = Colors.Black,
+            Stroke = Colors.Black,
+            StrokeThickness = 2,
+            Data = (MAUI.Geometry?)new MAUI.PathGeometryConverter()
+                .ConvertFromInvariantString("M18,0 L18,60 0,60 0,45 18,20 18,0 Z")
         };
 
-        selectedRange = new Rectangle()
+        selectedRange = new MAUI.Rectangle()
         {
             MinimumHeightRequest = 20,
             Fill = Colors.Blue,
         };
 
+        MAUI.Rectangle selectedRangeBoundaries = new()
+        {
+            MinimumHeightRequest = selectedRange.MinimumHeightRequest,
+            Stroke = Colors.LightBlue,
+            StrokeThickness = 3
+        };
+
         startPoint.GestureRecognizers.Add(panGesture);
         endPoint.GestureRecognizers.Add(endPanGesture);
-        
+
         AbsoluteLayout.SetLayoutBounds(startPoint, new Rect(0, 0, startPoint.Width, startPoint.Height));
         AbsoluteLayout.SetLayoutBounds(endPoint, new Rect(0, 0, endPoint.Width, endPoint.Height));
 
-        Rectangle leftBorder = new() { WidthRequest = 2, Fill = Colors.Black, HeightRequest = selectedRange.MinimumHeightRequest };
-        Rectangle rightBorder = new() { WidthRequest = 2, Fill = Colors.Black, HeightRequest = selectedRange.MinimumHeightRequest };
-
-        AbsoluteLayout.SetLayoutFlags(rightBorder, Microsoft.Maui.Layouts.AbsoluteLayoutFlags.XProportional);
-        AbsoluteLayout.SetLayoutBounds(rightBorder, new Rect(1, 0, rightBorder.WidthRequest, selectedRange.MinimumHeightRequest));
+        AbsoluteLayout.SetLayoutFlags(selectedRangeBoundaries, Microsoft.Maui.Layouts.AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayout.SetLayoutBounds(selectedRangeBoundaries, new Rect(0, 0, 1, selectedRangeBoundaries.MinimumHeightRequest));
 
         Content = new AbsoluteLayout
-		{
-			Children = {
-                leftBorder, rightBorder, startPoint, endPoint, selectedRange,
+        {
+            Children = {
+                selectedRangeBoundaries, selectedRange, startPoint, endPoint
             }
-		};
-	}
+        };
+    }
 
-    // Using this event to use Content.Width
+    public DateTime MinValue { get; private set; }
+
+    public DateTime MaxValue { get; private set; }
+
+    public DateTime StartValue
+    {
+        get => startValue;
+        private set
+        {
+            startValue = value;
+            OnPropertyChanged(nameof(StartValue));
+            RangeSliderChangedEventArgs<DateTime> eventArgs = new()
+            {
+                StartValuePercentage = accumolatedX / Content.Width,
+                EndValuePercentage = (accumolatedXEnd + endPoint.Width) / Content.Width,
+                StartValue = startValue,
+                EndValue = endValue,
+            };
+
+            OnSliderValuesChanged?.Invoke(this, eventArgs);
+        }
+    }
+    public DateTime EndValue
+    {
+        get => endValue;
+        private set
+        {
+            endValue = value;
+            OnPropertyChanged(nameof(EndValue));
+            RangeSliderChangedEventArgs<DateTime> eventArgs = new()
+            {
+                StartValuePercentage = accumolatedX / Content.Width,
+                EndValuePercentage = (accumolatedXEnd + endPoint.Width) / Content.Width,
+                StartValue = startValue,
+                EndValue = endValue,
+            };
+
+            OnSliderValuesChanged?.Invoke(this, eventArgs);
+        }
+    }
+
+    public void InitializeMinMax(DateTime min, DateTime max)
+    {
+        if (max == min || min > max)
+        {
+            throw new ArgumentException($"{nameof(max)} should be greater than {nameof(min)}", nameof(min));
+        }
+
+        if (min == new DateTime() && max == new DateTime())
+        {
+            throw new InvalidOperationException("Min/Max ranges already initialized");
+        }
+
+        StartValue = MinValue = min;
+        EndValue = MaxValue = max;
+    }
+
+     // Using this event to use Content.Width
     protected override void OnSizeAllocated(double width, double height)
     {
         base.OnSizeAllocated(width, height);
@@ -111,15 +190,18 @@ public class RangeSlider : ContentView
         {
             case GestureStatus.Running:
 
-                double boundsX = Content.Width;
-                double value = Math.Clamp(accumolatedX + e.TotalX, 0, boundsX - startPoint.Width);
-                startPoint.TranslationX = value; // SetLayoutBounds has some strange behavior
+                double value = Math.Clamp(accumolatedX + e.TotalX, 0, accumolatedXEnd);
+                startPoint.TranslationX = value;
+                // SetLayoutBounds has some strange behavior
                 // AbsoluteLayout.SetLayoutBounds(startPoint, new Rect(value, 0, startPoint.WidthRequest, startPoint.HeightRequest));
                 AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(value, 0, endPoint.Width + accumolatedXEnd - value, selectedRange.Height));
                 break;
 
             case GestureStatus.Completed:
                 accumolatedX = startPoint.TranslationX;
+
+                double percentage = accumolatedX / Content.Width;
+                StartValue = new DateTime((long)(MinValue.Ticks + ((MaxValue.Ticks - MinValue.Ticks) * percentage)));
                 break;
             case GestureStatus.Canceled:
                 Debug.WriteLine("Canceled");
@@ -134,15 +216,21 @@ public class RangeSlider : ContentView
         {
             case GestureStatus.Running:
                 double boundsX = Content.Width;
-                double value = Math.Clamp(accumolatedXEnd + e.TotalX, 0, boundsX - endPoint.Width);
-                endPoint.TranslationX = value;
+                double value = Math.Clamp(accumolatedXEnd + e.TotalX, accumolatedX, boundsX - endPoint.Width);
                 
+                endPoint.TranslationX = value;
+
                 AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(accumolatedX, 0, endPoint.Width + value - accumolatedX, selectedRange.Height));
 
                 break;
 
             case GestureStatus.Completed:
                 accumolatedXEnd = endPoint.TranslationX;
+
+                // need to add the end slider width because it's pointer is at the right side.
+                double percentage = (accumolatedXEnd + endPoint.Width) / Content.Width;
+                EndValue = new DateTime((long)(MinValue.Ticks + ((MaxValue.Ticks - MinValue.Ticks) * percentage)));
+
                 break;
             case GestureStatus.Canceled:
                 Debug.WriteLine("Canceled");

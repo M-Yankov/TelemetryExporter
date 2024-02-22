@@ -3,8 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TelemetryExporter.UI.Resources.Texts">
 
-    <x:String x:Key="DefaultTextDrop">
-        Dragging files will work in future. Use Browse button.
+    <x:String x:Key="DefaultTextBrowse">
+        Use Browse button and choose .fit files.
         <!--Drag your files here... or browse from PC-->
     </x:String>
+    <x:String x:Key="FutureDropNotice">
+        Dragging files will work in future.
+    </x:String>
+
 </ResourceDictionary>

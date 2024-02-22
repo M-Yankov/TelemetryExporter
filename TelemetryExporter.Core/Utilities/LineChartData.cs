@@ -61,7 +61,7 @@ namespace TelemetryExporter.Core.Utilities
 
         private SKPath BuildPath(ReadOnlyCollection<RecordMesg> dataMessages)
         {
-            List<float> altitudeValues = new();
+            List<float> altitudeValues = [];
 
             foreach (RecordMesg recordMesg in dataMessages.OrderBy(x => x.GetTimestamp().GetDateTime()))
             {
