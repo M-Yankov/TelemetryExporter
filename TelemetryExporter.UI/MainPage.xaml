@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:TelemetryExporter.UI.ViewModels"
+             x:Class="TelemetryExporter.UI.MainPage"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+
+    <!--<ContentPage.BindingContext>
+        <local:HomePageViewModel />
+    </ContentPage.BindingContext>-->
+    <ScrollView>
+        <Border x:Name="TheBorder"
+                Stroke="White"
+                    StrokeThickness="2"
+                    Padding="2"
+                    >
+            <VerticalStackLayout
+                Padding="30,0"
+                Spacing="25">
+                <VerticalStackLayout.GestureRecognizers>
+                    <DropGestureRecognizer 
+                        DragOver="DropGestureRecognizer_DragOver"
+                        DragLeave="DropGestureRecognizer_DragLeave"
+                        AllowDrop="False"
+                        x:Name="HomeScreenDropGestureRecognizer"
+                        />
+                </VerticalStackLayout.GestureRecognizers>
+
+                <!-- &#10;  - means encoded new line -->
+
+                <Label
+                    x:Name="LabelDrop"
+                    Text="{StaticResource DefaultTextBrowse}"
+                    Style="{StaticResource SubHeadline}"
+                    SemanticProperties.HeadingLevel="Level2"
+                    SemanticProperties.Description="Drag files in the window or browse from P C" />
+
+                <Label Text="{StaticResource FutureDropNotice}" HorizontalTextAlignment="Center" FontAttributes="Italic" />
+                <Button x:Name="BrowseButton"
+                        Text="Browse..." SemanticProperties.Hint="Open activity file" />
+
+                <Label 
+                    x:Name="LabelFileName"
+                    />
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+
+</ContentPage>

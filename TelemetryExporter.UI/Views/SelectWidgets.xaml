@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TelemetryExporter.UI.Views.SelectWidgets"
+             xmlns:local="clr-namespace:TelemetryExporter.UI.CustomControls"
+             Title="Settings">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior />
+    </Shell.BackButtonBehavior>
+    <ScrollView VerticalScrollBarVisibility="Default" >
+        <VerticalStackLayout MinimumWidthRequest="800" HorizontalOptions="Fill" Padding="10, 0"   >
+
+            <Image x:Name="elevationImage"
+                   HorizontalOptions="FillAndExpand"
+                   VerticalOptions="FillAndExpand" 
+                   BackgroundColor="blue"
+                   WidthRequest="700"/>
+            <Label Text="The image is only for reference" FontAttributes="Italic" HorizontalTextAlignment="Center" />
+            <Label Text="Select a range from your activity. &#10;The range below works with elapsed time. Move sliders slowly (bugs...)" />
+
+            <local:RangeSlider x:Name="rangeDatesActivity" />
+
+            <Grid ColumnDefinitions="auto, auto, 20, auto, auto, 20, auto, auto" ColumnSpacing="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Label Text="Start date:" />
+                <Label Grid.Column="1" x:Name="selectedStartTime" HorizontalOptions="Start" FontAttributes="Bold" />
+                <Label Grid.Row="1" Text="End date:"/>
+                <Label Grid.Row="1" Grid.Column="1" x:Name="selectedEndTime" HorizontalOptions="Start" FontAttributes="Bold" />
+                <Label Grid.Column="3" Text="Since beginning:" />
+                <Label Grid.Column="4" x:Name="startSinceBeginning" />
+                <Label Grid.Row="1" Grid.Column="4" x:Name="endSinceBeginning" />
+                <Label Grid.Column="6" Text="Distance:"/>
+                <Label Grid.Row="1" Grid.Column="6" Text="Duration:"/>
+                <Label Grid.Column="7" x:Name="selectedDistance" />
+                <Label Grid.Row="1" Grid.Column="7" x:Name="selectedDuration" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

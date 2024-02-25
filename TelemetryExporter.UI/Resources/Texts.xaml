@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TelemetryExporter.UI.Resources.Texts">
+
+    <x:String x:Key="DefaultTextBrowse">
+        Use Browse button and choose .fit files.
+        <!--Drag your files here... or browse from PC-->
+    </x:String>
+    <x:String x:Key="FutureDropNotice">
+        Dragging files will work in future.
+    </x:String>
+
+</ResourceDictionary>
