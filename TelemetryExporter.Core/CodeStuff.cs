@@ -1,5 +1,14 @@
 ﻿using Dynastream.Fit;
 
+using SkiaSharp;
+using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.Utilities;
+using TelemetryExporter.Core.Widgets.Trace;
+using TelemetryExporter.Core.Widgets.Distance;
+using TelemetryExporter.Core.Widgets.Speed;
+using TelemetryExporter.Core.Widgets.Pace;
+using TelemetryExporter.Core.Widgets.Elevation;
+
 namespace TelemetryExporter.Core
 {
     /// <summary>
@@ -88,5 +97,53 @@ namespace TelemetryExporter.Core
 
             return value * res;
         }
+
+        #region generageImage
+        async Task GenerateExampleImagtes()
+        {
+            string testFilePath = @"C:\Users\<username>\Desktop\13900511806_ACTIVITY.fit";
+            FitMessages messages = new FitDecoder(testFilePath).FitMessages;
+
+            SessionData sessionData = new()
+            {
+                MaxSpeed = 70,
+                TotalDistance = 300000,
+                CountOfRecords = messages.RecordMesgs.Count,
+            };
+
+
+            var frame = new FrameData()
+            {
+                FileName = string.Empty,
+                Altitude = 800,
+                Distance = 113000,
+                Latitude = messages.RecordMesgs[5233].GetPositionLat().Value,
+                IndexOfCurrentRecord = 1233,
+                Longitude = messages.RecordMesgs[5233].GetPositionLong().Value,
+                Speed = 3
+            };
+
+            SKData data = new SpeedWidget().GenerateImage(sessionData, frame);
+            SKData data2 = new ElevationWidget(messages.RecordMesgs).GenerateImage(sessionData, frame);
+            SKData data3 = new DistanceWidget().GenerateImage(sessionData, frame);
+            SKData data4 = new TraceWidget(messages.RecordMesgs).GenerateImage(sessionData, frame);
+            SKData data5 = new PaceWidget().GenerateImage(sessionData, frame);
+
+            await SaveImageAsync("speed.png", data);
+            await SaveImageAsync("elevation.png", data2);
+            await SaveImageAsync("distance.png", data3);
+            await SaveImageAsync("trace.png", data4);
+            await SaveImageAsync("pace.png", data5);
+        }
+
+        static async Task SaveImageAsync(string name, SKData data)
+        {
+            using FileStream stream = System.IO.File.OpenWrite(name);
+            data.SaveTo(stream);
+            using Stream s = data.AsStream();
+            await s.CopyToAsync(stream);
+            await stream.FlushAsync();
+        }
+        #endregion
     }
 }
