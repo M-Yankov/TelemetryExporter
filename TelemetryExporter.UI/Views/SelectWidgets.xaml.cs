@@ -1,5 +1,14 @@
 using System.ComponentModel;
+using System.Reflection;
+using System.Windows.Input;
 
+using CommunityToolkit.Maui.Views;
+
+using Microsoft.Maui.Controls.Shapes;
+using Microsoft.Maui.Layouts;
+
+using TelemetryExporter.Core.Attributes;
+using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
 using TelemetryExporter.UI.ViewModels;
@@ -8,20 +17,12 @@ namespace TelemetryExporter.UI.Views;
 
 public partial class SelectWidgets : ContentPage, IQueryAttributable
 {
+    private readonly List<int> selectWidgetIds;
+
     public SelectWidgets()
     {
+        selectWidgetIds = [];
         InitializeComponent();
-    }
-
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        SelectWidgetsViewModel model = new((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
-        BindingContext = model;
-
-        elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
-
-        rangeDatesActivity.OnSliderValuesChanged += RangeDatesActivity_OnSliderValuesChanged;
-        rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
 
         selectedEndTime.SetBinding(Label.TextProperty, new Binding(nameof(rangeDatesActivity.EndValue), source: rangeDatesActivity));
         selectedStartTime.SetBinding(Label.TextProperty, new Binding(nameof(rangeDatesActivity.StartValue), source: rangeDatesActivity));
@@ -38,6 +39,18 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         selectedStartTime.PropertyChanged += onLabelTextChanged;
         selectedEndTime.PropertyChanged += onLabelTextChanged;
+
+        rangeDatesActivity.OnSliderValuesChanged += RangeDatesActivity_OnSliderValuesChanged;
+    }
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
+
+        model.Initialize((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
+
+        elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
+        rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
     }
 
     private void RangeDatesActivity_OnSliderValuesChanged(RangeSlider rangeSlider, RangeSliderChangedEventArgs<DateTime> e)
@@ -56,5 +69,17 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         startSinceBeginning.Text = startTimeFromBeginning.ToString(TimeFormat);
         endSinceBeginning.Text = endFromBeginning.ToString(TimeFormat);
+    }
+
+    private void WidgetCheckBox_CheckedChanged(object? sender, WidgetCheckedChangedEventArgs e)
+    {
+        if (e.Value)
+        {
+            selectWidgetIds.Add(e.ElementValue);
+        }
+        else
+        {
+            selectWidgetIds.RemoveAll(x => e.ElementValue == x);
+        }
     }
 }

@@ -3,13 +3,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TelemetryExporter.UI.Views.SelectWidgets"
              xmlns:local="clr-namespace:TelemetryExporter.UI.CustomControls"
+             xmlns:models="clr-namespace:TelemetryExporter.UI.CustomModels"
+             xmlns:viewModels="clr-namespace:TelemetryExporter.UI.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:TelemetryExporter.UI.Converters"
+             xmlns:widgets.core="clr-namespace:TelemetryExporter.Core.Attributes;assembly=TelemetryExporter.Core"
              Title="Settings">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior />
     </Shell.BackButtonBehavior>
+    <ContentPage.BindingContext>
+        <viewModels:SelectWidgetsViewModel />
+    </ContentPage.BindingContext>
+
+    <ContentPage.Resources>
+        <converters:ExpanderParametersConverter x:Key="expanderParametersConverter" />
+    </ContentPage.Resources>
+    
     <ScrollView VerticalScrollBarVisibility="Default" >
         <VerticalStackLayout MinimumWidthRequest="800" HorizontalOptions="Fill" Padding="10, 0"   >
 
+            
             <Image x:Name="elevationImage"
                    HorizontalOptions="FillAndExpand"
                    VerticalOptions="FillAndExpand" 
@@ -37,6 +51,91 @@
                 <Label Grid.Column="7" x:Name="selectedDistance" />
                 <Label Grid.Row="1" Grid.Column="7" x:Name="selectedDuration" />
             </Grid>
+
+            <Grid ColumnDefinitions="150"  ColumnSpacing="2" Margin="0,10" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Picker Grid.Row="0" Grid.Column="0" x:Name="selectedFps" Title="Select FPS:" SelectedIndex="0">
+                    <Picker.ItemsSource  >
+                        <x:Array Type="{x:Type x:Int16}" >
+                            <x:Int16>2</x:Int16 >
+                            <x:Int16>4</x:Int16>
+                            <x:Int16>6</x:Int16>
+                            <x:Int16>8</x:Int16>
+                            <x:Int16>10</x:Int16>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+               
+            </Grid>
+
+            <Grid ColumnDefinitions="auto, 300"  ColumnSpacing="2" Margin="0,10" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Label Grid.Row="1" Grid.Column="1" Text="Check this if you want statistics to start from left marker instead from the beginning of the activity." />
+                <CheckBox Grid.Row="1" x:Name="useStartMarker" Grid.Column="0" HorizontalOptions="End" />
+            </Grid>
+
+
+            <Label Text="Select Widgets below:" Style="{StaticResource SubHeadline}" Margin="0,20" />
+            <CollectionView ItemsSource="{Binding WidgetCategories}" >
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ExpanderDataItem">
+                        <toolkit:Expander x:Name="theExpander" Command="{Binding SwitchStateCommand}" >
+                            <toolkit:Expander.CommandParameter>
+                                <MultiBinding Converter="{StaticResource expanderParametersConverter}">
+                                    <Binding Source="{x:Reference theExpander}" />
+                                    <Binding Source="{x:Reference theLabel}" />
+                                </MultiBinding>
+                            </toolkit:Expander.CommandParameter>
+                            <toolkit:Expander.Header >
+                                <AbsoluteLayout BackgroundColor="LightSkyBlue" HeightRequest="50">
+                                    <Rectangle Stroke="Black" StrokeThickness="2" 
+                                                AbsoluteLayout.LayoutBounds="0,0, 1, 1"
+                                                AbsoluteLayout.LayoutFlags="SizeProportional"/>
+                                    <Label Text="{Binding Category}" FontAttributes="Bold" Style="{StaticResource SubHeadline}"
+                                            AbsoluteLayout.LayoutFlags="XProportional,YProportional"
+                                            AbsoluteLayout.LayoutBounds="0.5, 0.5" />
+                                    <Label Text="V" x:Name="theLabel" FontSize="Large" HorizontalOptions="Start" AbsoluteLayout.LayoutBounds="25, 0" />
+                                </AbsoluteLayout>
+                            </toolkit:Expander.Header>
+                            <toolkit:Expander.Content>
+                                <HorizontalStackLayout>
+                                    <CollectionView ItemsSource="{Binding Widgets}" >
+                                        <CollectionView.ItemsLayout>
+                                            <LinearItemsLayout Orientation="Horizontal"/>
+                                        </CollectionView.ItemsLayout>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="widgets.core:WidgetDataAttribute" >
+                                                <VerticalStackLayout MaximumWidthRequest="300" Padding="10,10" >
+                                                    <Image Source="{Binding ExampleImagePath}" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
+                                                    <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </HorizontalStackLayout>
+                            </toolkit:Expander.Content>
+                        </toolkit:Expander>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            
+            <Grid ColumnDefinitions="500, auto" Margin="0,10">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Label Text="Choose save location:" />
+                <Entry Grid.Row="1" Grid.Column="0" x:Name="saveLocation" IsEnabled="False" BackgroundColor="LightGray" Text="C:\..." TextColor="DarkSlateGray" />
+                <Button Grid.Row="1" Grid.Column="1" Text="Browse..." Command="{Binding ChooseSaveFolder}" CommandParameter="{Binding Source={x:Reference saveLocation}}"/> 
+            </Grid>
+
+            <Button Text="Export images" BackgroundColor="Green" FontAttributes="Bold" FontSize="Large" x:Name="exportBtn" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

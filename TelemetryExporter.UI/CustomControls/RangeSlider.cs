@@ -1,12 +1,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 using MAUI = Microsoft.Maui.Controls.Shapes;
 
 namespace TelemetryExporter.UI.CustomControls;
 
-// MAke Range slider Generic and initialize it from code behind.
+// Make Range slider Generic and initialize it from code behind.
 // For example RangeSlider<T> where T : Struct (or something comparable)
 public class RangeSlider : ContentView, INotifyPropertyChanged
 {
@@ -26,7 +25,7 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
 
     public RangeSlider()
     {
-        // Entire logic should be moved into XAML
+        // code in constructor should be moved into XAML
         PanGestureRecognizer panGesture = new();
         panGesture.PanUpdated += OnPanUpdated;
         PanGestureRecognizer endPanGesture = new();
