@@ -12,8 +12,8 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Trace
 {
-    [WidgetData(Index = 3)]
-    internal class TraceWidget : IWidget
+    [WidgetData(Index = 3, ExampleImagePath = "Images/ExampleTrace.png")]
+    public class TraceWidget : IWidget
     {
         private const int GpxPictureWidthPixels = 1000;
         private const float GpxPictureOffsetPercentage = .05f;

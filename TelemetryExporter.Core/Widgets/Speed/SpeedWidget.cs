@@ -6,8 +6,8 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Speed
 {
-    [WidgetData(Index = 1)]
-    internal class SpeedWidget : IWidget
+    [WidgetData(Index = 1, ExampleImagePath = "Images/ExampleSpeed.png")]
+    public class SpeedWidget : IWidget
     {
         public SKData GenerateImage(SessionData sessionData, FrameData currentData)
         {

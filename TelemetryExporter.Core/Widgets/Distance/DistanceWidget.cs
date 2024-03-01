@@ -6,8 +6,8 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Distance
 {
-    [WidgetData(Index = 2)]
-    internal class DistanceWidget : IWidget
+    [WidgetData(Index = 2, ExampleImagePath = "Images/ExampleDistance.png")]
+    public class DistanceWidget : IWidget
     {
         public SKData GenerateImage(SessionData sessionData, FrameData currentData)
         {

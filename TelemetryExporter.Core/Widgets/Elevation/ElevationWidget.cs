@@ -11,7 +11,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Elevation
 {
-    [WidgetData(Index = 5)]
+    [WidgetData(Index = 5, ExampleImagePath = "Images/ExampleElevation.png")]
     public class ElevationWidget : IWidget
     {
         const int ElevationPictureWidthPixels = 700;

@@ -1,13 +1,22 @@
 ﻿using System.ComponentModel;
+using System.Reflection;
+using System.Windows.Input;
+
+using CommunityToolkit.Maui.Storage;
 
 using Dynastream.Fit;
 
 using SkiaSharp;
 
+using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
-
+using TelemetryExporter.Core.Widgets.Distance;
 using TelemetryExporter.Core.Widgets.Elevation;
+using TelemetryExporter.Core.Widgets.Pace;
+using TelemetryExporter.Core.Widgets.Speed;
+using TelemetryExporter.Core.Widgets.Trace;
+using TelemetryExporter.UI.CustomModels;
 
 namespace TelemetryExporter.UI.ViewModels
 {
@@ -17,8 +26,58 @@ namespace TelemetryExporter.UI.ViewModels
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        public ICommand ChooseSaveFolder => new Command<Entry>(PickUpFolder);
+
+        public System.DateTime StartActivityDate { get; set; }
+
+        public System.DateTime EndActivityDate { get; set; }
+
+        public double TotalDistance { get; set; }
+
+        public ImageSource? MyImage
+        {
+            get => elevationProfileImage;
+
+            set
+            {
+                elevationProfileImage = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyImage)));
+            }
+        }
+
+        public ICollection<ExpanderDataItem> WidgetCategories
+        {
+            get => [
+                new ExpanderDataItem()
+                {
+                    Category = "Speed",
+                    Widgets = [typeof(SpeedWidget).GetCustomAttribute<WidgetDataAttribute>()!, typeof(DistanceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
+                },
+                new ExpanderDataItem()
+                {
+                    Category = "Elevation",
+                    Widgets = [typeof(ElevationWidget).GetCustomAttribute<WidgetDataAttribute>()!]
+                },
+                new ExpanderDataItem()
+                {
+                    Category = "Pace",
+                    Widgets = [typeof(PaceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
+                },
+                new ExpanderDataItem()
+                {
+                    Category = "Trace",
+                    Widgets = [typeof(TraceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
+                },
+                new ExpanderDataItem()
+                {
+                    Category = "Distance",
+                    Widgets = [typeof(DistanceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
+                },
+            ];
+        }
+
         /// <param name="fitFileStream">Steam of .fit file.</param>
-        public SelectWidgetsViewModel(Stream fitFileStream)
+        public void Initialize(Stream fitFileStream)
         {
             var fitMessages = new FitDecoder(fitFileStream).FitMessages;
             ElevationWidget elevationProfile = new(fitMessages.RecordMesgs);
@@ -58,20 +117,12 @@ namespace TelemetryExporter.UI.ViewModels
             MyImage = ImageSource.FromStream(() => memoryStream);
         }
 
-        public System.DateTime StartActivityDate { get; set; }
-
-        public System.DateTime EndActivityDate { get; set; }
-
-        public double TotalDistance { get; set; }
-
-        public ImageSource? MyImage
+        private async void PickUpFolder(Entry saveLocationEntry)
         {
-            get => elevationProfileImage;
-
-            set
+            var result = await FolderPicker.Default.PickAsync();
+            if (result.IsSuccessful)
             {
-                elevationProfileImage = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyImage)));
+                saveLocationEntry.Text = Path.Combine(result.Folder.Path);
             }
         }
     }
