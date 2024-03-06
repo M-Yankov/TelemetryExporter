@@ -17,12 +17,16 @@ namespace TelemetryExporter.UI
 
             HomeScreenDropGestureRecognizer.Drop += homePageViewModel.DropGestureRecognizer_Drop;
             LabelFileName.SetBinding(Label.TextProperty, new Binding(nameof(homePageViewModel.SelectedFileName), source: homePageViewModel));
-            
-            //new Button().Behaviors;
-            //    new DropGestureRecognizer();
-            //new GestureRecognizers();
-            //new VerticalStackLayout().GestureRecognizers[0];
-            //  new DropGestureRecognizer().DropCommand
+            browseFileLoader.SetBinding(ActivityIndicator.IsRunningProperty, new Binding(nameof(homePageViewModel.IsLoading), source: homePageViewModel));
+            BrowseButton.SetBinding(Button.IsEnabledProperty, new Binding(nameof(homePageViewModel.BrowseButtonEnabled), source: homePageViewModel));
+
+            /*
+                new Button().Behaviors;
+                new DropGestureRecognizer();
+                new GestureRecognizers();
+                new VerticalStackLayout().GestureRecognizers[0];
+                new DropGestureRecognizer().DropCommand
+            */
         }
 
         // SemanticScreenReader.Announce(CounterBtn.Text);

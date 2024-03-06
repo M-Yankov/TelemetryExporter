@@ -11,18 +11,40 @@ using SkiaSharp;
 using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
-using TelemetryExporter.Core.Widgets.Distance;
 using TelemetryExporter.Core.Widgets.Elevation;
-using TelemetryExporter.Core.Widgets.Pace;
-using TelemetryExporter.Core.Widgets.Speed;
-using TelemetryExporter.Core.Widgets.Trace;
+using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.CustomModels;
 
 namespace TelemetryExporter.UI.ViewModels
 {
     internal class SelectWidgetsViewModel : INotifyPropertyChanged
     {
+        private readonly ICollection<ExpanderDataItem> widgetElements;
         private ImageSource? elevationProfileImage;
+
+        public SelectWidgetsViewModel()
+        {
+            Dictionary<string, ExpanderDataItem> widgetCategories = [];
+            IEnumerable<WidgetDataAttribute> widgetDataCollection = Assembly
+                .GetAssembly(typeof(Core.Program))!
+                .GetTypes()
+                .Where(t => t.IsAssignableTo(typeof(IWidget)) && t.IsClass)
+                .Select(t => t.GetCustomAttribute<WidgetDataAttribute>()!);
+
+            foreach (WidgetDataAttribute widgetData in widgetDataCollection)
+            {
+                if (widgetCategories.TryGetValue(widgetData.Category, out ExpanderDataItem? value))
+                {
+                    value.Widgets.Add(widgetData);
+                }
+                else
+                {
+                    widgetCategories[widgetData.Category] = new ExpanderDataItem() { Category = widgetData.Category, Widgets = [widgetData] };
+                }
+            };
+
+            widgetElements = widgetCategories.Values;
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -33,6 +55,8 @@ namespace TelemetryExporter.UI.ViewModels
         public System.DateTime EndActivityDate { get; set; }
 
         public double TotalDistance { get; set; }
+
+        public FitMessages FitMessages { get; private set; }
 
         public ImageSource? MyImage
         {
@@ -47,58 +71,35 @@ namespace TelemetryExporter.UI.ViewModels
 
         public ICollection<ExpanderDataItem> WidgetCategories
         {
-            get => [
-                new ExpanderDataItem()
-                {
-                    Category = "Speed",
-                    Widgets = [typeof(SpeedWidget).GetCustomAttribute<WidgetDataAttribute>()!, typeof(DistanceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
-                },
-                new ExpanderDataItem()
-                {
-                    Category = "Elevation",
-                    Widgets = [typeof(ElevationWidget).GetCustomAttribute<WidgetDataAttribute>()!]
-                },
-                new ExpanderDataItem()
-                {
-                    Category = "Pace",
-                    Widgets = [typeof(PaceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
-                },
-                new ExpanderDataItem()
-                {
-                    Category = "Trace",
-                    Widgets = [typeof(TraceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
-                },
-                new ExpanderDataItem()
-                {
-                    Category = "Distance",
-                    Widgets = [typeof(DistanceWidget).GetCustomAttribute<WidgetDataAttribute>()!]
-                },
-            ];
+            get => widgetElements;
         }
 
         /// <param name="fitFileStream">Steam of .fit file.</param>
         public void Initialize(Stream fitFileStream)
         {
-            var fitMessages = new FitDecoder(fitFileStream).FitMessages;
-            ElevationWidget elevationProfile = new(fitMessages.RecordMesgs);
+            FitMessages = new FitDecoder(fitFileStream).FitMessages;
+            ElevationWidget elevationProfile = new(FitMessages.RecordMesgs);
 
-            IEnumerable<RecordMesg> orderedMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime());
+            IEnumerable<RecordMesg> orderedMessages = FitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime());
             System.DateTime firstDate = orderedMessages.First().GetTimestamp().GetDateTime();
             System.DateTime lastDate = orderedMessages.Last().GetTimestamp().GetDateTime();
 
+            /*
             uint? activityTimestamp = fitMessages.ActivityMesgs[0].GetLocalTimestamp();
             DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(activityTimestamp.Value);
             TimeSpan timeSpanOffset = TimeZoneInfo.Local.GetUtcOffset(dateTimeOffset);
+            timeSpanOffset.TotalHours
+            */
 
-            StartActivityDate = firstDate.AddHours(timeSpanOffset.TotalHours);
-            EndActivityDate = lastDate.AddHours(timeSpanOffset.TotalHours);
-            TotalDistance = fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0;
+            StartActivityDate = firstDate.ToLocalTime();
+            EndActivityDate = lastDate.ToLocalTime();
+            TotalDistance = FitMessages.SessionMesgs[0].GetTotalDistance() ?? 0;
 
             SessionData sessionData = new()
             {
-                MaxSpeed = fitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
+                MaxSpeed = FitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
                 TotalDistance = this.TotalDistance,
-                CountOfRecords = fitMessages.RecordMesgs.Count
+                CountOfRecords = FitMessages.RecordMesgs.Count
             };
 
             SKData data = elevationProfile.GenerateImage(sessionData, new FrameData()

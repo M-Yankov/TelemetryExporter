@@ -9,7 +9,7 @@ namespace TelemetryExporter.UI.CustomModels
     {
         public string? Category { get; set; }
 
-        public WidgetDataAttribute[]? Widgets { get; set; }
+        public List<WidgetDataAttribute> Widgets { get; set; } = new();
 
         public ICommand SwitchStateCommand => new Command<ExpanderWidgetArgs>(SwitchLabelIconExpandedState);
 

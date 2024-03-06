@@ -57,17 +57,16 @@
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
                 <Picker Grid.Row="0" Grid.Column="0" x:Name="selectedFps" Title="Select FPS:" SelectedIndex="0">
-                    <Picker.ItemsSource  >
-                        <x:Array Type="{x:Type x:Int16}" >
-                            <x:Int16>2</x:Int16 >
-                            <x:Int16>4</x:Int16>
-                            <x:Int16>6</x:Int16>
-                            <x:Int16>8</x:Int16>
-                            <x:Int16>10</x:Int16>
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:Byte}" >
+                            <x:Byte>2</x:Byte >
+                            <x:Byte>4</x:Byte>
+                            <x:Byte>6</x:Byte>
+                            <x:Byte>8</x:Byte>
+                            <x:Byte>10</x:Byte>
                         </x:Array>
                     </Picker.ItemsSource>
                 </Picker>
-               
             </Grid>
 
             <Grid ColumnDefinitions="auto, 300"  ColumnSpacing="2" Margin="0,10" >
@@ -75,9 +74,8 @@
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
                 <Label Grid.Row="1" Grid.Column="1" Text="Check this if you want statistics to start from left marker instead from the beginning of the activity." />
-                <CheckBox Grid.Row="1" x:Name="useStartMarker" Grid.Column="0" HorizontalOptions="End" />
+                <CheckBox Grid.Row="1" x:Name="useStartMarker" Grid.Column="0"  />
             </Grid>
-
 
             <Label Text="Select Widgets below:" Style="{StaticResource SubHeadline}" Margin="0,20" />
             <CollectionView ItemsSource="{Binding WidgetCategories}" >
@@ -135,7 +133,12 @@
                 <Button Grid.Row="1" Grid.Column="1" Text="Browse..." Command="{Binding ChooseSaveFolder}" CommandParameter="{Binding Source={x:Reference saveLocation}}"/> 
             </Grid>
 
-            <Button Text="Export images" BackgroundColor="Green" FontAttributes="Bold" FontSize="Large" x:Name="exportBtn" />
+            <Button Text="Export images" x:Name="exportBtn" BackgroundColor="Green" FontAttributes="Bold" FontSize="Large" Clicked="ExportBtn_Clicked" />
+
+            <Grid ColumnDefinitions="*,auto" Margin="0, 10" >
+                <ActivityIndicator x:Name="exportLoaderIndicator" VerticalOptions="Center"  HorizontalOptions="End" Margin="0, 0, 20, 0"/>
+                <Button Grid.Column="1" Text="Cancel" x:Name="cancelBtn" BindingContext="{x:Reference Name=exportLoaderIndicator}" BackgroundColor="Orange" FontSize="Medium" IsEnabled="{Binding Path=IsRunning}" HorizontalOptions="End" Clicked="CancelBtn_Clicked" />
+            </Grid>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

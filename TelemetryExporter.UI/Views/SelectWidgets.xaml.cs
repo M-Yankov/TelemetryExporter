@@ -1,14 +1,5 @@
 using System.ComponentModel;
-using System.Reflection;
-using System.Windows.Input;
 
-using CommunityToolkit.Maui.Views;
-
-using Microsoft.Maui.Controls.Shapes;
-using Microsoft.Maui.Layouts;
-
-using TelemetryExporter.Core.Attributes;
-using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
 using TelemetryExporter.UI.ViewModels;
@@ -18,6 +9,7 @@ namespace TelemetryExporter.UI.Views;
 public partial class SelectWidgets : ContentPage, IQueryAttributable
 {
     private readonly List<int> selectWidgetIds;
+    private CancellationTokenSource cancellationTokenForExport;
 
     public SelectWidgets()
     {
@@ -41,6 +33,10 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         selectedEndTime.PropertyChanged += onLabelTextChanged;
 
         rangeDatesActivity.OnSliderValuesChanged += RangeDatesActivity_OnSliderValuesChanged;
+
+        // XAML SelectedIndex not working :/
+        selectedFps.SelectedIndex = 0;
+        saveLocation.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -80,6 +76,54 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         else
         {
             selectWidgetIds.RemoveAll(x => e.ElementValue == x);
+        }
+    }
+
+    private async void ExportBtn_Clicked(object sender, EventArgs e)
+    {
+        string message = "";
+        if (selectWidgetIds?.Count == 0)
+        {
+            message = "Please select widgets!";
+        }
+
+        if (!Directory.Exists(saveLocation.Text))
+        {
+            message = "Directory not exist!";
+        }
+
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            await DisplayAlert("Error", message, "OK");
+            return;
+        }
+
+        cancellationTokenForExport = new CancellationTokenSource();
+        exportLoaderIndicator.IsRunning = true;
+        exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
+
+        SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
+        await new Core.Program().ProcessMethod(
+            model.FitMessages, 
+            selectWidgetIds!,
+            saveLocation.Text,
+            FileSystem.AppDataDirectory,
+            cancellationTokenForExport,
+            (byte)selectedFps.SelectedItem,
+            rangeDatesActivity.StartValue,
+            rangeDatesActivity.EndValue,
+            useStartMarker.IsChecked
+            );
+    }
+
+    private void CancelBtn_Clicked(object sender, EventArgs e)
+    {
+        if (cancellationTokenForExport.Token.CanBeCanceled)
+        {
+            exportLoaderIndicator.IsRunning = false;
+            exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
+
+            cancellationTokenForExport.Cancel();
         }
     }
 }
