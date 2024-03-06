@@ -6,7 +6,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
     <!--<ContentPage.BindingContext>
-        <local:HomePageViewModel />
+        Check binding in the code behind.
     </ContentPage.BindingContext>-->
     <ScrollView>
         <Border x:Name="TheBorder"
@@ -39,9 +39,10 @@
                 <Button x:Name="BrowseButton"
                         Text="Browse..." SemanticProperties.Hint="Open activity file" />
 
-                <Label 
-                    x:Name="LabelFileName"
-                    />
+                <Grid ColumnDefinitions="300, auto">
+                    <Label x:Name="LabelFileName" VerticalTextAlignment="Center" />
+                    <ActivityIndicator Grid.Column="1" x:Name="browseFileLoader"  WidthRequest="100" HeightRequest="100" />            
+                </Grid>
 
             </VerticalStackLayout>
         </Border>

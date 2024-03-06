@@ -5,7 +5,8 @@
     {
         public int Index { get; set; }
 
-        // set default value!
-        public string ExampleImagePath { get; set; }
+        public string ExampleImagePath { get; set; } = "Images/ExampleWidget";
+
+        public required string Category { get; set; }
     }
 }

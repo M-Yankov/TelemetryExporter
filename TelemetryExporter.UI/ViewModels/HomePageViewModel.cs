@@ -7,7 +7,8 @@ namespace TelemetryExporter.UI.ViewModels
 {
     public class HomePageViewModel : INotifyPropertyChanged
     {
-        private string selectedFileName;
+        private string _selectedFileName;
+        private bool _isLoading = false;
 
         // Button to be with cursor-hand
         // https://vladislavantonyuk.github.io/articles/Setting-a-cursor-for-.NET-MAUI-VisualElement/
@@ -22,19 +23,30 @@ namespace TelemetryExporter.UI.ViewModels
 
         public string SelectedFileName
         {
-            get => $"Selected: {selectedFileName}";
+            get => $"Selected: {_selectedFileName}";
             set
             {
-                selectedFileName = value;
+                _selectedFileName = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedFileName)));
             }
         }
 
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLoading)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BrowseButtonEnabled)));
+            }
+        }
+
+        public bool BrowseButtonEnabled => !IsLoading;
 
         // Not implemented!
         internal void DropGestureRecognizer_Drop(object? sender, DropEventArgs e)
         {
-
         }
 
         private async void DoPickActivityFile()
@@ -67,6 +79,7 @@ namespace TelemetryExporter.UI.ViewModels
         {
             try
             {
+                IsLoading = true;
                 FileResult? result = await FilePicker.PickAsync(options);
 
                 if (result != null && string.Equals(
@@ -91,6 +104,10 @@ namespace TelemetryExporter.UI.ViewModels
                 // Text = ex.ToString();
                 // IsImageVisible = false;
                 return null;
+            }
+            finally 
+            {
+                IsLoading = false;
             }
         }
     }

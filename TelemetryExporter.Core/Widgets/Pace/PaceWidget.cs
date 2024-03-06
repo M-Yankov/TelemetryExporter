@@ -4,11 +4,12 @@ using SkiaSharp;
 
 using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Pace
 {
-    [WidgetData(Index = 4, ExampleImagePath = "Images/ExamplePace.png")]
+    [WidgetData(Index = 4, ExampleImagePath = "Images/ExamplePace.png", Category = TECoreContsants.Categories.Speed)]
     public class PaceWidget : IWidget
     {
         // below that speed it's assumed as walking (For running only)
