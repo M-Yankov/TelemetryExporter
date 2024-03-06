@@ -110,8 +110,8 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
             FileSystem.AppDataDirectory,
             cancellationTokenForExport,
             (byte)selectedFps.SelectedItem,
-            rangeDatesActivity.StartValue,
-            rangeDatesActivity.EndValue,
+            rangeDatesActivity.StartValue.ToUniversalTime(),
+            rangeDatesActivity.EndValue.ToUniversalTime(),
             useStartMarker.IsChecked
             );
     }
