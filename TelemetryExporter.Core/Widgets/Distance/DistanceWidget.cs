@@ -2,11 +2,12 @@
 
 using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Distance
 {
-    [WidgetData(Index = 2, ExampleImagePath = "Images/ExampleDistance.png")]
+    [WidgetData(Index = 2, ExampleImagePath = "Images/ExampleDistance.png", Category = TECoreContsants.Categories.Distance)]
     public class DistanceWidget : IWidget
     {
         public SKData GenerateImage(SessionData sessionData, FrameData currentData)
