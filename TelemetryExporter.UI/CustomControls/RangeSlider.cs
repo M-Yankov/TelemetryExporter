@@ -147,35 +147,37 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
     {
         base.OnSizeAllocated(width, height);
 
-        if (this.Window != null)
+        if (this.Window == null)
         {
-            // initialize
-            if (accumolatedXEnd == 0)
-            {
-                accumolatedXEnd = Content.Width - endPoint.Width;
-            }
-
-            if (lastUsedWidth != 0)
-            {
-                double percentage = accumolatedX / lastUsedWidth;
-
-                // set new relative value according to new resized window
-                accumolatedX = Content.Width * percentage;
-
-                double percentageForEnd = accumolatedXEnd / lastUsedWidth;
-                accumolatedXEnd = Content.Width * percentageForEnd;
-            }
-
-            double boundsX = Content.Width;
-            lastUsedWidth = Content.Width;
-            double value = Math.Clamp(accumolatedX, 0, boundsX - startPoint.Width);
-            startPoint.TranslationX = value;
-
-            double valueEnd = Math.Clamp(accumolatedXEnd, 0, boundsX - endPoint.Width);
-            endPoint.TranslationX = valueEnd;
-
-            AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(value, 0, endPoint.Width + valueEnd - accumolatedX, selectedRange.MinimumHeightRequest));
+            return;
         }
+
+        // initialize
+        if (accumolatedXEnd == 0)
+        {
+            accumolatedXEnd = Content.Width - endPoint.Width;
+        }
+
+        if (lastUsedWidth != 0)
+        {
+            double percentage = accumolatedX / lastUsedWidth;
+
+            // set new relative value according to new resized window
+            accumolatedX = Content.Width * percentage;
+
+            double percentageForEnd = accumolatedXEnd / lastUsedWidth;
+            accumolatedXEnd = Content.Width * percentageForEnd;
+        }
+
+        double boundsX = Content.Width;
+        lastUsedWidth = Content.Width;
+        double value = Math.Clamp(accumolatedX, 0, boundsX - startPoint.Width);
+        startPoint.TranslationX = value;
+
+        double valueEnd = Math.Clamp(accumolatedXEnd, 0, boundsX - endPoint.Width);
+        endPoint.TranslationX = valueEnd;
+
+        AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(value, 0, endPoint.Width + valueEnd - accumolatedX, selectedRange.MinimumHeightRequest));
     }
 
     //protected override void LayoutChildren(double x, double y, double width, double height)
