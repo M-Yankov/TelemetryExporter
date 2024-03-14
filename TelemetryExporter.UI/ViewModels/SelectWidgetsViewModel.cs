@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Input;
 
@@ -58,6 +59,8 @@ namespace TelemetryExporter.UI.ViewModels
 
         public FitMessages FitMessages { get; private set; }
 
+        public List<(System.DateTime start, System.DateTime end)> PausePeriods { get; private set; } = [];
+
         public ImageSource? MyImage
         {
             get => elevationProfileImage;
@@ -94,6 +97,32 @@ namespace TelemetryExporter.UI.ViewModels
             StartActivityDate = firstDate.ToLocalTime();
             EndActivityDate = lastDate.ToLocalTime();
             TotalDistance = FitMessages.SessionMesgs[0].GetTotalDistance() ?? 0;
+
+            List<EventMesg> timerEvents = FitMessages.EventMesgs
+                .Where(e => e.GetEvent() == Event.Timer)
+                .OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
+
+            for (int i = 0; i < timerEvents.Count; i++)
+            {
+                EventMesg eventMessage = timerEvents[i];
+                EventType? eventType = eventMessage.GetEventType();
+
+                if (eventType.HasValue
+                    && (eventType.Value == EventType.Stop || eventType.Value == EventType.StopAll))
+                {
+                    for (int y = ++i; y < timerEvents.Count; y++, i++)
+                    {
+                        EventMesg nextEventMessage = timerEvents[y];
+                        EventType? nextEventType = nextEventMessage.GetEventType();
+
+                        if (nextEventType.HasValue && nextEventType == EventType.Start)
+                        {
+                            PausePeriods.Add((eventMessage.GetTimestamp().GetDateTime().ToLocalTime(), nextEventMessage.GetTimestamp().GetDateTime().ToLocalTime()));
+                            break;
+                        }
+                    }
+                }
+            }
 
             SessionData sessionData = new()
             {

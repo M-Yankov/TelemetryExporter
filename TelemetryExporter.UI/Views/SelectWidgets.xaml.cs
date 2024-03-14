@@ -1,5 +1,7 @@
 using System.ComponentModel;
 
+using Microsoft.Maui.Controls.Shapes;
+
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
 using TelemetryExporter.UI.ViewModels;
@@ -39,6 +41,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         saveLocation.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
     }
 
+    // First comes ApplyQueryAttributes then  OnSizeAllocated
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
@@ -47,6 +50,38 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
         rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
+    }
+
+    protected override void OnSizeAllocated(double width, double height)
+    {
+        base.OnSizeAllocated(width, height);
+
+        if (this.Window == null)
+        {
+            return;
+        }
+
+        pausedIntervals.Children.Clear();
+
+        SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
+
+        long range = model.EndActivityDate.Ticks - model.StartActivityDate.Ticks;
+
+        foreach ((DateTime start, DateTime end) in model.PausePeriods)
+        {
+            long startRelativeToRange = start.Ticks - model.StartActivityDate.Ticks;
+            long endRelativeToRange = end.Ticks - model.StartActivityDate.Ticks;
+
+            double percentageStart = startRelativeToRange / (double)range;
+            double percentageEnd = endRelativeToRange / (double)range;
+
+            double xStart = Content.Width * percentageStart;
+            double xEnd = Content.Width * percentageEnd;
+
+            Rectangle pausePeriod = new() { HeightRequest = 3, Fill = Colors.Red };
+            AbsoluteLayout.SetLayoutBounds(pausePeriod, new Rect(xStart, 0, xEnd - xStart, pausePeriod.HeightRequest));
+            pausedIntervals.Children.Add(pausePeriod);
+        }
     }
 
     private void RangeDatesActivity_OnSliderValuesChanged(RangeSlider rangeSlider, RangeSliderChangedEventArgs<DateTime> e)

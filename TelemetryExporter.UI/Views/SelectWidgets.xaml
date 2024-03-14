@@ -32,6 +32,8 @@
             <Label Text="The image is only for reference" FontAttributes="Italic" HorizontalTextAlignment="Center" />
             <Label Text="Select a range from your activity. &#10;The range below works with elapsed time. Move sliders slowly (bugs...)" />
 
+            <AbsoluteLayout x:Name="pausedIntervals" ></AbsoluteLayout>
+            
             <local:RangeSlider x:Name="rangeDatesActivity" />
 
             <Grid ColumnDefinitions="auto, auto, 20, auto, auto, 20, auto, auto" ColumnSpacing="2">
@@ -73,7 +75,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
-                <Label Grid.Row="1" Grid.Column="1" Text="Check this if you want statistics to start from left marker instead from the beginning of the activity." />
+                <Label Grid.Row="1" Grid.Column="1" Text="Check this if you want statistics to be calculated from left marker instead from the beginning of the activity." />
                 <CheckBox Grid.Row="1" x:Name="useStartMarker" Grid.Column="0"  />
             </Grid>
 

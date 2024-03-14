@@ -15,7 +15,7 @@ namespace TelemetryExporter.Core
     // Check this: /activity-service/activity/12092921949/details
     public class Program
     {
-        private object lockObj = new object();
+        private readonly object lockObj = new ();
         const int FPS = 2;
 
         /// <summary>
@@ -29,7 +29,11 @@ namespace TelemetryExporter.Core
         /// <param name="fps">Generated frames per second, each frame is image.</param>
         /// <param name="rangeStartDate">Provide UTC date.</param>
         /// <param name="rangeEndDate">Provide UTC date.</param>
-        /// <param name="calculateStatisticsFromRange">Whether to calculate the long stats (like distance, elevation graph, path etc.) from provided range (<paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> ). <para></para>  Example:<para/> The activity has 30km distance, but it's provided a range of 5km. All the stats will be calculated from that period. If "false" stats are calculated from start of the activity, <paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> still can be used to export images from that range.</param>
+        /// <param name="calculateStatisticsFromRange">Whether to calculate the long stats (like distance, elevation graph, path etc.) from provided range 
+        /// (<paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> ). <para></para> 
+        /// Example:<para/> The activity has 30km distance, but it's provided a range of 5km. All the stats will be calculated from that period.
+        /// If "false" stats are calculated from start of the activity, <paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> 
+        /// still can be used to export images from that range.</param>
         public async Task ProcessMethod(
             FitMessages fitMessages,
             List<int> widgetsIds,
@@ -41,10 +45,6 @@ namespace TelemetryExporter.Core
             System.DateTime? rangeEndDate = null,
             bool calculateStatisticsFromRange = false)
         {
-            List<(System.DateTime start, System.DateTime end)> activePeriods = [];
-
-            List<EventMesg> eventMessages = fitMessages.EventMesgs.OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
-
             if (widgetsIds.Count == 0)
             {
                 return;
@@ -54,6 +54,12 @@ namespace TelemetryExporter.Core
             {
                 return;
             }
+
+            List<(System.DateTime start, System.DateTime end)> activePeriods = [];
+
+            List<EventMesg> eventMessages = fitMessages.EventMesgs
+                .Where(e => e.GetEvent() == Event.Timer)
+                .OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
 
             int lastIndexStart = -1;
             for (int i = 0; i < eventMessages.Count; i++)
