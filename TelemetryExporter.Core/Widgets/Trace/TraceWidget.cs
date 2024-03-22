@@ -21,14 +21,14 @@ namespace TelemetryExporter.Core.Widgets.Trace
         private readonly TraceChartData traceChart;
         private readonly SKPath tracePath;
 
-        public TraceWidget(ReadOnlyCollection<RecordMesg> dataMessages)
+        public TraceWidget(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             // It's square
             traceChart = new TraceChartData(dataMessages, GpxPictureWidthPixels, GpxPictureWidthPixels, GpxPictureOffsetPercentage);
             tracePath = traceChart.TracePath;
         }
 
-        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
+        public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -73,7 +73,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-            return data;
+            return Task.FromResult(data);
             //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
             //using Stream s = data.AsStream();
             //await s.CopyToAsync(stream);

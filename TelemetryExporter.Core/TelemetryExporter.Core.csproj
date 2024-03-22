@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -6,6 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CodeStuff.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="CodeStuff.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Garmin.FIT.Sdk" Version="21.120.2" />

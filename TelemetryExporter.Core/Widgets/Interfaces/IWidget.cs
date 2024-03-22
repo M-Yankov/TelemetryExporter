@@ -6,6 +6,6 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
 {
     public interface IWidget
     {
-        SKData GenerateImage(SessionData sessionData, FrameData currentData);
+        Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData);
     }
 }

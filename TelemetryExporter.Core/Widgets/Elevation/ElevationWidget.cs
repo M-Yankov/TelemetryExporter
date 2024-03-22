@@ -20,13 +20,13 @@ namespace TelemetryExporter.Core.Widgets.Elevation
         private readonly SKPath elevationPath;
         private readonly LineChartData lineChartData;
 
-        public ElevationWidget(ReadOnlyCollection<RecordMesg> dataMessages)
+        public ElevationWidget(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             lineChartData = new(dataMessages, ElevationPictureWidthPixels, ElevationPictureHeightPixels, offsetPercentageY: .20f);
             elevationPath = lineChartData.LinePath;
         }
 
-        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
+        public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(ElevationPictureWidthPixels, ElevationPictureHeightPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -116,7 +116,7 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
-            return data;
+            return Task.FromResult(data);
             //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
             //using Stream s = data.AsStream();
             //await s.CopyToAsync(stream);

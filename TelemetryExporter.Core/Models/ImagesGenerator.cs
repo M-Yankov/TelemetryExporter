@@ -10,20 +10,23 @@ namespace TelemetryExporter.Core.Models
             SessionData sessionData,
             IReadOnlyCollection<FrameData> frameData,
             IWidget widget,
-            CancellationTokenSource cancellationToken,
-            Action<SKData, IWidget, string> callBack)
+            Action<SKData, IWidget, string, double> callBack,
+            CancellationToken cancellationToken)
         {
-            foreach (FrameData frame in frameData)
+            for (int i = 0; i < frameData.Count; i++)
             {
+                FrameData frame = frameData.ElementAt(i);
+                double percentageDone = (double)i / frameData.Count;
                 if (cancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
 
-                SKData generatedImageData = widget.GenerateImage(sessionData, frame);
-                callBack(generatedImageData, widget, frame.FileName);
+                SKData generatedImageData = await widget.GenerateImage(sessionData, frame);
+                callBack(generatedImageData, widget, frame.FileName, percentageDone);
             }
-        }
 
+            return;
+        }
     }
 }

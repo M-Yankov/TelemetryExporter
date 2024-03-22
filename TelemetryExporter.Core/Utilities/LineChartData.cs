@@ -13,7 +13,7 @@ namespace TelemetryExporter.Core.Utilities
     {
         private readonly SKPath lineChart;
 
-        public LineChartData(ReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentageY)
+        public LineChartData(IReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentageY)
         {
             PictureHeightPixels = heightPixels;
             PictureWidthPixels = widthPixels;
@@ -59,7 +59,7 @@ namespace TelemetryExporter.Core.Utilities
             return new(x, y);
         }
 
-        private SKPath BuildPath(ReadOnlyCollection<RecordMesg> dataMessages)
+        private SKPath BuildPath(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             List<float> altitudeValues = [];
 

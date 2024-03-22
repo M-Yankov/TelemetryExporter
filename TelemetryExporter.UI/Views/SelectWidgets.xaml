@@ -141,6 +141,18 @@
                 <ActivityIndicator x:Name="exportLoaderIndicator" VerticalOptions="Center"  HorizontalOptions="End" Margin="0, 0, 20, 0"/>
                 <Button Grid.Column="1" Text="Cancel" x:Name="cancelBtn" BindingContext="{x:Reference Name=exportLoaderIndicator}" BackgroundColor="Orange" FontSize="Medium" IsEnabled="{Binding Path=IsRunning}" HorizontalOptions="End" Clicked="CancelBtn_Clicked" />
             </Grid>
+
+            <Grid ColumnDefinitions="auto,*" Margin="0, 10">
+                <Label Text="{Binding Source={x:Reference exportProgress}, Path=Progress, StringFormat='{0:P}' }" />
+                <ProgressBar Grid.Column="1" x:Name="exportProgress" Progress="0.4"  ProgressColor="Green" />
+            </Grid>
+
+            <ScrollView MaximumHeightRequest="150"  VerticalScrollBarVisibility="Always" WidthRequest="300">
+                <Border Stroke="Black" StrokeThickness="4">
+                    
+                    <Label x:Name="statusPanel" MaximumHeightRequest="300" />
+                </Border>
+            </ScrollView>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

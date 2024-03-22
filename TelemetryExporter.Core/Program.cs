@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using System.Reflection;
 
 using Dynastream.Fit;
@@ -15,14 +16,19 @@ namespace TelemetryExporter.Core
     // Check this: /activity-service/activity/12092921949/details
     public class Program
     {
-        private readonly object lockObj = new ();
+        private readonly object lockObj = new();
         const int FPS = 2;
+
+        /// <summary>
+        /// Invoked when processing images, after an certain interval.
+        /// </summary>
+        public event EventHandler<Dictionary<string, double>> OnProgress;
 
         /// <summary>
         /// Export images.
         /// </summary>
         /// <param name="fitMessages"></param>
-        /// <param name="cancellationToken">Cancellation token if canceled by user.</param>
+        /// <param name="cancellationTokenSource">Cancellation token if canceled by user.</param>
         /// <param name="widgetsIds">Each widget have an Id.</param>
         /// <param name="saveDirectoryPath">Directory for final result provided by the user.</param>
         /// <param name="tempDirectoryPath">Platform temp directory.</param>
@@ -34,12 +40,12 @@ namespace TelemetryExporter.Core
         /// Example:<para/> The activity has 30km distance, but it's provided a range of 5km. All the stats will be calculated from that period.
         /// If "false" stats are calculated from start of the activity, <paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> 
         /// still can be used to export images from that range.</param>
-        public async Task ProcessMethod(
+        public async Task ProcessMethodAsync(
             FitMessages fitMessages,
             List<int> widgetsIds,
             string saveDirectoryPath,
             string tempDirectoryPath,
-            CancellationTokenSource cancellationToken,
+            CancellationToken cancellationTokenSource,
             int fps = FPS,
             System.DateTime? rangeStartDate = null,
             System.DateTime? rangeEndDate = null,
@@ -54,6 +60,8 @@ namespace TelemetryExporter.Core
             {
                 return;
             }
+
+            
 
             List<(System.DateTime start, System.DateTime end)> activePeriods = [];
 
@@ -100,7 +108,7 @@ namespace TelemetryExporter.Core
             System.DateTime endDate = fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
 
             List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
-            
+
             // There may not be any records in the selected range.
             if (rangeStartDate.HasValue && rangeEndDate.HasValue)
             {
@@ -127,19 +135,18 @@ namespace TelemetryExporter.Core
             System.DateTime currentTimeFrame = startDate;
 
             TimeSpan activeTimeDuration = TimeSpan.Zero;
-            
+
             SKPoint? lastKnownGpsLocation = null;
             int frame = default;
 
             SessionData sessionData = new()
             {
                 MaxSpeed = orderedRecordMessages.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
-                TotalDistance = calculateStatisticsFromRange 
+                TotalDistance = calculateStatisticsFromRange
                 ? (orderedRecordMessages[^1].GetDistance() ?? 0 - orderedRecordMessages[0].GetDistance() ?? 0) // Check [^1] has distance
                 : fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
                 CountOfRecords = orderedRecordMessages.Count
             };
-
 
             RecordMesg currentRecord = queue.Dequeue();
             List<FrameData> framesList = [];
@@ -258,16 +265,24 @@ namespace TelemetryExporter.Core
                 {
                     activeTimeDuration = activeTimeDuration.Add(TimeSpan.FromMilliseconds(millsecondsStep));
                 }
-
             } while (currentTimeFrame <= endDate);
 
-            List<(ZipArchiveEntry, SKData)> zipEntries = [];
+            List<(string, SKData)> zipEntries = [];
             Guid sesstionGuid = Guid.NewGuid();
-            using FileStream tempDirectoryStream = new(Path.Combine(tempDirectoryPath, $"{sesstionGuid}"), FileMode.OpenOrCreate, FileAccess.Write);
+
+            using FileStream tempDirectoryStream = new(Path.Combine(tempDirectoryPath, $"{sesstionGuid}.zip"), FileMode.OpenOrCreate, FileAccess.Write);
             using ZipArchive zipArchive = new(tempDirectoryStream, ZipArchiveMode.Create);
 
+            Dictionary<string, double> widgetDonePercentage = [];
+
             IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
-            IEnumerable<Task> renderTasks = widgets.Select(w => ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, w, cancellationToken, ProcessImage));
+
+            IEnumerable<Task> renderTasks = widgets.Select(w =>
+             Task.Run(async () =>
+             {
+                 await ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, w, ProcessImage, cancellationTokenSource);
+             },
+             cancellationTokenSource));
 
             await Task.WhenAll(renderTasks);
 
@@ -276,28 +291,48 @@ namespace TelemetryExporter.Core
                 bool isRecordInActivePeriod = activePeriods.Any(x => x.start <= date && date <= x.end);
                 return isRecordInActivePeriod;
             }
-            
-            void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame)
-            {
-                WidgetDataAttribute widgetData = widget?.GetType().GetCustomAttribute<WidgetDataAttribute>()!;
-                ZipArchiveEntry entry = zipArchive.CreateEntry(Path.Combine(widgetData.Category, fileNameOfFrame), CompressionLevel.Fastest);
 
-                /// threshold
-                if (zipEntries.Count >= 100)
+            void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame, double percentage)
+            {
+                Type widgetType = widget.GetType();
+                WidgetDataAttribute widgetData = widgetType.GetCustomAttribute<WidgetDataAttribute>()!;
+
+                widgetDonePercentage[widgetType.Name] = percentage;
+
+                zipEntries.Add((Path.Combine(widgetData.Category, fileNameOfFrame), imageData));
+                const int ThresHold = 100;
+                if (zipEntries.Count >= ThresHold)
                 {
                     lock (lockObj)
                     {
-                        foreach (var (zipEntry, skData) in zipEntries)
+                        if (zipEntries.Count >= ThresHold)
                         {
-                            using Stream streamZipFile = zipEntry.Open();
-                            using Stream s = skData.AsStream();
-                            s.CopyTo(streamZipFile);
+                            foreach (var (zipEntryPath, skData) in zipEntries)
+                            {
+                                //ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
+                                //using Stream streamZipFile = entry.Open();
+                                //using Stream s = skData.AsStream();
+                                //s.CopyTo(streamZipFile);
+                            }
+
+                            zipEntries.Clear();
+
+                            OnProgress?.Invoke(this, widgetDonePercentage);
                         }
                     }
                 }
-
-                zipEntries.Add((entry, imageData));
             }
+        }
+
+        public async Task DoSomethingAsync()
+        {
+            IEnumerable<Task> renderTasks = Enumerable.Range(0, 200).Select(w => Task.Run(async () =>
+            {
+                await Task.Delay(5000);
+                Debug.WriteLine(w);
+            }));
+
+            await Task.WhenAll(renderTasks);
         }
 
         static List<IWidget> GetWidgetList(IReadOnlyCollection<int> selectedIds, IReadOnlyCollection<RecordMesg> recordData)
@@ -314,7 +349,11 @@ namespace TelemetryExporter.Core
                 List<object?> parameters = [];
 
                 // there are two types of widget, parameterless constructor and constructor with recordMessages
-                if (type.GetConstructor([recordData.GetType()]) != null)
+                bool hasConstructorWithOneParameter = type.GetConstructors().Any(c => 
+                    c.GetParameters().Length == 1 
+                        && c.GetParameters()[0].ParameterType.IsAssignableFrom(recordData.GetType()));
+
+                if (hasConstructorWithOneParameter)
                 {
                     parameters.Add(recordData);
                 }

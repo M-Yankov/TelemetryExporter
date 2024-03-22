@@ -16,7 +16,7 @@ namespace TelemetryExporter.Core.Widgets.Pace
         // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
         private const double SpeedCutoff = 0.5556;
 
-        public SKData GenerateImage(SessionData sessionData, FrameData frameData)
+        public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)
         {
             double currentSpeed = frameData.Speed < SpeedCutoff ? 0 : frameData.Speed;
             double pace = currentSpeed > 0 ? 60 / (currentSpeed * 3.6) : default;
@@ -117,7 +117,7 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-            return data;
+            return Task.FromResult(data);
             //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, frameData.FileName));
             //using Stream s = data.AsStream();
             //await s.CopyToAsync(stream);

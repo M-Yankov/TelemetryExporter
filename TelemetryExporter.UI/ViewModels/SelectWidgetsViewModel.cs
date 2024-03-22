@@ -140,7 +140,7 @@ namespace TelemetryExporter.UI.ViewModels
                 IndexOfCurrentRecord = default,
                 Longitude = default,
                 Speed = default
-            });
+            }).GetAwaiter().GetResult();
 
             MemoryStream memoryStream = new(data.ToArray());
 
