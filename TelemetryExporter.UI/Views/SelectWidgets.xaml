@@ -144,7 +144,7 @@
 
             <Grid ColumnDefinitions="auto,*" Margin="0, 10">
                 <Label Text="{Binding Source={x:Reference exportProgress}, Path=Progress, StringFormat='{0:P}' }" />
-                <ProgressBar Grid.Column="1" x:Name="exportProgress" Progress="0.4"  ProgressColor="Green" />
+                <ProgressBar Grid.Column="1" x:Name="exportProgress" ProgressColor="Green" />
             </Grid>
 
             <ScrollView MaximumHeightRequest="150"  VerticalScrollBarVisibility="Always" WidthRequest="300">

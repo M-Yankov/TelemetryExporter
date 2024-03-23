@@ -28,7 +28,7 @@ namespace TelemetryExporter.Core
         /// Export images.
         /// </summary>
         /// <param name="fitMessages"></param>
-        /// <param name="cancellationTokenSource">Cancellation token if canceled by user.</param>
+        /// <param name="cancellationToken">Cancellation token if canceled by user.</param>
         /// <param name="widgetsIds">Each widget have an Id.</param>
         /// <param name="saveDirectoryPath">Directory for final result provided by the user.</param>
         /// <param name="tempDirectoryPath">Platform temp directory.</param>
@@ -40,12 +40,12 @@ namespace TelemetryExporter.Core
         /// Example:<para/> The activity has 30km distance, but it's provided a range of 5km. All the stats will be calculated from that period.
         /// If "false" stats are calculated from start of the activity, <paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> 
         /// still can be used to export images from that range.</param>
-        public async Task ProcessMethodAsync(
+        public async Task ExportImageFramesAsync(
             FitMessages fitMessages,
             List<int> widgetsIds,
             string saveDirectoryPath,
             string tempDirectoryPath,
-            CancellationToken cancellationTokenSource,
+            CancellationToken cancellationToken,
             int fps = FPS,
             System.DateTime? rangeStartDate = null,
             System.DateTime? rangeEndDate = null,
@@ -60,8 +60,6 @@ namespace TelemetryExporter.Core
             {
                 return;
             }
-
-            
 
             List<(System.DateTime start, System.DateTime end)> activePeriods = [];
 
@@ -270,21 +268,41 @@ namespace TelemetryExporter.Core
             List<(string, SKData)> zipEntries = [];
             Guid sesstionGuid = Guid.NewGuid();
 
-            using FileStream tempDirectoryStream = new(Path.Combine(tempDirectoryPath, $"{sesstionGuid}.zip"), FileMode.OpenOrCreate, FileAccess.Write);
+            string genratedFileName = $"{sesstionGuid}.zip";
+            string tempZipFileDirectory = Path.Combine(tempDirectoryPath, genratedFileName);
+            using FileStream tempDirectoryStream = new(tempZipFileDirectory, FileMode.OpenOrCreate, FileAccess.Write);
             using ZipArchive zipArchive = new(tempDirectoryStream, ZipArchiveMode.Create);
 
             Dictionary<string, double> widgetDonePercentage = [];
 
-            IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
+            try
+            {
+                IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
 
-            IEnumerable<Task> renderTasks = widgets.Select(w =>
-             Task.Run(async () =>
-             {
-                 await ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, w, ProcessImage, cancellationTokenSource);
-             },
-             cancellationTokenSource));
+                IEnumerable<Task> renderTasks = widgets.Select(w =>
+                 Task.Run(async () =>
+                 {
+                     await ImagesGenerator.GenerateDataForWidgetAsync(
+                         sessionData,
+                         framesList,
+                         w,
+                         ProcessImage, 
+                         cancellationToken);
+                 },
+                 cancellationToken));
 
-            await Task.WhenAll(renderTasks);
+                await Task.WhenAll(renderTasks);
+            }
+            catch (Exception)
+            {
+                // don't invoke tempDirectoryStream.Dispose();. It's invoked internally form zipArchive.Dispose.
+                zipArchive.Dispose();
+                System.IO.File.Delete(tempZipFileDirectory);
+                throw;
+            }
+
+            zipArchive.Dispose();
+            System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
 
             static bool IsRecordInActiveTime(System.DateTime date, IReadOnlyCollection<(System.DateTime start, System.DateTime end)> activePeriods)
             {
@@ -299,7 +317,6 @@ namespace TelemetryExporter.Core
 
                 widgetDonePercentage[widgetType.Name] = percentage;
 
-                zipEntries.Add((Path.Combine(widgetData.Category, fileNameOfFrame), imageData));
                 const int ThresHold = 100;
                 if (zipEntries.Count >= ThresHold)
                 {
@@ -307,12 +324,12 @@ namespace TelemetryExporter.Core
                     {
                         if (zipEntries.Count >= ThresHold)
                         {
-                            foreach (var (zipEntryPath, skData) in zipEntries)
+                            foreach (var (zipEntryPath, skImageData) in zipEntries)
                             {
-                                //ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
-                                //using Stream streamZipFile = entry.Open();
-                                //using Stream s = skData.AsStream();
-                                //s.CopyTo(streamZipFile);
+                                ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
+                                using Stream streamZipFile = entry.Open();
+                                using Stream imageDataStream = skImageData.AsStream();
+                                imageDataStream.CopyTo(streamZipFile);
                             }
 
                             zipEntries.Clear();
@@ -321,18 +338,9 @@ namespace TelemetryExporter.Core
                         }
                     }
                 }
+
+                zipEntries.Add((Path.Combine(widgetData.Category, fileNameOfFrame), imageData));
             }
-        }
-
-        public async Task DoSomethingAsync()
-        {
-            IEnumerable<Task> renderTasks = Enumerable.Range(0, 200).Select(w => Task.Run(async () =>
-            {
-                await Task.Delay(5000);
-                Debug.WriteLine(w);
-            }));
-
-            await Task.WhenAll(renderTasks);
         }
 
         static List<IWidget> GetWidgetList(IReadOnlyCollection<int> selectedIds, IReadOnlyCollection<RecordMesg> recordData)

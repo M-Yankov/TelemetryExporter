@@ -145,21 +145,36 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         Core.Program exporter = new();
         exporter.OnProgress += Exporter_OnProgress;
 
-        await exporter.ProcessMethodAsync(
-            model.FitMessages,
-            selectWidgetIds!,
-            saveLocation.Text,
-            FileSystem.CacheDirectory,
-            cancellationTokenForExport.Token,
-            (byte)selectedFps.SelectedItem,
-            rangeDatesActivity.StartValue.ToUniversalTime(),
-            rangeDatesActivity.EndValue.ToUniversalTime(),
-            useStartMarker.IsChecked);
+        try
+        {
+            await exporter.ExportImageFramesAsync(
+                model.FitMessages,
+                selectWidgetIds!,
+                saveLocation.Text,
+                FileSystem.CacheDirectory,
+                cancellationTokenForExport.Token,
+                (byte)selectedFps.SelectedItem,
+                rangeDatesActivity.StartValue.ToUniversalTime(),
+                rangeDatesActivity.EndValue.ToUniversalTime(),
+                useStartMarker.IsChecked);
 
-        exporter.OnProgress -= Exporter_OnProgress;
+            await DisplayAlert("Done!", "Export Done!", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
 
-        exportLoaderIndicator.IsRunning = false;
-        exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
+            this.statusPanel.Text = "Canceled";
+            this.exportProgress.Progress = 0;
+        }
+        finally
+        {
+            exporter.OnProgress -= Exporter_OnProgress;
+
+            this.exportProgress.Progress = 1;
+            exportLoaderIndicator.IsRunning = false;
+            exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
+        }
     }
 
     /// <summary>
