@@ -1,5 +1,9 @@
 ﻿namespace TelemetryExporter.Core.Attributes
 {
+
+    /// <summary>
+    /// Hold widget data as attribute is easy: doesn't require instance of the widget, but accessed via reflection.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class WidgetDataAttribute : Attribute
     {

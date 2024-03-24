@@ -10,7 +10,7 @@ namespace TelemetryExporter.Core.Widgets.Distance
     [WidgetData(Index = 2, ExampleImagePath = "Images/ExampleDistance.png", Category = TECoreContsants.Categories.Distance)]
     public class DistanceWidget : IWidget
     {
-        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
+        public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             //string folderName = Path.Combine("Telemetry", "Distance");
             //if (!Directory.Exists(folderName))
@@ -73,7 +73,7 @@ namespace TelemetryExporter.Core.Widgets.Distance
 
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-            return data;
+            return Task.FromResult(data);
 
 
             //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));

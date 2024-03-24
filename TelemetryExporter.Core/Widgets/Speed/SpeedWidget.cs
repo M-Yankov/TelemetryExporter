@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 
 using TelemetryExporter.Core.Attributes;
+using TelemetryExporter.Core.Extensions;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
@@ -10,7 +11,7 @@ namespace TelemetryExporter.Core.Widgets.Speed
     [WidgetData(Index = 1, ExampleImagePath = "Images/ExampleSpeed.png", Category = TECoreContsants.Categories.Speed)]
     public class SpeedWidget : IWidget
     {
-        public SKData GenerateImage(SessionData sessionData, FrameData currentData)
+        public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             //string folderName = Path.Combine("Telemetry", "Speed");
             //if (!Directory.Exists(folderName))
@@ -18,8 +19,10 @@ namespace TelemetryExporter.Core.Widgets.Speed
             //    Directory.CreateDirectory(folderName);
             //}
 
-            using SKBitmap radial = SKBitmap.FromImage(SKImage.FromEncodedData(Path.Combine("Images", "radial_6.png")));
-            using SKBitmap dial = SKBitmap.FromImage(SKImage.FromEncodedData(Path.Combine("Images", "radial_6_dial.png")));
+            using SKBitmap radial = SKBitmap.FromImage(
+                SKImage.FromEncodedData(PathExtensions.Combine("Images", "radial_6.png")));
+            using SKBitmap dial = SKBitmap.FromImage(
+                SKImage.FromEncodedData(PathExtensions.Combine("Images", "radial_6_dial.png")));
 
             SKImageInfo info = new(radial.Width, radial.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKSurface surface = SKSurface.Create(info);
@@ -90,7 +93,7 @@ namespace TelemetryExporter.Core.Widgets.Speed
 
             using SKImage imageExport = surface.Snapshot();
             SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
-            return data;
+            return Task.FromResult(data);
 
             //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
             //using Stream s = data.AsStream();

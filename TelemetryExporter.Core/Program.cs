@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using System.Reflection;
 
 using Dynastream.Fit;
@@ -15,8 +16,13 @@ namespace TelemetryExporter.Core
     // Check this: /activity-service/activity/12092921949/details
     public class Program
     {
-        private readonly object lockObj = new ();
+        private readonly object lockObj = new();
         const int FPS = 2;
+
+        /// <summary>
+        /// Invoked when processing images, after an certain interval.
+        /// </summary>
+        public event EventHandler<Dictionary<string, double>> OnProgress;
 
         /// <summary>
         /// Export images.
@@ -34,12 +40,12 @@ namespace TelemetryExporter.Core
         /// Example:<para/> The activity has 30km distance, but it's provided a range of 5km. All the stats will be calculated from that period.
         /// If "false" stats are calculated from start of the activity, <paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> 
         /// still can be used to export images from that range.</param>
-        public async Task ProcessMethod(
+        public async Task ExportImageFramesAsync(
             FitMessages fitMessages,
             List<int> widgetsIds,
             string saveDirectoryPath,
             string tempDirectoryPath,
-            CancellationTokenSource cancellationToken,
+            CancellationToken cancellationToken,
             int fps = FPS,
             System.DateTime? rangeStartDate = null,
             System.DateTime? rangeEndDate = null,
@@ -100,7 +106,7 @@ namespace TelemetryExporter.Core
             System.DateTime endDate = fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
 
             List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
-            
+
             // There may not be any records in the selected range.
             if (rangeStartDate.HasValue && rangeEndDate.HasValue)
             {
@@ -127,19 +133,18 @@ namespace TelemetryExporter.Core
             System.DateTime currentTimeFrame = startDate;
 
             TimeSpan activeTimeDuration = TimeSpan.Zero;
-            
+
             SKPoint? lastKnownGpsLocation = null;
             int frame = default;
 
             SessionData sessionData = new()
             {
                 MaxSpeed = orderedRecordMessages.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
-                TotalDistance = calculateStatisticsFromRange 
+                TotalDistance = calculateStatisticsFromRange
                 ? (orderedRecordMessages[^1].GetDistance() ?? 0 - orderedRecordMessages[0].GetDistance() ?? 0) // Check [^1] has distance
                 : fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
                 CountOfRecords = orderedRecordMessages.Count
             };
-
 
             RecordMesg currentRecord = queue.Dequeue();
             List<FrameData> framesList = [];
@@ -258,45 +263,83 @@ namespace TelemetryExporter.Core
                 {
                     activeTimeDuration = activeTimeDuration.Add(TimeSpan.FromMilliseconds(millsecondsStep));
                 }
-
             } while (currentTimeFrame <= endDate);
 
-            List<(ZipArchiveEntry, SKData)> zipEntries = [];
+            List<(string, SKData)> zipEntries = [];
             Guid sesstionGuid = Guid.NewGuid();
-            using FileStream tempDirectoryStream = new(Path.Combine(tempDirectoryPath, $"{sesstionGuid}"), FileMode.OpenOrCreate, FileAccess.Write);
+
+            string genratedFileName = $"{sesstionGuid}.zip";
+            string tempZipFileDirectory = Path.Combine(tempDirectoryPath, genratedFileName);
+            using FileStream tempDirectoryStream = new(tempZipFileDirectory, FileMode.OpenOrCreate, FileAccess.Write);
             using ZipArchive zipArchive = new(tempDirectoryStream, ZipArchiveMode.Create);
 
-            IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
-            IEnumerable<Task> renderTasks = widgets.Select(w => ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, w, cancellationToken, ProcessImage));
+            Dictionary<string, double> widgetDonePercentage = [];
 
-            await Task.WhenAll(renderTasks);
+            try
+            {
+                IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
+
+                IEnumerable<Task> renderTasks = widgets.Select(w =>
+                 Task.Run(async () =>
+                 {
+                     await ImagesGenerator.GenerateDataForWidgetAsync(
+                         sessionData,
+                         framesList,
+                         w,
+                         ProcessImage, 
+                         cancellationToken);
+                 },
+                 cancellationToken));
+
+                await Task.WhenAll(renderTasks);
+            }
+            catch (Exception)
+            {
+                // don't invoke tempDirectoryStream.Dispose();. It's invoked internally form zipArchive.Dispose.
+                zipArchive.Dispose();
+                System.IO.File.Delete(tempZipFileDirectory);
+                throw;
+            }
+
+            zipArchive.Dispose();
+            System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
 
             static bool IsRecordInActiveTime(System.DateTime date, IReadOnlyCollection<(System.DateTime start, System.DateTime end)> activePeriods)
             {
                 bool isRecordInActivePeriod = activePeriods.Any(x => x.start <= date && date <= x.end);
                 return isRecordInActivePeriod;
             }
-            
-            void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame)
-            {
-                WidgetDataAttribute widgetData = widget?.GetType().GetCustomAttribute<WidgetDataAttribute>()!;
-                ZipArchiveEntry entry = zipArchive.CreateEntry(Path.Combine(widgetData.Category, fileNameOfFrame), CompressionLevel.Fastest);
 
-                /// threshold
-                if (zipEntries.Count >= 100)
+            void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame, double percentage)
+            {
+                Type widgetType = widget.GetType();
+                WidgetDataAttribute widgetData = widgetType.GetCustomAttribute<WidgetDataAttribute>()!;
+
+                widgetDonePercentage[widgetType.Name] = percentage;
+
+                const int ThresHold = 100;
+                if (zipEntries.Count >= ThresHold)
                 {
                     lock (lockObj)
                     {
-                        foreach (var (zipEntry, skData) in zipEntries)
+                        if (zipEntries.Count >= ThresHold)
                         {
-                            using Stream streamZipFile = zipEntry.Open();
-                            using Stream s = skData.AsStream();
-                            s.CopyTo(streamZipFile);
+                            foreach (var (zipEntryPath, skImageData) in zipEntries)
+                            {
+                                ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
+                                using Stream streamZipFile = entry.Open();
+                                using Stream imageDataStream = skImageData.AsStream();
+                                imageDataStream.CopyTo(streamZipFile);
+                            }
+
+                            zipEntries.Clear();
+
+                            OnProgress?.Invoke(this, widgetDonePercentage);
                         }
                     }
                 }
 
-                zipEntries.Add((entry, imageData));
+                zipEntries.Add((Path.Combine(widgetData.Category, fileNameOfFrame), imageData));
             }
         }
 
@@ -314,7 +357,11 @@ namespace TelemetryExporter.Core
                 List<object?> parameters = [];
 
                 // there are two types of widget, parameterless constructor and constructor with recordMessages
-                if (type.GetConstructor([recordData.GetType()]) != null)
+                bool hasConstructorWithOneParameter = type.GetConstructors().Any(c => 
+                    c.GetParameters().Length == 1 
+                        && c.GetParameters()[0].ParameterType.IsAssignableFrom(recordData.GetType()));
+
+                if (hasConstructorWithOneParameter)
                 {
                     parameters.Add(recordData);
                 }

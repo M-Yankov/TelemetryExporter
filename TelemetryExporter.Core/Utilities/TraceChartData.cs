@@ -12,7 +12,7 @@ namespace TelemetryExporter.Core.Utilities
     {
         private readonly SKPath tracePath;
 
-        public TraceChartData(ReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentage)
+        public TraceChartData(IReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentage)
         {
             PictureHeightPixels = heightPixels;
             PictureWidthPixels = widthPixels;
@@ -61,7 +61,7 @@ namespace TelemetryExporter.Core.Utilities
             return new(x, y);
         }
 
-        private SKPath BuildPath(ReadOnlyCollection<RecordMesg> dataMessages)
+        private SKPath BuildPath(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             List<SKPoint> points = new (); 
             foreach (RecordMesg? gpsMessage in dataMessages.OrderBy(x => x.GetTimestamp().GetDateTime()))

@@ -1,7 +1,11 @@
 using System.ComponentModel;
 
 using Microsoft.Maui.Controls.Shapes;
+using SkiaSharp;
 
+using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.Widgets.Interfaces;
+using TelemetryExporter.Core.Widgets.Speed;
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
 using TelemetryExporter.UI.ViewModels;
@@ -138,17 +142,66 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
 
         SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
-        await new Core.Program().ProcessMethod(
-            model.FitMessages, 
-            selectWidgetIds!,
-            saveLocation.Text,
-            FileSystem.AppDataDirectory,
-            cancellationTokenForExport,
-            (byte)selectedFps.SelectedItem,
-            rangeDatesActivity.StartValue.ToUniversalTime(),
-            rangeDatesActivity.EndValue.ToUniversalTime(),
-            useStartMarker.IsChecked
-            );
+        Core.Program exporter = new();
+        exporter.OnProgress += Exporter_OnProgress;
+
+        try
+        {
+            await exporter.ExportImageFramesAsync(
+                model.FitMessages,
+                selectWidgetIds!,
+                saveLocation.Text,
+                FileSystem.CacheDirectory,
+                cancellationTokenForExport.Token,
+                (byte)selectedFps.SelectedItem,
+                rangeDatesActivity.StartValue.ToUniversalTime(),
+                rangeDatesActivity.EndValue.ToUniversalTime(),
+                useStartMarker.IsChecked);
+
+            await DisplayAlert("Done!", "Export Done!", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+
+            this.statusPanel.Text = "Canceled";
+            this.exportProgress.Progress = 0;
+        }
+        finally
+        {
+            exporter.OnProgress -= Exporter_OnProgress;
+
+            this.exportProgress.Progress = 1;
+            exportLoaderIndicator.IsRunning = false;
+            exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
+        }
+    }
+
+    /// <summary>
+    /// The code is invoked from exporting main logic. In order to update UI needs to execute on UI thread.
+    /// </summary>
+    /// <param name="progressArgs">A <see cref="Dictionary{TKey, TValue}"/>
+    /// of widgets as keys and values are their progress in percentage. From 0 to 1.</param>
+    private void Exporter_OnProgress(object? _, Dictionary<string, double> progressArgs)
+    {
+        void SetTextDate(Dictionary<string, double> data)
+        {
+            string resultProgress = string.Join(
+                Environment.NewLine,
+                data.Select(pair => $"{pair.Key}: {pair.Value:P}"));
+
+            this.statusPanel.Text = resultProgress;
+            exportProgress.Progress = progressArgs.Values.Average();
+        }
+
+        if (MainThread.IsMainThread)
+        {
+            SetTextDate(progressArgs);
+        }
+        else
+        {
+            MainThread.BeginInvokeOnMainThread(() => SetTextDate(progressArgs));
+        }
     }
 
     private void CancelBtn_Clicked(object sender, EventArgs e)
@@ -159,6 +212,9 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
             exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
 
             cancellationTokenForExport.Cancel();
+
+            this.statusPanel.Text = "Canceled";
+            this.exportProgress.Progress = 0;
         }
     }
 }
