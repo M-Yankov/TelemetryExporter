@@ -269,6 +269,12 @@ namespace TelemetryExporter.Core
             Guid sesstionGuid = Guid.NewGuid();
 
             string genratedFileName = $"{sesstionGuid}.zip";
+
+            if (!Directory.Exists(tempDirectoryPath))
+            {
+                Directory.CreateDirectory(tempDirectoryPath);
+            }
+
             string tempZipFileDirectory = Path.Combine(tempDirectoryPath, genratedFileName);
             using FileStream tempDirectoryStream = new(tempZipFileDirectory, FileMode.OpenOrCreate, FileAccess.Write);
             using ZipArchive zipArchive = new(tempDirectoryStream, ZipArchiveMode.Create);
