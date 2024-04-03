@@ -8,17 +8,22 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Speed
 {
-    [WidgetData(Index = 1, ExampleImagePath = "Images/ExampleSpeed.png", Category = TECoreContsants.Categories.Speed)]
+    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Speed)]
     public class SpeedWidget : IWidget
     {
+        private const int WidgetIndex = 1;
+        private const string ImagePath = "Images/ExampleSpeed.png";
+
+        public int Index => WidgetIndex;
+
+        public string Category => TECoreContsants.Categories.Speed;
+
+        public string Name => "SpeedWidget";
+
+        public string ExampleImagePath => ImagePath;
+
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
-            //string folderName = Path.Combine("Telemetry", "Speed");
-            //if (!Directory.Exists(folderName))
-            //{
-            //    Directory.CreateDirectory(folderName);
-            //}
-
             using SKBitmap radial = SKBitmap.FromImage(
                 SKImage.FromEncodedData(PathExtensions.Combine("Images", "radial_6.png")));
             using SKBitmap dial = SKBitmap.FromImage(
@@ -94,11 +99,6 @@ namespace TelemetryExporter.Core.Widgets.Speed
             using SKImage imageExport = surface.Snapshot();
             SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
-
-            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            //using Stream s = data.AsStream();
-            //await s.CopyToAsync(stream);
-            //await stream.FlushAsync();
         }
     }
 }

@@ -1,10 +1,6 @@
-﻿using System.Collections.ObjectModel;
-
-using Dynastream.Fit;
+﻿using Dynastream.Fit;
 
 using SkiaSharp;
-
-using TelemetryExporter.Core.Extensions;
 
 namespace TelemetryExporter.Core.Utilities
 {

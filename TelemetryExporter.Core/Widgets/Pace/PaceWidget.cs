@@ -9,12 +9,22 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Pace
 {
-    [WidgetData(Index = 4, ExampleImagePath = "Images/ExamplePace.png", Category = TECoreContsants.Categories.Speed)]
+    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Speed)]
     public class PaceWidget : IWidget
     {
         // below that speed it's assumed as walking (For running only)
         // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
         private const double SpeedCutoff = 0.5556;
+        private const int WidgetIndex = 4;
+        private const string ImagePath = "Images/ExamplePace.png";
+
+        public string Category => TECoreContsants.Categories.Speed;
+
+        public int Index => WidgetIndex;
+
+        public string Name => "PaceWidget";
+
+        public string ExampleImagePath => ImagePath;
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)
         {
@@ -25,12 +35,6 @@ namespace TelemetryExporter.Core.Widgets.Pace
             const int PaceImageHeight = 100;
 
             float percentageOffsetWidth = PaceImageWidth * .05f;
-
-            //string folderName = Path.Combine("Telemetry", "Pace");
-            //if (!Directory.Exists(folderName))
-            //{
-            //    Directory.CreateDirectory(folderName);
-            //}
 
             SKImageInfo info = new(PaceImageWidth, PaceImageHeight, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
@@ -45,7 +49,6 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
             SKCanvas canvas = surface.Canvas;
 
-            //  canvas.DrawPaint(blackPaint);
             SKPath pathRegion = new();
             SKPoint topLeftDrawArea = new(percentageOffsetWidth, 0);
             SKPoint topRightDrawArea = new(PaceImageWidth, 0);
@@ -118,10 +121,6 @@ namespace TelemetryExporter.Core.Widgets.Pace
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
-            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, frameData.FileName));
-            //using Stream s = data.AsStream();
-            //await s.CopyToAsync(stream);
-            //await stream.FlushAsync();
         }
     }
 }

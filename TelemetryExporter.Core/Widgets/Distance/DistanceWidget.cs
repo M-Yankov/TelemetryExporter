@@ -7,17 +7,22 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Distance
 {
-    [WidgetData(Index = 2, ExampleImagePath = "Images/ExampleDistance.png", Category = TECoreContsants.Categories.Distance)]
+    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Distance)]
     public class DistanceWidget : IWidget
     {
+        private const int WidgetIndex = 2;
+        private const string ImagePath = "Images/ExampleDistance.png";
+
+        public int Index => WidgetIndex;
+
+        public string Category => TECoreContsants.Categories.Distance;
+
+        public string Name => "DistanceWidget";
+
+        public string ExampleImagePath => ImagePath;
+
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
-            //string folderName = Path.Combine("Telemetry", "Distance");
-            //if (!Directory.Exists(folderName))
-            //{
-            //    Directory.CreateDirectory(folderName);
-            //}
-
             const int DistanceImageWidth = 700;
             const int DistanceImageHeight = 100;
 
@@ -74,13 +79,6 @@ namespace TelemetryExporter.Core.Widgets.Distance
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
-
-
-            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            ////data.SaveTo(stream);
-            //using Stream s = data.AsStream();
-            //await s.CopyToAsync(stream);
-            //await stream.FlushAsync();
         }
     }
 }
