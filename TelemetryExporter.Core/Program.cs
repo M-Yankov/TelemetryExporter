@@ -110,26 +110,29 @@ namespace TelemetryExporter.Core
             List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
 
             // There may not be any records in the selected range.
-            /*if (rangeStartDate.HasValue && rangeEndDate.HasValue)
+            if (calculateStatisticsFromRange)
             {
-                startDate = rangeStartDate.Value;
-                endDate = rangeEndDate.Value;
+                if (rangeStartDate.HasValue && rangeEndDate.HasValue)
+                {
+                    startDate = rangeStartDate.Value;
+                    endDate = rangeEndDate.Value;
 
-                orderedRecordMessages = new(orderedRecordMessages.Where(x =>
-                     rangeStartDate.Value < x.GetTimestamp().GetDateTime() && x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
+                    orderedRecordMessages = new(orderedRecordMessages.Where(x =>
+                         rangeStartDate.Value < x.GetTimestamp().GetDateTime() && x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
+                }
+                else if (rangeStartDate.HasValue)
+                {
+                    startDate = rangeStartDate.Value;
+
+                    orderedRecordMessages = new(orderedRecordMessages.Where(x => rangeStartDate.Value < x.GetTimestamp().GetDateTime()));
+                }
+                else if (rangeEndDate.HasValue)
+                {
+                    endDate = rangeEndDate.Value;
+
+                    orderedRecordMessages = new(orderedRecordMessages.Where(x => x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
+                }
             }
-            else if (rangeStartDate.HasValue)
-            {
-                startDate = rangeStartDate.Value;
-
-                orderedRecordMessages = new(orderedRecordMessages.Where(x => rangeStartDate.Value < x.GetTimestamp().GetDateTime()));
-            }
-            else if (rangeEndDate.HasValue)
-            {
-                endDate = rangeEndDate.Value;
-
-                orderedRecordMessages = new(orderedRecordMessages.Where(x => x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
-            }*/
 
             Queue<RecordMesg> queue = new(orderedRecordMessages);
             System.DateTime currentTimeFrame = startDate;
@@ -226,7 +229,6 @@ namespace TelemetryExporter.Core
                     }
                 }
 
-
                 bool value1 = rangeStartDate.HasValue == false
                     || (rangeStartDate.HasValue && rangeStartDate.Value <= currentTimeFrame);
 
@@ -235,8 +237,6 @@ namespace TelemetryExporter.Core
 
                 if (value1 && value2)
                 {
-
-                
 
                 if (isActiveTime)
                 {
@@ -259,7 +259,7 @@ namespace TelemetryExporter.Core
                     Altitude = altitude,
                     Distance = distance,
                     Speed = speed * 3.6 ?? 0,
-                    IndexOfCurrentRecord = indexCurrentRecord, // orderedRecordMessages.IndexOf(currentRecord) + 1, // this can be replaced with some counter
+                    IndexOfCurrentRecord = indexCurrentRecord,
                     Longitude = lastKnownGpsLocation?.X,
                     Latitude = lastKnownGpsLocation?.Y,
                 };
@@ -302,11 +302,7 @@ namespace TelemetryExporter.Core
 
             try
             {
-                List<RecordMesg> recordDataToUse = calculateStatisticsFromRange
-                    ? orderedRecordMessages
-                    : new List<RecordMesg>(fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()));
-
-                IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, recordDataToUse);
+                IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
 
                 IEnumerable<Task> renderTasks = widgets.Select(w =>
                  Task.Run(async () =>
@@ -324,14 +320,24 @@ namespace TelemetryExporter.Core
             }
             catch (Exception)
             {
-                // don't invoke tempDirectoryStream.Dispose();. It's invoked internally form zipArchive.Dispose.
+                // Don't invoke tempDirectoryStream.Dispose();
+                // It's invoked internally form zipArchive.Dispose().
                 zipArchive.Dispose();
                 System.IO.File.Delete(tempZipFileDirectory);
                 throw;
             }
 
             zipArchive.Dispose();
-            System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                System.IO.File.Delete(tempZipFileDirectory);
+                return;
+            }
+            else 
+            {
+                System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
+            }
 
             static bool IsRecordInActiveTime(System.DateTime date, IReadOnlyCollection<(System.DateTime start, System.DateTime end)> activePeriods)
             {
