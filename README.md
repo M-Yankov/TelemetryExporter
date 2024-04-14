@@ -87,7 +87,7 @@ Checkout more info about [Getting started with MAUI](https://learn.microsoft.com
 
 ### Technical info:
 In case of error, this temporary directory contains generated frames:
-> C:\Users\<your-user-name>\AppData\Local\M-Yankov\com.telemetryexporter\Cache
+> `C:\Users\<your-user-name>\AppData\Local\M-Yankov\com.telemetryexporter\Cache`
 
 Contents can be safety deleted.
 
