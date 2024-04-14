@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Reflection;
 
 using Dynastream.Fit;
@@ -103,30 +102,36 @@ namespace TelemetryExporter.Core
             bool isActiveTime = true;
 
             System.DateTime startDate = fitMessages.RecordMesgs[0].GetTimestamp().GetDateTime();
+            //System.DateTime originalStartDateTime = startDate;
+
             System.DateTime endDate = fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
+           // System.DateTime originalEndDateTime = endDate;
 
             List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
 
             // There may not be any records in the selected range.
-            if (rangeStartDate.HasValue && rangeEndDate.HasValue)
+            if (calculateStatisticsFromRange)
             {
-                startDate = rangeStartDate.Value;
-                endDate = rangeEndDate.Value;
+                if (rangeStartDate.HasValue && rangeEndDate.HasValue)
+                {
+                    startDate = rangeStartDate.Value;
+                    endDate = rangeEndDate.Value;
 
-                orderedRecordMessages = new(orderedRecordMessages.Where(x =>
-                     rangeStartDate.Value < x.GetTimestamp().GetDateTime() && x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
-            }
-            else if (rangeStartDate.HasValue)
-            {
-                startDate = rangeStartDate.Value;
+                    orderedRecordMessages = new(orderedRecordMessages.Where(x =>
+                         rangeStartDate.Value < x.GetTimestamp().GetDateTime() && x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
+                }
+                else if (rangeStartDate.HasValue)
+                {
+                    startDate = rangeStartDate.Value;
 
-                orderedRecordMessages = new(orderedRecordMessages.Where(x => rangeStartDate.Value < x.GetTimestamp().GetDateTime()));
-            }
-            else if (rangeEndDate.HasValue)
-            {
-                endDate = rangeEndDate.Value;
+                    orderedRecordMessages = new(orderedRecordMessages.Where(x => rangeStartDate.Value < x.GetTimestamp().GetDateTime()));
+                }
+                else if (rangeEndDate.HasValue)
+                {
+                    endDate = rangeEndDate.Value;
 
-                orderedRecordMessages = new(orderedRecordMessages.Where(x => x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
+                    orderedRecordMessages = new(orderedRecordMessages.Where(x => x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
+                }
             }
 
             Queue<RecordMesg> queue = new(orderedRecordMessages);
@@ -135,7 +140,11 @@ namespace TelemetryExporter.Core
             TimeSpan activeTimeDuration = TimeSpan.Zero;
 
             SKPoint? lastKnownGpsLocation = null;
-            int frame = default;
+            // TimeSpan dateDiff = startDate - originalStartDateTime;
+            int indexCurrentRecord = 0;
+            int frame = 0;// ((int)dateDiff.TotalSeconds) * fps;
+
+           // int totalFrames = (int)(originalEndDateTime - originalStartDateTime).TotalSeconds * fps;
 
             SessionData sessionData = new()
             {
@@ -216,9 +225,18 @@ namespace TelemetryExporter.Core
                             currentRecord = nextRcordMesg;
                         }
 
-                        queue.Dequeue();
+                        queue.Dequeue(); indexCurrentRecord++;
                     }
                 }
+
+                bool value1 = rangeStartDate.HasValue == false
+                    || (rangeStartDate.HasValue && rangeStartDate.Value <= currentTimeFrame);
+
+                bool value2 = rangeEndDate.HasValue == false
+                    || (rangeEndDate.HasValue && currentTimeFrame <= rangeEndDate.Value);
+
+                if (value1 && value2)
+                {
 
                 if (isActiveTime)
                 {
@@ -241,15 +259,16 @@ namespace TelemetryExporter.Core
                     Altitude = altitude,
                     Distance = distance,
                     Speed = speed * 3.6 ?? 0,
-                    IndexOfCurrentRecord = orderedRecordMessages.IndexOf(currentRecord) + 1, // this can be replaced with some counter
+                    IndexOfCurrentRecord = indexCurrentRecord,
                     Longitude = lastKnownGpsLocation?.X,
                     Latitude = lastKnownGpsLocation?.Y,
                 };
 
                 framesList.Add(frameData);
 
+                }
                 // this is the duration (feature widget)
-                TimeSpan duration = (currentTimeFrame - startDate);
+                TimeSpan duration = (currentTimeFrame - startDate); //!! Assume calculateStatisticsFromRange
 
                 // data for future widgets
                 float? hr = currentRecord?.GetHeartRate(); // beats per minute  
@@ -269,6 +288,12 @@ namespace TelemetryExporter.Core
             Guid sesstionGuid = Guid.NewGuid();
 
             string genratedFileName = $"{sesstionGuid}.zip";
+
+            if (!Directory.Exists(tempDirectoryPath))
+            {
+                Directory.CreateDirectory(tempDirectoryPath);
+            }
+
             string tempZipFileDirectory = Path.Combine(tempDirectoryPath, genratedFileName);
             using FileStream tempDirectoryStream = new(tempZipFileDirectory, FileMode.OpenOrCreate, FileAccess.Write);
             using ZipArchive zipArchive = new(tempDirectoryStream, ZipArchiveMode.Create);
@@ -295,14 +320,24 @@ namespace TelemetryExporter.Core
             }
             catch (Exception)
             {
-                // don't invoke tempDirectoryStream.Dispose();. It's invoked internally form zipArchive.Dispose.
+                // Don't invoke tempDirectoryStream.Dispose();
+                // It's invoked internally form zipArchive.Dispose().
                 zipArchive.Dispose();
                 System.IO.File.Delete(tempZipFileDirectory);
                 throw;
             }
 
             zipArchive.Dispose();
-            System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                System.IO.File.Delete(tempZipFileDirectory);
+                return;
+            }
+            else 
+            {
+                System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
+            }
 
             static bool IsRecordInActiveTime(System.DateTime date, IReadOnlyCollection<(System.DateTime start, System.DateTime end)> activePeriods)
             {
@@ -312,10 +347,7 @@ namespace TelemetryExporter.Core
 
             void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame, double percentage)
             {
-                Type widgetType = widget.GetType();
-                WidgetDataAttribute widgetData = widgetType.GetCustomAttribute<WidgetDataAttribute>()!;
-
-                widgetDonePercentage[widgetType.Name] = percentage;
+                widgetDonePercentage[widget.Name] = percentage;
 
                 const int ThresHold = 100;
                 if (zipEntries.Count >= ThresHold)
@@ -339,7 +371,7 @@ namespace TelemetryExporter.Core
                     }
                 }
 
-                zipEntries.Add((Path.Combine(widgetData.Category, fileNameOfFrame), imageData));
+                zipEntries.Add((Path.Combine(widget.Category, widget.Name, fileNameOfFrame), imageData));
             }
         }
 

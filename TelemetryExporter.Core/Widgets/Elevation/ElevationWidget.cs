@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-using Dynastream.Fit;
+﻿using Dynastream.Fit;
 
 using SkiaSharp;
 
@@ -11,14 +9,24 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Elevation
 {
-    [WidgetData(Index = 5, ExampleImagePath = "Images/ExampleElevation.png", Category = TECoreContsants.Categories.Elevation)]
+    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Elevation)]
     public class ElevationWidget : IWidget
     {
-        const int ElevationPictureWidthPixels = 700;
-        const int ElevationPictureHeightPixels = 250;
+        private const int ElevationPictureWidthPixels = 700;
+        private const int ElevationPictureHeightPixels = 250;
+        private const int WidgetIndex = 5;
+        private const string ImagePath = "Images/ExampleElevation.png";
 
         private readonly SKPath elevationPath;
         private readonly LineChartData lineChartData;
+
+        public int Index => WidgetIndex;
+
+        public string Category => TECoreContsants.Categories.Elevation;
+
+        public string Name => "ElevationWidget";
+
+        public string ExampleImagePath => ImagePath;
 
         public ElevationWidget(IReadOnlyCollection<RecordMesg> dataMessages)
         {
@@ -67,12 +75,6 @@ namespace TelemetryExporter.Core.Widgets.Elevation
                 Style = SKPaintStyle.Fill
             };
 
-            //string folderName = Path.Combine("Telemetry", "Elevation");
-            //if (!Directory.Exists(folderName))
-            //{
-            //    Directory.CreateDirectory(folderName);
-            //}
-
             using SKSurface surface = SKSurface.Create(info);
             SKCanvas canvas = surface.Canvas;
             canvas.DrawPaint(transparentPaint);
@@ -117,10 +119,6 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
             return Task.FromResult(data);
-            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            //using Stream s = data.AsStream();
-            //await s.CopyToAsync(stream);
-            //await stream.FlushAsync();
         }
     }
 }

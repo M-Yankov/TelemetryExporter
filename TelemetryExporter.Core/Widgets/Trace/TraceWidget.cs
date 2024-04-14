@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-using Dynastream.Fit;
+﻿using Dynastream.Fit;
 
 using SkiaSharp;
 
@@ -12,14 +10,24 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Trace
 {
-    [WidgetData(Index = 3, ExampleImagePath = "Images/ExampleTrace.png", Category = TECoreContsants.Categories.Trace)]
+    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Trace)]
     public class TraceWidget : IWidget
     {
         private const int GpxPictureWidthPixels = 1000;
         private const float GpxPictureOffsetPercentage = .05f;
+        private const int WidgetIndex = 3;
+        private const string ImagePath = "Images/ExampleTrace.png";
 
         private readonly TraceChartData traceChart;
         private readonly SKPath tracePath;
+
+        public int Index => WidgetIndex;
+
+        public string Category => TECoreContsants.Categories.Trace;
+
+        public string Name => "TraceWidget";
+
+        public string ExampleImagePath => ImagePath;
 
         public TraceWidget(IReadOnlyCollection<RecordMesg> dataMessages)
         {
@@ -47,12 +55,6 @@ namespace TelemetryExporter.Core.Widgets.Trace
                 StrokeWidth = 2
             };
 
-            //string folderName = Path.Combine("Telemetry", "Trace");
-            //if (!Directory.Exists(folderName))
-            //{
-            //    Directory.CreateDirectory(folderName);
-            //}
-
             using SKSurface surface = SKSurface.Create(info);
 
             SKCanvas canvas = surface.Canvas;
@@ -74,10 +76,6 @@ namespace TelemetryExporter.Core.Widgets.Trace
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
-            //using FileStream stream = System.IO.File.OpenWrite(Path.Combine(folderName, currentData.FileName));
-            //using Stream s = data.AsStream();
-            //await s.CopyToAsync(stream);
-            //await stream.FlushAsync();
         }
     }
 }

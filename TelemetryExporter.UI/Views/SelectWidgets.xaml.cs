@@ -1,11 +1,7 @@
 using System.ComponentModel;
 
 using Microsoft.Maui.Controls.Shapes;
-using SkiaSharp;
 
-using TelemetryExporter.Core.Models;
-using TelemetryExporter.Core.Widgets.Interfaces;
-using TelemetryExporter.Core.Widgets.Speed;
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
 using TelemetryExporter.UI.ViewModels;
@@ -158,7 +154,16 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
                 rangeDatesActivity.EndValue.ToUniversalTime(),
                 useStartMarker.IsChecked);
 
-            await DisplayAlert("Done!", "Export Done!", "OK");
+            if (cancellationTokenForExport.Token.IsCancellationRequested)
+            {
+                this.statusPanel.Text = "Canceled";
+                this.exportProgress.Progress = 0;
+            }
+            else
+            {
+                await DisplayAlert("Done!", "Export Done!", "OK");
+                this.exportProgress.Progress = 1;
+            }
         }
         catch (Exception ex)
         {
@@ -171,7 +176,6 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         {
             exporter.OnProgress -= Exporter_OnProgress;
 
-            this.exportProgress.Progress = 1;
             exportLoaderIndicator.IsRunning = false;
             exportBtn.IsEnabled = !exportLoaderIndicator.IsRunning;
         }
