@@ -4,9 +4,8 @@ Export telemetry data (frames) from Garmin activity.
 Since Garmin Virb is not so usable, this program will replace part of its functionality related to exporting the `png overlays`.  
 Although this project gives opportunity to develop any kind of widget, depends on demands  
 
-<video width="520" height="340" controls>
-  <source src="./Media/presentation.mp4" type="video/mp4">
-</video>
+<!-- this is uploaded somewhere in github, for some reason it not working when refereced from repository -->
+https://github.com/M-Yankov/TelemetryExporter/assets/10440078/203a892f-10af-4912-82f8-a688acd40a5e
 
 ## Download
 - Go to [Releases](https://github.com/M-Yankov/TelemetryExporter/releases) page and download the latest
@@ -96,6 +95,7 @@ Contents can be safety deleted.
 - More widgets will be added (_from garmin virb_)
 - Each widget could have separate settings (size, font, color scheme etc.)
 - More configuration settings will be added, check [Issues](https://github.com/M-Yankov/TelemetryExporter/issues)
+- integrating map layers as navigation
 - quick fixes
 - Possibility to set exact start/end times (_to second_)
 - The MAUI seems not a stable technology for extensibility, may try something different in future
