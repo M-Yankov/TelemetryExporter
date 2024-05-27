@@ -44,7 +44,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
                 Color = SKColors.Black,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = 2
+                StrokeWidth = 3
             };
 
             using SKPaint redPaint = new()
@@ -69,7 +69,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
             if (!gpxPoint.IsEmpty)
             {
-                const int CircleRadius = 5;
+                const int CircleRadius = 8;
                 canvas.DrawCircle(gpxPoint, CircleRadius, redPaint);
             }
 
