@@ -9,7 +9,7 @@ https://github.com/M-Yankov/TelemetryExporter/assets/10440078/203a892f-10af-4912
 
 ## Usage
 Check the video below for detailed usage:  
-[![Usage](https://github.com/M-Yankov/TelemetryExporter/assets/10440078/b6a1d179-15ff-4d33-b47a-42a563ed9361)](https://www.youtube.com/watch?v=4XD5BiTeCWI)
+[![Usage](https://github.com/M-Yankov/TelemetryExporter/assets/10440078/7713b733-fca4-47ba-8ce2-e4d64f1feee0)](https://www.youtube.com/watch?v=4XD5BiTeCWI)
 
 ## Download
 - Go to [Releases](https://github.com/M-Yankov/TelemetryExporter/releases) page and download the latest
@@ -28,8 +28,7 @@ For now only Windows 10, 11 is supported (MacOS could be added in future, but ma
 
 ## Usage
 
-- You need the `.fit` file activity from![coever](https://github.com/M-Yankov/TelemetryExporter/assets/10440078/1fc6faa2-071a-4597-9487-fc4d891ef00c)
- Garmin device or downloaded from their website (https://connect.garmin.com/)
+- You need the `.fit` file activity from Garmin device or downloaded from their website (https://connect.garmin.com/)
 - Open `Telemetry Exporter` and select the `.fit` file
 - In `Telemetry Exporter` configure the settings you want and select widgets
 - Click `Export` and take a coffee :)
