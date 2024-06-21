@@ -41,7 +41,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
             {
-                Color = SKColors.Black,
+                Color = SKColors.White,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 3

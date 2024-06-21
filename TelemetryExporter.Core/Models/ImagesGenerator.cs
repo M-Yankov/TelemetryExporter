@@ -22,11 +22,17 @@ namespace TelemetryExporter.Core.Models
                     return;
                 }
 
-                SKData generatedImageData = await widget.GenerateImage(sessionData, frame);
-                callBack(generatedImageData, widget, frame.FileName, percentageDone);
+                // Try CAtch for missing frames
+                try
+                {
+                    SKData generatedImageData = await widget.GenerateImage(sessionData, frame);
+                    callBack(generatedImageData, widget, frame.FileName, percentageDone);
+                }
+                catch
+                {
+                    throw;
+                }
             }
-
-            return;
         }
     }
 }

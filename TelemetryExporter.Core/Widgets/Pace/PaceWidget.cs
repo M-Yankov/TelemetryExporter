@@ -29,7 +29,7 @@ namespace TelemetryExporter.Core.Widgets.Pace
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)
         {
             double currentSpeed = frameData.Speed < SpeedCutoff ? 0 : frameData.Speed;
-            double pace = currentSpeed > 0 ? 60 / (currentSpeed * 3.6) : default;
+            double pace = currentSpeed > 0 ? (60 / currentSpeed)  : default;
 
             const int PaceImageWidth = 400;
             const int PaceImageHeight = 100;
