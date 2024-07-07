@@ -16,7 +16,7 @@ namespace TelemetryExporter.Core.Models
             for (int i = 0; i < frameData.Count; i++)
             {
                 FrameData frame = frameData.ElementAt(i);
-                double percentageDone = (double)i / frameData.Count;
+                double percentageDone = (double)(i + 1) / frameData.Count;
                 if (cancellationToken.IsCancellationRequested)
                 {
                     return;

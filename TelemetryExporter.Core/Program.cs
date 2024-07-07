@@ -317,6 +317,21 @@ namespace TelemetryExporter.Core
                  cancellationToken));
 
                 await Task.WhenAll(renderTasks);
+
+                #region FixingRemainingFramesNotExported
+                foreach (var (zipEntryPath, skImageData) in zipEntries)
+                {
+                    ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
+                    using Stream streamZipFile = entry.Open();
+                    using Stream imageDataStream = skImageData.AsStream();
+                    imageDataStream.CopyTo(streamZipFile);
+                }
+
+                zipEntries.Clear();
+
+                OnProgress?.Invoke(this, widgetDonePercentage);
+                #endregion
+
             }
             catch (Exception)
             {
@@ -350,6 +365,7 @@ namespace TelemetryExporter.Core
                 widgetDonePercentage[widget.Name] = percentage;
 
                 const int ThresHold = 100;
+                
                 if (zipEntries.Count >= ThresHold)
                 {
                     lock (lockObj)
