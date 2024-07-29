@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Collections.Concurrent;
+using System.IO.Compression;
 using System.Reflection;
 
 using Dynastream.Fit;
@@ -288,7 +289,7 @@ namespace TelemetryExporter.Core
                 }
             } while (currentTimeFrame <= endDate);
 
-            List<(string, SKData)> zipEntries = [];
+            ConcurrentBag<(string, SKData)> zipEntries = [];
             Guid sesstionGuid = Guid.NewGuid();
 
             string genratedFileName = $"{sesstionGuid}.zip";
@@ -308,13 +309,13 @@ namespace TelemetryExporter.Core
             {
                 IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
 
-                IEnumerable<Task> renderTasks = widgets.Select(w =>
+                IEnumerable<Task> renderTasks = widgets.Select(widget =>
                  Task.Run(async () =>
                  {
                      await ImagesGenerator.GenerateDataForWidgetAsync(
                          sessionData,
                          framesList,
-                         w,
+                         widget,
                          ProcessImage, 
                          cancellationToken);
                  },
