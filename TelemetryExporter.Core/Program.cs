@@ -150,7 +150,7 @@ namespace TelemetryExporter.Core
             {
                 MaxSpeed = orderedRecordMessages.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
                 TotalDistance = calculateStatisticsFromRange
-                ? (orderedRecordMessages[^1].GetDistance() ?? 0 - orderedRecordMessages[0].GetDistance() ?? 0) // Check [^1] has distance
+                ? ((orderedRecordMessages[^1].GetDistance() ?? 0) - (orderedRecordMessages[0].GetDistance() ?? 0)) // Check [^1] has distance
                 : fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
                 CountOfRecords = orderedRecordMessages.Count
             };
@@ -158,6 +158,7 @@ namespace TelemetryExporter.Core
             RecordMesg currentRecord = queue.Dequeue();
             List<FrameData> framesList = [];
 
+            double? initialDistance = GetInitialDistance(orderedRecordMessages);
             do
             {
                 double? speed = null;
@@ -229,43 +230,46 @@ namespace TelemetryExporter.Core
                     }
                 }
 
-                bool value1 = rangeStartDate.HasValue == false
+                bool inStartDate = rangeStartDate.HasValue == false
                     || (rangeStartDate.HasValue && rangeStartDate.Value <= currentTimeFrame);
 
-                bool value2 = rangeEndDate.HasValue == false
+                bool inEndDate = rangeEndDate.HasValue == false
                     || (rangeEndDate.HasValue && currentTimeFrame <= rangeEndDate.Value);
 
-                if (value1 && value2)
+                if (inStartDate && inEndDate)
                 {
-
-                if (isActiveTime)
-                {
-                    altitude ??= currentRecord?.GetEnhancedAltitude();
-                    speed ??= currentRecord?.GetEnhancedSpeed();
-                    distance ??= currentRecord?.GetDistance();
-
-                    longitude ??= currentRecord?.GetPositionLong();
-                    lattitude ??= currentRecord?.GetPositionLat();
-
-                    if (lattitude.HasValue && longitude.HasValue)
+                    if (isActiveTime)
                     {
-                        lastKnownGpsLocation = new(longitude.Value, lattitude.Value);
+                        altitude ??= currentRecord?.GetEnhancedAltitude();
+                        speed ??= currentRecord?.GetEnhancedSpeed();
+                        distance ??= currentRecord?.GetDistance();
+
+                        longitude ??= currentRecord?.GetPositionLong();
+                        lattitude ??= currentRecord?.GetPositionLat();
+
+                        if (lattitude.HasValue && longitude.HasValue)
+                        {
+                            lastKnownGpsLocation = new(longitude.Value, lattitude.Value);
+                        }
+
+                        if (calculateStatisticsFromRange)
+                        {
+                            distance -= initialDistance;
+                        }
                     }
-                }
 
-                FrameData frameData = new()
-                {
-                    FileName = $"frame_{$"{++frame}".PadLeft(6, '0')}.png",
-                    Altitude = altitude,
-                    Distance = distance,
-                    Speed = speed * 3.6 ?? 0,
-                    IndexOfCurrentRecord = indexCurrentRecord,
-                    Longitude = lastKnownGpsLocation?.X,
-                    Latitude = lastKnownGpsLocation?.Y,
-                };
+                    FrameData frameData = new()
+                    {
+                        FileName = $"frame_{$"{++frame}".PadLeft(6, '0')}.png",
+                        Altitude = altitude,
+                        Distance = distance,
+                        Speed = speed * 3.6 ?? 0,
+                        IndexOfCurrentRecord = indexCurrentRecord,
+                        Longitude = lastKnownGpsLocation?.X,
+                        Latitude = lastKnownGpsLocation?.Y,
+                    };
 
-                framesList.Add(frameData);
-
+                    framesList.Add(frameData);
                 }
                 // this is the duration (feature widget)
                 TimeSpan duration = (currentTimeFrame - startDate); //!! Assume calculateStatisticsFromRange
@@ -365,7 +369,7 @@ namespace TelemetryExporter.Core
                 widgetDonePercentage[widget.Name] = percentage;
 
                 const int ThresHold = 100;
-                
+
                 if (zipEntries.Count >= ThresHold)
                 {
                     lock (lockObj)
@@ -422,6 +426,25 @@ namespace TelemetryExporter.Core
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Need to iterate the collection because the first item could return null 
+        /// </summary>
+        private static double GetInitialDistance(IReadOnlyCollection<RecordMesg> recordMesgs)
+        {
+            double? distance = null;
+
+            foreach (RecordMesg recordMessage in recordMesgs)
+            {
+                distance = recordMessage.GetDistance();
+                if (distance.HasValue)
+                {
+                    return distance.Value;
+                }
+            }
+
+            return 0;
         }
     }
 }

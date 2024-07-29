@@ -140,6 +140,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
         Core.Program exporter = new();
         exporter.OnProgress += Exporter_OnProgress;
+        this.exportProgress.Progress = 0;
 
         try
         {
