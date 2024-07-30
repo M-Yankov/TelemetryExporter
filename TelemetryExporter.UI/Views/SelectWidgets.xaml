@@ -30,7 +30,7 @@
                    BackgroundColor="blue"
                    WidthRequest="700"/>
             <Label Text="The image is only for reference" FontAttributes="Italic" HorizontalTextAlignment="Center" />
-            <Label Text="Select a range from your activity. &#10;The range below works with elapsed time. Move sliders slowly (bugs...)" />
+            <Label Text="Select a range from your activity. &#10;The range below works with elapsed time." />
 
             <AbsoluteLayout x:Name="pausedIntervals" ></AbsoluteLayout>
             

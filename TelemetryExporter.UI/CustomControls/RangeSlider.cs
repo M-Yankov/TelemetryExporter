@@ -20,6 +20,9 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
     private double accumolatedXEnd = 0;
     private double lastUsedWidth = 0;
 
+    private double startPercentage = 0;
+    private double endPercentage = 0;
+
     private readonly MAUI.Rectangle selectedRange;
 
     public event RangeSliderChangedEventHandler<DateTime>? OnSliderValuesChanged;
@@ -98,7 +101,7 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
             OnPropertyChanged(nameof(StartValue));
             RangeSliderChangedEventArgs<DateTime> eventArgs = new()
             {
-                StartValuePercentage = accumolatedX / Content.Width,
+                StartValuePercentage = startPercentage,
                 EndValuePercentage = (accumolatedXEnd + endPoint.Width) / Content.Width,
                 StartValue = startValue,
                 EndValue = endValue,
@@ -116,7 +119,7 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
             OnPropertyChanged(nameof(EndValue));
             RangeSliderChangedEventArgs<DateTime> eventArgs = new()
             {
-                StartValuePercentage = accumolatedX / Content.Width,
+                StartValuePercentage = endPercentage,
                 EndValuePercentage = (accumolatedXEnd + endPoint.Width) / Content.Width,
                 StartValue = startValue,
                 EndValue = endValue,
@@ -198,19 +201,18 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
                 // SetLayoutBounds has some strange behavior
                 // AbsoluteLayout.SetLayoutBounds(startPoint, new Rect(value, 0, startPoint.WidthRequest, startPoint.HeightRequest));
                 AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(value, 0, endPoint.Width + accumolatedXEnd - value, selectedRange.Height));
+
+                startPercentage = value / Content.Width;
+                StartValue = new DateTime((long)(MinValue.Ticks + ((MaxValue.Ticks - MinValue.Ticks) * startPercentage)));
                 break;
 
             case GestureStatus.Completed:
                 accumolatedX = startPoint.TranslationX;
 
-                double percentage = accumolatedX / Content.Width;
-                StartValue = new DateTime((long)(MinValue.Ticks + ((MaxValue.Ticks - MinValue.Ticks) * percentage)));
                 break;
             case GestureStatus.Canceled:
-                Debug.WriteLine("Canceled");
                 break;
         }
-        Debug.WriteLine($"x:{e.TotalX} y:{e.TotalY}");
     }
 
     public void EndPointOnPanUpdated(object? sender, PanUpdatedEventArgs e)
@@ -225,18 +227,16 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
 
                 AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(accumolatedX, 0, endPoint.Width + value - accumolatedX, selectedRange.Height));
 
+                // need to add the end slider width because it's pointer is at the right side.
+                endPercentage = (value + endPoint.Width) / Content.Width;
+                EndValue = new DateTime((long)(MinValue.Ticks + ((MaxValue.Ticks - MinValue.Ticks) * endPercentage)));
                 break;
 
             case GestureStatus.Completed:
                 accumolatedXEnd = endPoint.TranslationX;
 
-                // need to add the end slider width because it's pointer is at the right side.
-                double percentage = (accumolatedXEnd + endPoint.Width) / Content.Width;
-                EndValue = new DateTime((long)(MinValue.Ticks + ((MaxValue.Ticks - MinValue.Ticks) * percentage)));
-
                 break;
             case GestureStatus.Canceled:
-                Debug.WriteLine("Canceled");
                 break;
         }
     }

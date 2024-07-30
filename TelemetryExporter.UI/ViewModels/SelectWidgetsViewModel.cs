@@ -83,8 +83,8 @@ namespace TelemetryExporter.UI.ViewModels
             ElevationWidget elevationProfile = new(FitMessages.RecordMesgs);
 
             IEnumerable<RecordMesg> orderedMessages = FitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime());
-            System.DateTime firstDate = orderedMessages.First().GetTimestamp().GetDateTime();
-            System.DateTime lastDate = orderedMessages.Last().GetTimestamp().GetDateTime();
+            StartActivityDate = orderedMessages.First().GetTimestamp().GetDateTime().ToLocalTime();
+            EndActivityDate = orderedMessages.Last().GetTimestamp().GetDateTime().ToLocalTime();
 
             /*
             uint? activityTimestamp = fitMessages.ActivityMesgs[0].GetLocalTimestamp();
@@ -93,8 +93,6 @@ namespace TelemetryExporter.UI.ViewModels
             timeSpanOffset.TotalHours
             */
 
-            StartActivityDate = firstDate.ToLocalTime();
-            EndActivityDate = lastDate.ToLocalTime();
             TotalDistance = FitMessages.SessionMesgs[0].GetTotalDistance() ?? 0;
 
             List<EventMesg> timerEvents = FitMessages.EventMesgs
