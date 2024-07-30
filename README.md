@@ -7,10 +7,6 @@ Although this project gives opportunity to develop any kind of widget, depends o
 <!-- this is uploaded somewhere in github, for some reason it not working when refereced from repository -->
 https://github.com/M-Yankov/TelemetryExporter/assets/10440078/203a892f-10af-4912-82f8-a688acd40a5e
 
-## Usage
-Check the video below for detailed usage:  
-[![Usage](https://github.com/M-Yankov/TelemetryExporter/assets/10440078/7713b733-fca4-47ba-8ce2-e4d64f1feee0)](https://www.youtube.com/watch?v=4XD5BiTeCWI)
-
 ## Download
 - Go to [Releases](https://github.com/M-Yankov/TelemetryExporter/releases) page and download the latest
 - No need install
@@ -19,19 +15,21 @@ Check the video below for detailed usage:
 
 For now only Windows 10, 11 is supported (MacOS could be added in future, but may need help)
 
+## Usage
+Check the video below for detailed usage:  
+[![Usage](https://github.com/M-Yankov/TelemetryExporter/assets/10440078/7713b733-fca4-47ba-8ce2-e4d64f1feee0)](https://www.youtube.com/watch?v=4XD5BiTeCWI)
+
+- You need the `.fit` file activity from Garmin device or downloaded from their website (https://connect.garmin.com/)
+- Open `Telemetry Exporter` and select the `.fit` file
+- In `Telemetry Exporter` configure the settings you want and select widgets
+- Click `Export` and take a coffee :)
+
 ## User data privacy
 - This program doesn't use any personal data
 - This program doesn't share data to 3-rd party service
 - This program doesn't require registration
 - It's free and open-source, the owner (developers, contributors) doesn't take responsibility for any malfunctions caused by the bugs
 - Using this program is at your own risk
-
-## Usage
-
-- You need the `.fit` file activity from Garmin device or downloaded from their website (https://connect.garmin.com/)
-- Open `Telemetry Exporter` and select the `.fit` file
-- In `Telemetry Exporter` configure the settings you want and select widgets
-- Click `Export` and take a coffee :)
 
 ## Detailed description
 - In the first page you need to enter the `.fit` file from Garmin
