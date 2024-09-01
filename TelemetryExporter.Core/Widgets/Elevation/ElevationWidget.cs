@@ -112,7 +112,17 @@ namespace TelemetryExporter.Core.Widgets.Elevation
                     xOffset *= -1;
                     elvationPaint.TextAlign = SKTextAlign.Right;
                 }
-                canvas.DrawText($"{currentData.Altitude:F1} m", elevationPoint.X + xOffset, elevationPoint.Y - 10, elvationPaint);
+
+                int yOffset = -10;
+                bool isTextOverlapped = reachedToEndPercentage < .30f
+                    && (elevationPoint.Y / ElevationPictureHeightPixels) < .28f;
+                if (isTextOverlapped)
+                {
+                    // The "Elevation" text gets overlapped in some situations
+                    yOffset += 40;
+                }
+
+                canvas.DrawText($"{currentData.Altitude:F1} m", elevationPoint.X + xOffset, elevationPoint.Y + yOffset, elvationPaint);
             }
 
             using SKImage image = surface.Snapshot();
