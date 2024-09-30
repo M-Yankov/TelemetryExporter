@@ -318,7 +318,7 @@ namespace TelemetryExporter.Core
                         Latitude = lastKnownGpsLocation?.Y,
                         Grade = grade,
                         ElapsedTime = TimeOnly.FromTimeSpan(currentTimeFrame - startDate),
-                        CurrentTime = TimeOnly.FromDateTime(currentTimeFrame)
+                        CurrentTime = TimeOnly.FromDateTime(currentTimeFrame.ToLocalTime())
                     };
 
                     framesList.Add(frameData);

@@ -10,7 +10,7 @@ namespace TelemetryExporter.Core.Widgets.Time
     /// <summary>
     /// May not work correctly for activities continued longer than 24H or if the activity passes midnight.
     /// </summary>
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = "Images/ExampleWidget.png", Category = TECoreContsants.Categories.Time)]
+    [WidgetData(Index = WidgetIndex, ExampleImagePath = "Images/ExampleTime.png", Category = TECoreContsants.Categories.Time)]
     public class CurrentTimeWidget : TextBaseWidget, IWidget
     {
         private const int WidgetIndex = 7;

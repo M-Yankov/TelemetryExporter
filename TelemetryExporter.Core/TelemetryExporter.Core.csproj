@@ -39,6 +39,9 @@
     <None Update="Images\ExampleSpeed.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Images\ExampleTime.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Images\ExampleTrace.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
