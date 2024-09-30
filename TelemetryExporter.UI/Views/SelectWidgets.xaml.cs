@@ -41,7 +41,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         saveLocation.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
     }
 
-    // First comes ApplyQueryAttributes then  OnSizeAllocated
+    // First comes ApplyQueryAttributes then OnSizeAllocated
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;

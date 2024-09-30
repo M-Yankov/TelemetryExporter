@@ -19,8 +19,6 @@ namespace TelemetryExporter.Core.Widgets.Distance
 
         public string Name => "DistanceWidget";
 
-        public string ExampleImagePath => ImagePath;
-
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             const int DistanceImageWidth = 700;

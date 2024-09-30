@@ -20,8 +20,6 @@ namespace TelemetryExporter.Core.Widgets.Speed
 
         public string Name => "SpeedWidget";
 
-        public string ExampleImagePath => ImagePath;
-
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             using SKBitmap radial = SKBitmap.FromImage(

@@ -31,5 +31,11 @@
         /// Multiple frames can have same index of record. It depends on the used FPS and the interval (dates) between records.
         /// </summary>
         public int IndexOfCurrentRecord { get; init; }
+
+        public TimeOnly ElapsedTime { get; init; }
+
+        public TimeOnly CurrentTime { get; init; }
+
+        public double? Grade {  get; init; }
     }
 }

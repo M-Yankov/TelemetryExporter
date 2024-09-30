@@ -101,16 +101,16 @@
                                     <Label Text="V" x:Name="theLabel" FontSize="Large" HorizontalOptions="Start" AbsoluteLayout.LayoutBounds="25, 0" />
                                 </AbsoluteLayout>
                             </toolkit:Expander.Header>
-                            <toolkit:Expander.Content>
-                                <HorizontalStackLayout>
+                            <toolkit:Expander.Content >
+                                <HorizontalStackLayout >
                                     <CollectionView ItemsSource="{Binding Widgets}" >
                                         <CollectionView.ItemsLayout>
                                             <LinearItemsLayout Orientation="Horizontal"/>
                                         </CollectionView.ItemsLayout>
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="widgets.core:WidgetDataAttribute" >
-                                                <VerticalStackLayout MaximumWidthRequest="300" Padding="10,10" >
-                                                    <Image Source="{Binding ExampleImagePath}" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
+                                                <VerticalStackLayout MaximumWidthRequest="300" WidthRequest="300" Padding="10,10" >
+                                                    <Image Source="{Binding ExampleImagePath}" BackgroundColor="SkyBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
                                                     <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
                                                 </VerticalStackLayout>
                                             </DataTemplate>

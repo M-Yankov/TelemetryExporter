@@ -27,8 +27,6 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
         public string Name => "TraceWidget";
 
-        public string ExampleImagePath => ImagePath;
-
         public TraceWidget(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             // It's square

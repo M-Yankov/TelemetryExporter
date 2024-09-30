@@ -21,11 +21,6 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
         /// </summary>
         string Name { get; }
 
-        /// <summary>
-        /// Example image shown in UI.
-        /// </summary>
-        string ExampleImagePath => "Images/ExampleWidget";
-
         Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData);
     }
 }

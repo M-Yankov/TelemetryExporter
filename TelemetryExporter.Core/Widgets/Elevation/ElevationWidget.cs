@@ -26,8 +26,6 @@ namespace TelemetryExporter.Core.Widgets.Elevation
 
         public string Name => "ElevationWidget";
 
-        public string ExampleImagePath => ImagePath;
-
         public ElevationWidget(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             lineChartData = new(dataMessages, ElevationPictureWidthPixels, ElevationPictureHeightPixels, offsetPercentageY: .20f);

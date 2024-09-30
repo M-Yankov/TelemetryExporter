@@ -24,8 +24,6 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
         public string Name => "PaceWidget";
 
-        public string ExampleImagePath => ImagePath;
-
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)
         {
             double currentSpeed = frameData.Speed < SpeedCutoff ? 0 : frameData.Speed;

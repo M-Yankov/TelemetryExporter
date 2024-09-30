@@ -156,6 +156,17 @@ namespace TelemetryExporter.Core
                 CountOfRecords = orderedRecordMessages.Count
             };
 
+            Dictionary<System.DateTime, double?> gradeValues = CalculateGrades(orderedRecordMessages);
+            int currentGradeIndex = 0;
+            for (int i = 0; i < gradeValues.Count; i++)
+            {
+                System.DateTime gradeDate = gradeValues.ElementAt(i).Key;
+                if (currentTimeFrame >= gradeDate)
+                {
+                    currentGradeIndex = i;
+                }
+            }
+
             RecordMesg currentRecord = queue.Dequeue();
             List<FrameData> framesList = [];
 
@@ -167,7 +178,44 @@ namespace TelemetryExporter.Core
                 double? altitude = null;
                 int? lattitude = null;
                 int? longitude = null;
+                double? grade = null;
 
+                bool gradesHasNextValue = currentGradeIndex + 1 < gradeValues.Count;
+                if (gradesHasNextValue)
+                {
+                    System.DateTime gradeDate = gradeValues.ElementAt(currentGradeIndex + 1).Key;
+                    if (currentTimeFrame >= gradeDate)
+                    {
+                        currentGradeIndex++;
+                    }
+                }
+
+                // First and last 5mins of grades will miss
+                if (currentTimeFrame >= gradeValues.ElementAt(currentGradeIndex).Key
+                    && currentGradeIndex + 1 < gradeValues.Count)
+                {
+                    // currentTimeFrame == gradeValues.ElementAt(currentGradeIndex).Key
+                    if (gradeValues.TryGetValue(currentTimeFrame, out double? newGradeValue))
+                    {
+                        grade = newGradeValue;
+                    }
+                    else
+                    {
+                        int nextGradeIndex = currentGradeIndex + 1 < gradeValues.Count
+                            ? currentGradeIndex + 1
+                            : currentGradeIndex;
+
+                        CalculateModel gradeMetrics = new(
+                            gradeValues.ElementAt(currentGradeIndex).Key,
+                            gradeValues.ElementAt(nextGradeIndex).Key,
+                            gradeValues.ElementAt(currentGradeIndex).Value,
+                            gradeValues.ElementAt(nextGradeIndex).Value,
+                            currentTimeFrame);
+
+                        grade = Helper.GetValueBetweenDates(gradeMetrics);
+                    }
+                }
+                
                 isActiveTime = IsRecordInActiveTime(currentTimeFrame, activePeriods);
 
                 if (queue.TryPeek(out RecordMesg? nextRcordMesg))
@@ -268,10 +316,14 @@ namespace TelemetryExporter.Core
                         IndexOfCurrentRecord = indexCurrentRecord,
                         Longitude = lastKnownGpsLocation?.X,
                         Latitude = lastKnownGpsLocation?.Y,
+                        Grade = grade,
+                        ElapsedTime = TimeOnly.FromTimeSpan(currentTimeFrame - startDate),
+                        CurrentTime = TimeOnly.FromDateTime(currentTimeFrame)
                     };
 
                     framesList.Add(frameData);
                 }
+
                 // this is the duration (feature widget)
                 TimeSpan duration = (currentTimeFrame - startDate); //!! Assume calculateStatisticsFromRange
 
@@ -405,6 +457,7 @@ namespace TelemetryExporter.Core
                 .Where(t => t.IsAssignableTo(typeof(IWidget)) && searchableList.Contains(t.GetCustomAttribute<WidgetDataAttribute>()?.Index));
 
             List<IWidget> result = [];
+            Type recordDataType = recordData.GetType();
             foreach (Type type in types)
             {
                 List<object?> parameters = [];
@@ -412,7 +465,7 @@ namespace TelemetryExporter.Core
                 // there are two types of widget, parameterless constructor and constructor with recordMessages
                 bool hasConstructorWithOneParameter = type.GetConstructors().Any(c => 
                     c.GetParameters().Length == 1 
-                        && c.GetParameters()[0].ParameterType.IsAssignableFrom(recordData.GetType()));
+                        && c.GetParameters()[0].ParameterType.IsAssignableFrom(recordDataType));
 
                 if (hasConstructorWithOneParameter)
                 {
@@ -434,11 +487,9 @@ namespace TelemetryExporter.Core
         /// </summary>
         private static double GetInitialDistance(IReadOnlyCollection<RecordMesg> recordMesgs)
         {
-            double? distance = null;
-
             foreach (RecordMesg recordMessage in recordMesgs)
             {
-                distance = recordMessage.GetDistance();
+                double? distance = recordMessage.GetDistance();
                 if (distance.HasValue)
                 {
                     return distance.Value;
@@ -446,6 +497,51 @@ namespace TelemetryExporter.Core
             }
 
             return 0;
+        }
+
+        private static Dictionary<System.DateTime, double?> CalculateGrades(IList<RecordMesg> recordMesgs)
+        {
+            Dictionary<System.DateTime, double?> res = [];
+
+            if (recordMesgs.Count == 0)
+            {
+                return res;
+            }
+             
+            RecordMesg recordMessage = recordMesgs[0];
+
+            for (int i = 0; i < recordMesgs.Count - 1; i++)
+            {
+                RecordMesg nextRecord = recordMesgs[i + 1];
+
+                double? run = nextRecord.GetDistance() - recordMessage.GetDistance();
+
+                // at least 5meters are required to calculate adequate grade %.
+                if (run < 5)
+                {
+                    continue;
+                }
+
+                // distance - currentRecord.GetDistance();
+                double? rise = nextRecord.GetEnhancedAltitude() - recordMessage.GetEnhancedAltitude();
+
+                if (rise.HasValue && Math.Abs(rise.Value) > run)
+                {
+                    // if the climbed/descended altitude is greater than the passed distance it means that it's vertical 
+                    // which is not possible that's why take the next message until "run" is greater
+                    continue;
+                }
+
+                // altitude - currentRecord.GetEnhancedAltitude();
+                double? grade = 100.0f * (float?)(rise / run);
+
+                recordMessage = nextRecord;
+
+                var date = recordMessage.GetTimestamp().GetDateTime();
+                res[date] = grade;
+            }
+
+            return res;
         }
     }
 }
