@@ -80,7 +80,8 @@ namespace TelemetryExporter.UI.ViewModels
         public void Initialize(Stream fitFileStream)
         {
             FitMessages = new FitDecoder(fitFileStream).FitMessages;
-            ElevationWidget elevationProfile = new(FitMessages.RecordMesgs);
+            ElevationWidget elevationProfile = new();
+            elevationProfile.Initialize(FitMessages.RecordMesgs);
 
             IEnumerable<RecordMesg> orderedMessages = FitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime());
             StartActivityDate = orderedMessages.First().GetTimestamp().GetDateTime().ToLocalTime();

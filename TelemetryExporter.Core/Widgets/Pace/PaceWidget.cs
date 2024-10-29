@@ -17,10 +17,9 @@ namespace TelemetryExporter.Core.Widgets.Pace
         private const double SpeedCutoff = 0.5556;
         private const int WidgetIndex = 4;
         private const string ImagePath = "Images/ExamplePace.png";
-
         public string Category => TECoreContsants.Categories.Speed;
 
-        public int Index => WidgetIndex;
+        public static int Index => WidgetIndex;
 
         public string Name => "PaceWidget";
 

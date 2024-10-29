@@ -16,7 +16,7 @@ namespace TelemetryExporter.Core.Widgets.Time
     {
         private const int WidgetIndex = 6;
 
-        public int Index => WidgetIndex;
+        public static int Index => WidgetIndex;
 
         public string Category => TECoreContsants.Categories.Time;
 
@@ -28,10 +28,7 @@ namespace TelemetryExporter.Core.Widgets.Time
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
-           return base.GetImageData(sessionData, currentData);
+           return GetImageData(currentData.ElapsedTime.ToString("HH:mm:ss.fff"));
         }
-
-        public override string GetTextValue(SessionData sessionData, FrameData currentData)
-            => currentData.ElapsedTime.ToString("HH:mm:ss.fff");
     }
 }

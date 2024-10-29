@@ -6,6 +6,7 @@
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class WidgetDataAttribute : Attribute
     {
+        // Used in UI ...
         public int Index { get; set; }
 
         /// <summary>

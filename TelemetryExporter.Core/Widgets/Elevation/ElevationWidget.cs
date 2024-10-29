@@ -10,30 +10,37 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 namespace TelemetryExporter.Core.Widgets.Elevation
 {
     [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Elevation)]
-    public class ElevationWidget : IWidget
+    public class ElevationWidget : IWidget, INeedInitialization
     {
         private const int ElevationPictureWidthPixels = 700;
         private const int ElevationPictureHeightPixels = 250;
         private const int WidgetIndex = 5;
         private const string ImagePath = "Images/ExampleElevation.png";
 
-        private readonly SKPath elevationPath;
-        private readonly LineChartData lineChartData;
+        private SKPath elevationPath = new ();
+        private LineChartData lineChartData = null;
+        private bool isInitialized = false;
 
-        public int Index => WidgetIndex;
+        public static int Index => WidgetIndex;
 
         public string Category => TECoreContsants.Categories.Elevation;
 
         public string Name => "ElevationWidget";
 
-        public ElevationWidget(IReadOnlyCollection<RecordMesg> dataMessages)
+        public void Initialize(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             lineChartData = new(dataMessages, ElevationPictureWidthPixels, ElevationPictureHeightPixels, offsetPercentageY: .20f);
             elevationPath = lineChartData.LinePath;
+            isInitialized = true;
         }
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
+            if (!isInitialized)
+            {
+                throw new InvalidOperationException($"Cannot use widget ${nameof(ElevationWidget)}, before initialization!");
+            }
+
             SKImageInfo info = new(ElevationPictureWidthPixels, ElevationPictureHeightPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
             {
