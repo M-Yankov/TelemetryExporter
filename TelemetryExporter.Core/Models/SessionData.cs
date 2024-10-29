@@ -14,5 +14,6 @@
         /// </summary>
         public int CountOfRecords { get; init; }
 
+        public ushort MaxPower { get; set; }
     }
 }

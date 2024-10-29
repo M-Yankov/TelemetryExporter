@@ -11,33 +11,40 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 namespace TelemetryExporter.Core.Widgets.Trace
 {
     [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Trace)]
-    public class TraceWidget : IWidget
+    public class TraceWidget : IWidget, INeedInitialization
     {
         private const int GpxPictureWidthPixels = 1000;
         private const float GpxPictureOffsetPercentage = .05f;
         private const int WidgetIndex = 3;
         private const string ImagePath = "Images/ExampleTrace.png";
 
-        private readonly TraceChartData traceChart;
-        private readonly SKPath tracePath;
+        private TraceChartData traceChart = new();
+        private SKPath tracePath = new();
+        private bool isInitialized = false;
 
-        public int Index => WidgetIndex;
+        public static int Index => WidgetIndex;
 
         public string Category => TECoreContsants.Categories.Trace;
 
         public string Name => "TraceWidget";
 
-        public TraceWidget(IReadOnlyCollection<RecordMesg> dataMessages)
+        public void Initialize(IReadOnlyCollection<RecordMesg> dataMessages)
         {
             // It's square
             traceChart = new TraceChartData(dataMessages, GpxPictureWidthPixels, GpxPictureWidthPixels, GpxPictureOffsetPercentage);
             tracePath = traceChart.TracePath;
+            isInitialized = true;
         }
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
+            if (!isInitialized)
+            {
+                throw new InvalidOperationException($"Cannot use widget: {nameof(TraceWidget)}, before initialization!");
+            }
+
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
-            using SKPaint blackPaint = new()
+            using SKPaint whitePaint = new()
             {
                 Color = SKColors.White,
                 IsAntialias = true,
@@ -56,7 +63,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
             using SKSurface surface = SKSurface.Create(info);
 
             SKCanvas canvas = surface.Canvas;
-            canvas.DrawPath(tracePath, blackPaint);
+            canvas.DrawPath(tracePath, whitePaint);
 
             SKPoint gpxPoint = SKPoint.Empty;
             if (currentData.Longitude.HasValue && currentData.Latitude.HasValue)

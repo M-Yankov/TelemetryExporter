@@ -13,6 +13,7 @@
             public const string Trace = "Trace";
             public const string Time = "Time";
             public const string Grade = "Grade";
+            public const string Power = "Power";
         }
     }
 }

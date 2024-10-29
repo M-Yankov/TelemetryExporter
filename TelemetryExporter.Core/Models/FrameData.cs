@@ -37,5 +37,7 @@
         public TimeOnly CurrentTime { get; init; }
 
         public double? Grade {  get; init; }
+
+        public ushort? Power { get; set; }
     }
 }

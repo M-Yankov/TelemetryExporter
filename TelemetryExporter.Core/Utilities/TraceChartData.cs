@@ -8,6 +8,11 @@ namespace TelemetryExporter.Core.Utilities
     {
         private readonly SKPath tracePath;
 
+        public TraceChartData()
+        {
+            tracePath = new();
+        }
+
         public TraceChartData(IReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentage)
         {
             PictureHeightPixels = heightPixels;

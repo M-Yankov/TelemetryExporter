@@ -9,7 +9,7 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
         /// <summary>
         /// Should be unique across all widgets.
         /// </summary>
-        int Index { get; }
+        static int Index { get; }
 
         /// <summary>
         /// To group widgets by category.

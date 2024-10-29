@@ -1,15 +1,21 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.Reflection;
 
 using Dynastream.Fit;
 
 using SkiaSharp;
 
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
+using TelemetryExporter.Core.Widgets.Distance;
+using TelemetryExporter.Core.Widgets.Elevation;
+using TelemetryExporter.Core.Widgets.Grade;
 using TelemetryExporter.Core.Widgets.Interfaces;
+using TelemetryExporter.Core.Widgets.Pace;
+using TelemetryExporter.Core.Widgets.Power;
+using TelemetryExporter.Core.Widgets.Speed;
+using TelemetryExporter.Core.Widgets.Time;
+using TelemetryExporter.Core.Widgets.Trace;
 
 namespace TelemetryExporter.Core
 {
@@ -19,10 +25,30 @@ namespace TelemetryExporter.Core
         private readonly object lockObj = new();
         const int FPS = 2;
 
+        private readonly Dictionary<int, Func<IWidget>> widgetFactory;
+
+        public Program()
+        {
+            // separate class with something like a singleton initialization
+            this.widgetFactory = new Dictionary<int, Func<IWidget>>()
+            {
+                { DistanceWidget.Index, () => new DistanceWidget() },
+                { TraceWidget.Index, () => new TraceWidget() },
+                { ElevationWidget.Index, () => new ElevationWidget() },
+                { GradeWidget.Index, () => new GradeWidget() },
+                { PaceWidget.Index, () => new PaceWidget() },
+                { PowerTextWidget.Index, () => new PowerTextWidget() },
+                { SpeedWidget.Index, () => new SpeedWidget() },
+                { CurrentTimeWidget.Index, () => new CurrentTimeWidget() },
+                { ElapsedTimeWidget.Index, () => new ElapsedTimeWidget() },
+                { PowerMeterWidget.Index, () => new PowerMeterWidget() }
+            };
+        }
+
         /// <summary>
         /// Invoked when processing images, after an certain interval.
         /// </summary>
-        public event EventHandler<Dictionary<string, double>> OnProgress;
+        public event EventHandler<Dictionary<string, double>>? OnProgress;
 
         /// <summary>
         /// Export images.
@@ -106,7 +132,7 @@ namespace TelemetryExporter.Core
             //System.DateTime originalStartDateTime = startDate;
 
             System.DateTime endDate = fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
-           // System.DateTime originalEndDateTime = endDate;
+            // System.DateTime originalEndDateTime = endDate;
 
             List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
 
@@ -145,7 +171,7 @@ namespace TelemetryExporter.Core
             int indexCurrentRecord = 0;
             int frame = 0;// ((int)dateDiff.TotalSeconds) * fps;
 
-           // int totalFrames = (int)(originalEndDateTime - originalStartDateTime).TotalSeconds * fps;
+            // int totalFrames = (int)(originalEndDateTime - originalStartDateTime).TotalSeconds * fps;
 
             SessionData sessionData = new()
             {
@@ -153,7 +179,10 @@ namespace TelemetryExporter.Core
                 TotalDistance = calculateStatisticsFromRange
                 ? ((orderedRecordMessages[^1].GetDistance() ?? 0) - (orderedRecordMessages[0].GetDistance() ?? 0)) // Check [^1] has distance
                 : fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
-                CountOfRecords = orderedRecordMessages.Count
+                CountOfRecords = orderedRecordMessages.Count,
+                MaxPower = (calculateStatisticsFromRange
+                    ? orderedRecordMessages.Max(x => x.GetPower())
+                    : fitMessages.SessionMesgs[0].GetMaxPower()) ?? 0,
             };
 
             Dictionary<System.DateTime, double?> gradeValues = CalculateGrades(orderedRecordMessages);
@@ -179,6 +208,7 @@ namespace TelemetryExporter.Core
                 int? lattitude = null;
                 int? longitude = null;
                 double? grade = null;
+                ushort? power = null;
 
                 bool gradesHasNextValue = currentGradeIndex + 1 < gradeValues.Count;
                 if (gradesHasNextValue)
@@ -215,7 +245,7 @@ namespace TelemetryExporter.Core
                         grade = Helper.GetValueBetweenDates(gradeMetrics);
                     }
                 }
-                
+
                 isActiveTime = IsRecordInActiveTime(currentTimeFrame, activePeriods);
 
                 if (queue.TryPeek(out RecordMesg? nextRcordMesg))
@@ -260,9 +290,17 @@ namespace TelemetryExporter.Core
                             nextRcordMesg.GetPositionLong(),
                             currentTimeFrame);
 
+                        CalculateModel powerMetrics = new(
+                            currentRecordDate.Value,
+                            recordDate,
+                            currentRecord.GetPower(),
+                            nextRcordMesg.GetPower(),
+                            currentTimeFrame);
+
                         speed = Helper.GetValueBetweenDates(speedMetrics);
                         distance = Helper.GetValueBetweenDates(distanceMetrics);
                         altitude = Helper.GetValueBetweenDates(altitudeMetrics);
+                        power = (ushort?)Helper.GetValueBetweenDates(powerMetrics);
 
                         lattitude = (int?)Helper.GetValueBetweenDates(lattitudeMetrics);
                         longitude = (int?)Helper.GetValueBetweenDates(longitudeMetrics);
@@ -295,6 +333,7 @@ namespace TelemetryExporter.Core
 
                         longitude ??= currentRecord?.GetPositionLong();
                         lattitude ??= currentRecord?.GetPositionLat();
+                        power ??= currentRecord?.GetPower();
 
                         if (lattitude.HasValue && longitude.HasValue)
                         {
@@ -317,15 +356,14 @@ namespace TelemetryExporter.Core
                         Longitude = lastKnownGpsLocation?.X,
                         Latitude = lastKnownGpsLocation?.Y,
                         Grade = grade,
+                        Power = power,
                         ElapsedTime = TimeOnly.FromTimeSpan(currentTimeFrame - startDate),
+                        // It's good to take localTime from garmin settings 
                         CurrentTime = TimeOnly.FromDateTime(currentTimeFrame.ToLocalTime())
                     };
 
                     framesList.Add(frameData);
                 }
-
-                // this is the duration (feature widget)
-                TimeSpan duration = (currentTimeFrame - startDate); //!! Assume calculateStatisticsFromRange
 
                 // data for future widgets
                 float? hr = currentRecord?.GetHeartRate(); // beats per minute  
@@ -359,7 +397,20 @@ namespace TelemetryExporter.Core
 
             try
             {
-                IEnumerable<IWidget> widgets = GetWidgetList(widgetsIds, orderedRecordMessages);
+                List<IWidget> widgets = [];
+                foreach (int id in widgetsIds)
+                {
+                    IWidget? widget = GetWidget(id);
+                    if (widget != null)
+                    {
+                        if (widget is INeedInitialization widgetForInitialization)
+                        {
+                            widgetForInitialization.Initialize(orderedRecordMessages);
+                        }
+
+                        widgets.Add(widget);
+                    }
+                }
 
                 IEnumerable<Task> renderTasks = widgets.Select(widget =>
                  Task.Run(async () =>
@@ -368,7 +419,7 @@ namespace TelemetryExporter.Core
                          sessionData,
                          framesList,
                          widget,
-                         ProcessImage, 
+                         ProcessImage,
                          cancellationToken);
                  },
                  cancellationToken));
@@ -406,7 +457,7 @@ namespace TelemetryExporter.Core
                 System.IO.File.Delete(tempZipFileDirectory);
                 return;
             }
-            else 
+            else
             {
                 System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
             }
@@ -448,38 +499,17 @@ namespace TelemetryExporter.Core
             }
         }
 
-        static List<IWidget> GetWidgetList(IReadOnlyCollection<int> selectedIds, IReadOnlyCollection<RecordMesg> recordData)
+        private IWidget? GetWidget(int id)
         {
-            List<int?> searchableList = selectedIds.Cast<int?>().ToList();
-            IEnumerable<Type> types = Assembly
-                .GetAssembly(typeof(Program))!
-                .GetTypes()
-                .Where(t => t.IsAssignableTo(typeof(IWidget)) && searchableList.Contains(t.GetCustomAttribute<WidgetDataAttribute>()?.Index));
+            IWidget? widget = null;
 
-            List<IWidget> result = [];
-            Type recordDataType = recordData.GetType();
-            foreach (Type type in types)
+            if (this.widgetFactory.ContainsKey(id))
             {
-                List<object?> parameters = [];
-
-                // there are two types of widget, parameterless constructor and constructor with recordMessages
-                bool hasConstructorWithOneParameter = type.GetConstructors().Any(c => 
-                    c.GetParameters().Length == 1 
-                        && c.GetParameters()[0].ParameterType.IsAssignableFrom(recordDataType));
-
-                if (hasConstructorWithOneParameter)
-                {
-                    parameters.Add(recordData);
-                }
-
-                object? createdInstance = Activator.CreateInstance(type, [.. parameters]);
-                if (createdInstance is IWidget widget)
-                {
-                    result.Add(widget);
-                }
+                widget = widgetFactory[id]();
+                return widget;
             }
 
-            return result;
+            return widget;
         }
 
         /// <summary>
@@ -507,7 +537,7 @@ namespace TelemetryExporter.Core
             {
                 return res;
             }
-             
+
             RecordMesg recordMessage = recordMesgs[0];
 
             for (int i = 0; i < recordMesgs.Count - 1; i++)

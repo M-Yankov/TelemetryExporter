@@ -4,6 +4,10 @@ namespace TelemetryExporter.Core.Utilities
 {
     public static class Helper
     {
+        /// <summary>
+        /// The method cannot be converted to generic because of <see langword="double"/> type usage
+        /// which is the result from devision between two TimeSpans objects.  
+        /// </summary>
         public static double? GetValueBetweenDates(CalculateModel calculateModel)
         {
             DateTime previousDate = calculateModel.PreviousDate;
@@ -28,7 +32,7 @@ namespace TelemetryExporter.Core.Utilities
                 return null;
             }
 
-            // no change in speed. Return the same speed
+            // no change in value. Return the same value
             if (difference.HasValue && difference.Value == 0)
             {
                 return previousValue.Value;
@@ -55,6 +59,5 @@ namespace TelemetryExporter.Core.Utilities
 
             return result;
         }
-
     }
 }

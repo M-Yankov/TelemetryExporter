@@ -14,7 +14,7 @@ namespace TelemetryExporter.Core.Widgets.Grade
         private const string WidgetCategory = TECoreContsants.Categories.Grade;
         private const int WidgetIndex = 8;
 
-        public int Index => WidgetIndex;
+        public static int Index => WidgetIndex;
 
         public string Category => WidgetCategory;
 

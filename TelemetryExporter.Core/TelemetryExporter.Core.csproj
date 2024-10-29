@@ -36,6 +36,12 @@
     <None Update="Images\ExamplePace.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Images\ExamplePowerMeter.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\ExamplePowerTextWidget.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Images\ExampleSpeed.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -13,6 +13,11 @@ namespace TelemetryExporter.Core.Utilities
     {
         private readonly SKPath lineChart;
 
+        public LineChartData()
+        {
+            lineChart = new();
+        }
+
         public LineChartData(IReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentageY)
         {
             PictureHeightPixels = heightPixels;

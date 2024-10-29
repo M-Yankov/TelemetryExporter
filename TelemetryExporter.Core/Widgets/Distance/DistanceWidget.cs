@@ -13,7 +13,7 @@ namespace TelemetryExporter.Core.Widgets.Distance
         private const int WidgetIndex = 2;
         private const string ImagePath = "Images/ExampleDistance.png";
 
-        public int Index => WidgetIndex;
+        public static int Index => WidgetIndex;
 
         public string Category => TECoreContsants.Categories.Distance;
 
