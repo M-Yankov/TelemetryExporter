@@ -21,7 +21,7 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
     private double lastUsedWidth = 0;
 
     private double startPercentage = 0;
-    private double endPercentage = 0;
+    private double endPercentage = 1;
 
     private readonly MAUI.Rectangle selectedRange;
 
@@ -102,7 +102,7 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
             RangeSliderChangedEventArgs<DateTime> eventArgs = new()
             {
                 StartValuePercentage = startPercentage,
-                EndValuePercentage = (accumolatedXEnd + endPoint.Width) / Content.Width,
+                EndValuePercentage = endPercentage,
                 StartValue = startValue,
                 EndValue = endValue,
             };
@@ -110,6 +110,7 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
             OnSliderValuesChanged?.Invoke(this, eventArgs);
         }
     }
+
     public DateTime EndValue
     {
         get => endValue;
@@ -119,8 +120,8 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
             OnPropertyChanged(nameof(EndValue));
             RangeSliderChangedEventArgs<DateTime> eventArgs = new()
             {
-                StartValuePercentage = endPercentage,
-                EndValuePercentage = (accumolatedXEnd + endPoint.Width) / Content.Width,
+                StartValuePercentage = startPercentage,
+                EndValuePercentage = endPercentage,
                 StartValue = startValue,
                 EndValue = endValue,
             };

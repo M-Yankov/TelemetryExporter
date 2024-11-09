@@ -115,7 +115,12 @@ namespace TelemetryExporter.UI.ViewModels
 
                         if (nextEventType.HasValue && nextEventType == EventType.Start)
                         {
-                            PausePeriods.Add((eventMessage.GetTimestamp().GetDateTime().ToLocalTime(), nextEventMessage.GetTimestamp().GetDateTime().ToLocalTime()));
+                            System.DateTime stopEventTime = eventMessage.GetTimestamp().GetDateTime().ToLocalTime();
+                            System.DateTime startEventTime = nextEventMessage.GetTimestamp().GetDateTime().ToLocalTime();
+                            PausePeriods.Add((stopEventTime, startEventTime));
+
+                            // AjdustStartEndTimes(stopEventTime, startEventTime);
+
                             break;
                         }
                     }
@@ -151,6 +156,24 @@ namespace TelemetryExporter.UI.ViewModels
             if (result.IsSuccessful)
             {
                 saveLocationEntry.Text = Path.Combine(result.Folder.Path);
+            }
+        }
+
+        /// <summary>
+        /// This can fix the logic when activity immediately went into paused state after start.
+        /// </summary>
+        private void AjdustStartEndTimes(System.DateTime date1, System.DateTime date2)
+        {
+            if (date1 < StartActivityDate
+                || date2 < StartActivityDate)
+            {
+                StartActivityDate = date1 < date2 ? date1 : date2;
+            }
+
+            if (EndActivityDate < date1
+                || EndActivityDate < date2)
+            {
+                EndActivityDate = date1 > date2 ? date1 : date2;
             }
         }
     }
