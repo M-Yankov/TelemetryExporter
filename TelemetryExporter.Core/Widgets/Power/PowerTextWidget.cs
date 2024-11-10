@@ -1,22 +1,18 @@
 ﻿using SkiaSharp;
 
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Power
 {
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = "Images/ExamplePowerTextWidget.png", Category = TECoreContsants.Categories.Power)]
     public class PowerTextWidget : TextBaseWidget, IWidget
     {
-        private const int WidgetIndex = 9;
-
-        public static int Index => WidgetIndex;
-
         public string Category => TECoreContsants.Categories.Power;
 
         public string Name => nameof(PowerTextWidget);
+
+        public string ImagePath => "Images/ExamplePowerTextWidget.png";
 
         public override int WidgetWidth => 136;
 

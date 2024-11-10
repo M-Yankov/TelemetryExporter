@@ -1,33 +1,27 @@
-﻿using Dynastream.Fit;
+﻿using SkiaSharp;
 
-using SkiaSharp;
-
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Elevation
 {
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Elevation)]
     public class ElevationWidget : IWidget, INeedInitialization
     {
         private const int ElevationPictureWidthPixels = 700;
         private const int ElevationPictureHeightPixels = 250;
-        private const int WidgetIndex = 5;
-        private const string ImagePath = "Images/ExampleElevation.png";
 
         private SKPath elevationPath = new ();
         private LineChartData lineChartData = null;
         private bool isInitialized = false;
 
-        public static int Index => WidgetIndex;
-
         public string Category => TECoreContsants.Categories.Elevation;
 
         public string Name => "ElevationWidget";
 
-        public void Initialize(IReadOnlyCollection<RecordMesg> dataMessages)
+        public string ImagePath => "Images/ExampleElevation.png";
+
+        public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
         {
             lineChartData = new(dataMessages, ElevationPictureWidthPixels, ElevationPictureHeightPixels, offsetPercentageY: .20f);
             elevationPath = lineChartData.LinePath;

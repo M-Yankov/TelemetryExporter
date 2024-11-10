@@ -1,6 +1,6 @@
-﻿using Dynastream.Fit;
+﻿using SkiaSharp;
 
-using SkiaSharp;
+using TelemetryExporter.Core.Models;
 
 namespace TelemetryExporter.Core.Utilities
 {
@@ -13,7 +13,7 @@ namespace TelemetryExporter.Core.Utilities
             tracePath = new();
         }
 
-        public TraceChartData(IReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentage)
+        public TraceChartData(IReadOnlyCollection<ChartDataModel> dataMessages, int widthPixels, int heightPixels, float offsetPercentage)
         {
             PictureHeightPixels = heightPixels;
             PictureWidthPixels = widthPixels;
@@ -62,13 +62,13 @@ namespace TelemetryExporter.Core.Utilities
             return new(x, y);
         }
 
-        private SKPath BuildPath(IReadOnlyCollection<RecordMesg> dataMessages)
+        private SKPath BuildPath(IReadOnlyCollection<ChartDataModel> chartDataStats)
         {
             List<SKPoint> points = new (); 
-            foreach (RecordMesg? gpsMessage in dataMessages.OrderBy(x => x.GetTimestamp().GetDateTime()))
+            foreach (ChartDataModel? dataModel in chartDataStats.OrderBy(x => x.RecordDateTime))
             {
-                int? lattitude = gpsMessage.GetPositionLat(); // y  y=0 equator      south ↓ negative  | positive ↑ north  max ±90
-                int? longitute = gpsMessage.GetPositionLong(); // x  x=0 Prime Meridian (London)  west <- negative  |  positive -> east ±180
+                int? lattitude = dataModel.Latitude; // y  y=0 equator      south ↓ negative  | positive ↑ north  max ±90
+                int? longitute = dataModel.Longitude; // x  x=0 Prime Meridian (London)  west <- negative  |  positive -> east ±180
 
                 if (lattitude.HasValue && longitute.HasValue)
                 {

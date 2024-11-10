@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Reflection;
 using System.Windows.Input;
 
 using CommunityToolkit.Maui.Storage;
@@ -8,11 +7,9 @@ using Dynastream.Fit;
 
 using SkiaSharp;
 
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Elevation;
-using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.CustomModels;
 
 namespace TelemetryExporter.UI.ViewModels
@@ -24,26 +21,24 @@ namespace TelemetryExporter.UI.ViewModels
 
         public SelectWidgetsViewModel()
         {
+            WidgetFactory widgetFactory = new();
+
+            widgetElements = widgetFactory.GetWidgets
+                .Select(x => new WidgetData() 
+                { 
+                    Category = x.Value.Category,
+                    ImagePath = x.Value.ImagePath,
+                    Index = x.Key
+                })
+                .GroupBy(x => x.Category)
+                .Select(x => new ExpanderDataItem()
+                {
+                    Category = x.Key,
+                    Widgets = [.. x]
+                })
+                .ToList();
+
             Dictionary<string, ExpanderDataItem> widgetCategories = [];
-            IEnumerable<WidgetDataAttribute> widgetDataCollection = Assembly
-                .GetAssembly(typeof(Core.Program))!
-                .GetTypes()
-                .Where(t => t.IsAssignableTo(typeof(IWidget)) && t.IsClass)
-                .Select(t => t.GetCustomAttribute<WidgetDataAttribute>()!);
-
-            foreach (WidgetDataAttribute widgetData in widgetDataCollection)
-            {
-                if (widgetCategories.TryGetValue(widgetData.Category, out ExpanderDataItem? value))
-                {
-                    value.Widgets.Add(widgetData);
-                }
-                else
-                {
-                    widgetCategories[widgetData.Category] = new ExpanderDataItem() { Category = widgetData.Category, Widgets = [widgetData] };
-                }
-            };
-
-            widgetElements = widgetCategories.Values;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -81,7 +76,17 @@ namespace TelemetryExporter.UI.ViewModels
         {
             FitMessages = new FitDecoder(fitFileStream).FitMessages;
             ElevationWidget elevationProfile = new();
-            elevationProfile.Initialize(FitMessages.RecordMesgs);
+            List<ChartDataModel> charDataStats = FitMessages.RecordMesgs
+                .Select(x => new ChartDataModel()
+                {
+                    Altitude = x.GetEnhancedAltitude(),
+                    Latitude = x.GetPositionLat(),
+                    Longitude = x.GetPositionLong(),
+                    RecordDateTime = x.GetTimestamp().GetDateTime().ToLocalTime(),
+                })
+                .ToList();
+
+            elevationProfile.Initialize(charDataStats);
 
             IEnumerable<RecordMesg> orderedMessages = FitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime());
             StartActivityDate = orderedMessages.First().GetTimestamp().GetDateTime().ToLocalTime();
@@ -129,8 +134,6 @@ namespace TelemetryExporter.UI.ViewModels
 
             SessionData sessionData = new()
             {
-                MaxSpeed = FitMessages.RecordMesgs.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
-                TotalDistance = this.TotalDistance,
                 CountOfRecords = FitMessages.RecordMesgs.Count
             };
 

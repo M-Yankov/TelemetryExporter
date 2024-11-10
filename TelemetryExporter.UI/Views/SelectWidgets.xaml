@@ -7,7 +7,6 @@
              xmlns:viewModels="clr-namespace:TelemetryExporter.UI.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:TelemetryExporter.UI.Converters"
-             xmlns:widgets.core="clr-namespace:TelemetryExporter.Core.Attributes;assembly=TelemetryExporter.Core"
              Title="Settings">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior />
@@ -108,9 +107,9 @@
                                             <LinearItemsLayout Orientation="Horizontal"/>
                                         </CollectionView.ItemsLayout>
                                         <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="widgets.core:WidgetDataAttribute" >
+                                            <DataTemplate x:DataType="models:WidgetData" >
                                                 <VerticalStackLayout MaximumWidthRequest="300" WidthRequest="300" Padding="10,10" >
-                                                    <Image Source="{Binding ExampleImagePath}" BackgroundColor="SkyBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
+                                                    <Image Source="{Binding ImagePath}" BackgroundColor="SkyBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
                                                     <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
                                                 </VerticalStackLayout>
                                             </DataTemplate>
