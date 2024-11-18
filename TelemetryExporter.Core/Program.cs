@@ -381,20 +381,7 @@ namespace TelemetryExporter.Core
 
             Dictionary<string, double> widgetDonePercentage = [];
 
-            List<IWidget> widgets = [];
-            foreach (int id in widgetsIds)
-            {
-                IWidget? widget = widgetFactory.GetWidget(id);
-                if (widget != null)
-                {
-                    if (widget is INeedInitialization widgetForInitialization)
-                    {
-                        widgetForInitialization.Initialize(chartDataStats);
-                    }
-
-                    widgets.Add(widget);
-                }
-            }
+            IReadOnlyCollection<IWidget> widgets = widgetFactory.GetWidgets(widgetsIds, chartDataStats);
 
             try
             {

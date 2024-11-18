@@ -23,7 +23,7 @@ namespace TelemetryExporter.UI.ViewModels
         {
             WidgetFactory widgetFactory = new();
 
-            widgetElements = widgetFactory.GetWidgets
+            widgetElements = widgetFactory.Widgets
                 .Select(x => new WidgetData() 
                 { 
                     Category = x.Value.Category,
@@ -37,8 +37,6 @@ namespace TelemetryExporter.UI.ViewModels
                     Widgets = [.. x]
                 })
                 .ToList();
-
-            Dictionary<string, ExpanderDataItem> widgetCategories = [];
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
