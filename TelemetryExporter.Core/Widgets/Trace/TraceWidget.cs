@@ -1,8 +1,5 @@
-﻿using Dynastream.Fit;
+﻿using SkiaSharp;
 
-using SkiaSharp;
-
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Extensions;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
@@ -10,25 +7,22 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Trace
 {
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Trace)]
     public class TraceWidget : IWidget, INeedInitialization
     {
         private const int GpxPictureWidthPixels = 1000;
         private const float GpxPictureOffsetPercentage = .05f;
-        private const int WidgetIndex = 3;
-        private const string ImagePath = "Images/ExampleTrace.png";
 
         private TraceChartData traceChart = new();
         private SKPath tracePath = new();
         private bool isInitialized = false;
 
-        public static int Index => WidgetIndex;
-
         public string Category => TECoreContsants.Categories.Trace;
 
         public string Name => "TraceWidget";
 
-        public void Initialize(IReadOnlyCollection<RecordMesg> dataMessages)
+        public string ImagePath => "Images/ExampleTrace.png";
+
+        public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
         {
             // It's square
             traceChart = new TraceChartData(dataMessages, GpxPictureWidthPixels, GpxPictureWidthPixels, GpxPictureOffsetPercentage);

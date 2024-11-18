@@ -1,8 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using SkiaSharp;
 
-using Dynastream.Fit;
-
-using SkiaSharp;
+using TelemetryExporter.Core.Models;
 
 namespace TelemetryExporter.Core.Utilities
 {
@@ -18,7 +16,7 @@ namespace TelemetryExporter.Core.Utilities
             lineChart = new();
         }
 
-        public LineChartData(IReadOnlyCollection<RecordMesg> dataMessages, int widthPixels, int heightPixels, float offsetPercentageY)
+        public LineChartData(IReadOnlyCollection<ChartDataModel> dataMessages, int widthPixels, int heightPixels, float offsetPercentageY)
         {
             PictureHeightPixels = heightPixels;
             PictureWidthPixels = widthPixels;
@@ -64,13 +62,13 @@ namespace TelemetryExporter.Core.Utilities
             return new(x, y);
         }
 
-        private SKPath BuildPath(IReadOnlyCollection<RecordMesg> dataMessages)
+        private SKPath BuildPath(IReadOnlyCollection<ChartDataModel> dataChartStats)
         {
             List<float> altitudeValues = [];
 
-            foreach (RecordMesg recordMesg in dataMessages.OrderBy(x => x.GetTimestamp().GetDateTime()))
+            foreach (ChartDataModel dataModel in dataChartStats.OrderBy(x => x.RecordDateTime))
             {
-                float? altitude = recordMesg?.GetEnhancedAltitude();
+                float? altitude = dataModel.Altitude;
 
                 if (!altitude.HasValue)
                 {

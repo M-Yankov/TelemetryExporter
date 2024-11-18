@@ -7,15 +7,7 @@ using SkiaSharp;
 
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
-using TelemetryExporter.Core.Widgets.Distance;
-using TelemetryExporter.Core.Widgets.Elevation;
-using TelemetryExporter.Core.Widgets.Grade;
 using TelemetryExporter.Core.Widgets.Interfaces;
-using TelemetryExporter.Core.Widgets.Pace;
-using TelemetryExporter.Core.Widgets.Power;
-using TelemetryExporter.Core.Widgets.Speed;
-using TelemetryExporter.Core.Widgets.Time;
-using TelemetryExporter.Core.Widgets.Trace;
 
 namespace TelemetryExporter.Core
 {
@@ -24,26 +16,6 @@ namespace TelemetryExporter.Core
     {
         private readonly object lockObj = new();
         const int FPS = 2;
-
-        private readonly Dictionary<int, Func<IWidget>> widgetFactory;
-
-        public Program()
-        {
-            // separate class with something like a singleton initialization
-            this.widgetFactory = new Dictionary<int, Func<IWidget>>()
-            {
-                { DistanceWidget.Index, () => new DistanceWidget() },
-                { TraceWidget.Index, () => new TraceWidget() },
-                { ElevationWidget.Index, () => new ElevationWidget() },
-                { GradeWidget.Index, () => new GradeWidget() },
-                { PaceWidget.Index, () => new PaceWidget() },
-                { PowerTextWidget.Index, () => new PowerTextWidget() },
-                { SpeedWidget.Index, () => new SpeedWidget() },
-                { CurrentTimeWidget.Index, () => new CurrentTimeWidget() },
-                { ElapsedTimeWidget.Index, () => new ElapsedTimeWidget() },
-                { PowerMeterWidget.Index, () => new PowerMeterWidget() }
-            };
-        }
 
         /// <summary>
         /// Invoked when processing images, after an certain interval.
@@ -86,6 +58,8 @@ namespace TelemetryExporter.Core
             {
                 return;
             }
+
+            WidgetFactory widgetFactory = new();
 
             List<(System.DateTime start, System.DateTime end)> activePeriods = [];
 
@@ -195,6 +169,8 @@ namespace TelemetryExporter.Core
                     currentGradeIndex = i;
                 }
             }
+
+            List<ChartDataModel> chartDataStats = []; 
 
             RecordMesg currentRecord = queue.Dequeue();
             List<FrameData> framesList = [];
@@ -310,10 +286,20 @@ namespace TelemetryExporter.Core
                     {
                         if (isActiveTime)
                         {
+                            ChartDataModel chartData = new()
+                            {
+                                Altitude = currentRecord.GetEnhancedAltitude(),
+                                Latitude = currentRecord.GetPositionLat(),
+                                Longitude = currentRecord.GetPositionLong(),
+                                RecordDateTime = currentRecord.GetTimestamp().GetDateTime()
+                            };
+                            chartDataStats.Add(chartData);
+
                             currentRecord = nextRcordMesg;
                         }
 
-                        queue.Dequeue(); indexCurrentRecord++;
+                        queue.Dequeue();
+                        indexCurrentRecord++;
                     }
                 }
 
@@ -395,23 +381,10 @@ namespace TelemetryExporter.Core
 
             Dictionary<string, double> widgetDonePercentage = [];
 
+            IReadOnlyCollection<IWidget> widgets = widgetFactory.GetWidgets(widgetsIds, chartDataStats);
+
             try
             {
-                List<IWidget> widgets = [];
-                foreach (int id in widgetsIds)
-                {
-                    IWidget? widget = GetWidget(id);
-                    if (widget != null)
-                    {
-                        if (widget is INeedInitialization widgetForInitialization)
-                        {
-                            widgetForInitialization.Initialize(orderedRecordMessages);
-                        }
-
-                        widgets.Add(widget);
-                    }
-                }
-
                 IEnumerable<Task> renderTasks = widgets.Select(widget =>
                  Task.Run(async () =>
                  {
@@ -499,18 +472,7 @@ namespace TelemetryExporter.Core
             }
         }
 
-        private IWidget? GetWidget(int id)
-        {
-            IWidget? widget = null;
-
-            if (this.widgetFactory.ContainsKey(id))
-            {
-                widget = widgetFactory[id]();
-                return widget;
-            }
-
-            return widget;
-        }
+        
 
         /// <summary>
         /// Need to iterate the collection because the first item could return null 

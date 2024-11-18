@@ -7,9 +7,15 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
     public interface IWidget
     {
         /// <summary>
-        /// Should be unique across all widgets.
+        /// Image Properties > Copy to output directory > Copy Always
         /// </summary>
-        static int Index { get; }
+        string ImagePath
+        {
+            get
+            {
+                return "Images/ExampleWidget.png";
+            }
+        }
 
         /// <summary>
         /// To group widgets by category.

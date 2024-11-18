@@ -2,26 +2,22 @@
 
 using SkiaSharp;
 
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Pace
 {
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Speed)]
     public class PaceWidget : IWidget
     {
         // below that speed it's assumed as walking (For running only)
         // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30
         private const double SpeedCutoff = 0.5556;
-        private const int WidgetIndex = 4;
-        private const string ImagePath = "Images/ExamplePace.png";
         public string Category => TECoreContsants.Categories.Speed;
 
-        public static int Index => WidgetIndex;
-
         public string Name => "PaceWidget";
+
+        public string ImagePath => "Images/ExamplePace.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)
         {

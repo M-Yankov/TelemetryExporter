@@ -1,23 +1,18 @@
 ﻿using SkiaSharp;
 
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Distance
 {
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = TECoreContsants.Categories.Distance)]
     public class DistanceWidget : IWidget
     {
-        private const int WidgetIndex = 2;
-        private const string ImagePath = "Images/ExampleDistance.png";
-
-        public static int Index => WidgetIndex;
-
         public string Category => TECoreContsants.Categories.Distance;
 
         public string Name => "DistanceWidget";
+
+        public string ImagePath => "Images/ExampleDistance.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {

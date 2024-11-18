@@ -1,24 +1,18 @@
 ﻿using SkiaSharp;
 
-using TelemetryExporter.Core.Attributes;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Grade
 {
-    [WidgetData(Index = WidgetIndex, ExampleImagePath = ImagePath, Category = WidgetCategory)]
     public class GradeWidget : IWidget
     {
-        private const string ImagePath = "Images/ExampleGrade.png";
-        private const string WidgetCategory = TECoreContsants.Categories.Grade;
-        private const int WidgetIndex = 8;
-
-        public static int Index => WidgetIndex;
-
-        public string Category => WidgetCategory;
+        public string Category => TECoreContsants.Categories.Grade;
 
         public string Name => nameof(GradeWidget);
+
+        public string ImagePath => "Images/ExampleGrade.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
