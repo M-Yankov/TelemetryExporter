@@ -163,7 +163,7 @@ namespace TelemetryExporter.Core.Utilities
                 messages.Add(message);
             }
 
-            if (isWholeRange)
+            if (isWholeRange && fitMessages.SessionMesgs?.Count > 0)
             {
                 fitInitializer.Distance = fitMessages.SessionMesgs[0].GetTotalDistance() ??
                     (lastRecordDitance - (firstDistance ?? 0)); // for backup if distance is missing from session
