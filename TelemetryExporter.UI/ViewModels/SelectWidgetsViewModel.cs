@@ -51,7 +51,7 @@ namespace TelemetryExporter.UI.ViewModels
 
         public FitMessages FitMessages { get; private set; }
 
-        public List<(System.DateTime start, System.DateTime end)> PausePeriods { get; private set; } = [];
+        public IReadOnlyCollection<(System.DateTime start, System.DateTime end)> PausePeriods { get; private set; } = [];
 
         public ImageSource? MyImage
         {
@@ -73,22 +73,16 @@ namespace TelemetryExporter.UI.ViewModels
         public void Initialize(Stream fitFileStream)
         {
             FitMessages = new FitDecoder(fitFileStream).FitMessages;
+            
+            FitInitializer fitInitializer = FitInitializer.Initialize(FitMessages);
             ElevationWidget elevationProfile = new();
-            List<ChartDataModel> charDataStats = FitMessages.RecordMesgs
-                .Select(x => new ChartDataModel()
-                {
-                    Altitude = x.GetEnhancedAltitude(),
-                    Latitude = x.GetPositionLat(),
-                    Longitude = x.GetPositionLong(),
-                    RecordDateTime = x.GetTimestamp().GetDateTime().ToLocalTime(),
-                })
-                .ToList();
+            elevationProfile.Initialize(fitInitializer.ChartDataStats);
 
-            elevationProfile.Initialize(charDataStats);
+            PausePeriods = fitInitializer.PausePeriods;
+            TotalDistance = fitInitializer.Distance;
 
-            IEnumerable<RecordMesg> orderedMessages = FitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime());
-            StartActivityDate = orderedMessages.First().GetTimestamp().GetDateTime().ToLocalTime();
-            EndActivityDate = orderedMessages.Last().GetTimestamp().GetDateTime().ToLocalTime();
+            StartActivityDate = fitInitializer.StartDate.ToLocalTime();
+            EndActivityDate = fitInitializer.EndDate.ToLocalTime();
 
             /*
             uint? activityTimestamp = fitMessages.ActivityMesgs[0].GetLocalTimestamp();
@@ -97,42 +91,9 @@ namespace TelemetryExporter.UI.ViewModels
             timeSpanOffset.TotalHours
             */
 
-            TotalDistance = FitMessages.SessionMesgs[0].GetTotalDistance() ?? 0;
-
-            List<EventMesg> timerEvents = FitMessages.EventMesgs
-                .Where(e => e.GetEvent() == Event.Timer)
-                .OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
-
-            for (int i = 0; i < timerEvents.Count; i++)
-            {
-                EventMesg eventMessage = timerEvents[i];
-                EventType? eventType = eventMessage.GetEventType();
-
-                if (eventType.HasValue
-                    && (eventType.Value == EventType.Stop || eventType.Value == EventType.StopAll))
-                {
-                    for (int y = ++i; y < timerEvents.Count; y++, i++)
-                    {
-                        EventMesg nextEventMessage = timerEvents[y];
-                        EventType? nextEventType = nextEventMessage.GetEventType();
-
-                        if (nextEventType.HasValue && nextEventType == EventType.Start)
-                        {
-                            System.DateTime stopEventTime = eventMessage.GetTimestamp().GetDateTime().ToLocalTime();
-                            System.DateTime startEventTime = nextEventMessage.GetTimestamp().GetDateTime().ToLocalTime();
-                            PausePeriods.Add((stopEventTime, startEventTime));
-
-                            // AjdustStartEndTimes(stopEventTime, startEventTime);
-
-                            break;
-                        }
-                    }
-                }
-            }
-
             SessionData sessionData = new()
             {
-                CountOfRecords = FitMessages.RecordMesgs.Count
+                CountOfRecords = fitInitializer.Records.Count,
             };
 
             SKData data = elevationProfile.GenerateImage(sessionData, new FrameData()
@@ -157,24 +118,6 @@ namespace TelemetryExporter.UI.ViewModels
             if (result.IsSuccessful)
             {
                 saveLocationEntry.Text = Path.Combine(result.Folder.Path);
-            }
-        }
-
-        /// <summary>
-        /// This can fix the logic when activity immediately went into paused state after start.
-        /// </summary>
-        private void AjdustStartEndTimes(System.DateTime date1, System.DateTime date2)
-        {
-            if (date1 < StartActivityDate
-                || date2 < StartActivityDate)
-            {
-                StartActivityDate = date1 < date2 ? date1 : date2;
-            }
-
-            if (EndActivityDate < date1
-                || EndActivityDate < date2)
-            {
-                EndActivityDate = date1 > date2 ? date1 : date2;
             }
         }
     }
