@@ -9,5 +9,10 @@
         public int? Longitude { get; set; }
         public ushort? Power { get; set; }
         public DateTime RecordDateTime { get; set; }
+
+        /// <summary>
+        /// Means the index of the Record in FitMessages.RecordMessages
+        /// </summary>
+        public int IndexOfRecord { get; set; }
     }
 }

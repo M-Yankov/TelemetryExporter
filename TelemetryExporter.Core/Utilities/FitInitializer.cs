@@ -104,6 +104,7 @@ namespace TelemetryExporter.Core.Utilities
                     Lattitude = rec.GetPositionLat(),
                     Power = rec.GetPower(),
                     RecordDateTime = recordDateTime,
+                    IndexOfRecord = addChartdataWhenOnlyInRange ? messages.Count : i,
                 };
 
                 if (message.Speed.HasValue && message.Speed.Value > maxSpeed)
@@ -211,6 +212,7 @@ namespace TelemetryExporter.Core.Utilities
                             break;
                         case EventType.Stop:
                         case EventType.StopAll:
+                        case EventType.StopDisableAll:
 
                             if (lastIndexStart != -1)
                             {
@@ -245,7 +247,7 @@ namespace TelemetryExporter.Core.Utilities
                 EventType? eventType = eventMessage.GetEventType();
 
                 if (eventType.HasValue
-                    && (eventType.Value == EventType.Stop || eventType.Value == EventType.StopAll))
+                    && (eventType.Value == EventType.Stop || eventType.Value == EventType.StopAll || eventType.Value == EventType.StopDisableAll))
                 {
                     for (int y = ++i; y < eventMessages.Count; y++, i++)
                     {

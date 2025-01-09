@@ -79,14 +79,14 @@ namespace TelemetryExporter.Core
 
             SKPoint? lastKnownGpsLocation = null;
             // TimeSpan dateDiff = startDate - originalStartDateTime;
-            int indexCurrentRecord = 0;
+
             int frame = 0;// ((int)dateDiff.TotalSeconds) * fps;
 
             SessionData sessionData = new()
             {
                 MaxSpeed = initializer.MaxSpeed,
                 TotalDistance = initializer.Distance,
-                CountOfRecords = initializer.Records.Count,
+                CountOfRecords = calculateStatisticsFromRange ? initializer.Records.Count : fitMessages.RecordMesgs.Count,
                 MaxPower = initializer.MaxPower
             };
 
@@ -177,9 +177,9 @@ namespace TelemetryExporter.Core
                         }
 
                         queue.Dequeue();
-                        indexCurrentRecord++;
                     }
 
+                    #region GradeCalulation
                     if (gradesEnumerator.Current.Key < currentTimeFrame)
                     {
                         currentGradePair = gradesEnumerator.Current;
@@ -206,6 +206,7 @@ namespace TelemetryExporter.Core
 
                         grade = Helper.GetValueBetweenDates(gradeMetrics);
                     }
+                    #endregion
                 }
 
                 bool inStartDate = rangeStartDate.HasValue == false
@@ -218,13 +219,13 @@ namespace TelemetryExporter.Core
                 {
                     if (isActiveTime)
                     {
-                        altitude ??= currentRecord?.Altitude;
-                        speed ??= currentRecord?.Speed;
-                        distance ??= currentRecord?.Distance;
+                        altitude ??= currentRecord.Altitude;
+                        speed ??= currentRecord.Speed;
+                        distance ??= currentRecord.Distance;
 
-                        longitude ??= currentRecord?.Longitude;
-                        lattitude ??= currentRecord?.Lattitude;
-                        power ??= currentRecord?.Power;
+                        longitude ??= currentRecord.Longitude;
+                        lattitude ??= currentRecord.Lattitude;
+                        power ??= currentRecord.Power;
 
                         if (lattitude.HasValue && longitude.HasValue)
                         {
@@ -243,7 +244,7 @@ namespace TelemetryExporter.Core
                         Altitude = altitude,
                         Distance = distance,
                         Speed = speed * 3.6 ?? 0,
-                        IndexOfCurrentRecord = indexCurrentRecord,
+                        IndexOfCurrentRecord = currentRecord.IndexOfRecord,
                         Longitude = lastKnownGpsLocation?.X,
                         Latitude = lastKnownGpsLocation?.Y,
                         Grade = grade,
@@ -268,7 +269,7 @@ namespace TelemetryExporter.Core
                 {
                     activeTimeDuration = activeTimeDuration.Add(TimeSpan.FromMilliseconds(millsecondsStep));
                 }
-            } while (currentTimeFrame <= System.DateTime.Now /*endDate*/);
+            } while (currentTimeFrame <= initializer.EndDate);
 
             ConcurrentBag<(string, SKData)> zipEntries = [];
             Guid sesstionGuid = Guid.NewGuid();
