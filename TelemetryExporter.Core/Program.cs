@@ -61,121 +61,44 @@ namespace TelemetryExporter.Core
 
             WidgetFactory widgetFactory = new();
 
-            List<(System.DateTime start, System.DateTime end)> activePeriods = [];
-
-            List<EventMesg> eventMessages = fitMessages.EventMesgs
-                .Where(e => e.GetEvent() == Event.Timer)
-                .OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
-
-            int lastIndexStart = -1;
-            for (int i = 0; i < eventMessages.Count; i++)
-            {
-                EventMesg eventMesg = eventMessages[i];
-                EventType? eventType = eventMesg.GetEventType();
-                if (eventType.HasValue)
-                {
-                    switch (eventType.Value)
-                    {
-                        case EventType.Start:
-                            lastIndexStart = i;
-                            break;
-                        case EventType.Stop:
-                        case EventType.StopAll:
-
-                            if (lastIndexStart != -1)
-                            {
-                                System.DateTime periodStartDate = eventMessages[lastIndexStart].GetTimestamp().GetDateTime();
-                                System.DateTime periodStopDate = eventMesg.GetTimestamp().GetDateTime();
-                                activePeriods.Add((periodStartDate, periodStopDate));
-                            }
-
-                            lastIndexStart = -1;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
+            FitInitializer initializer = FitInitializer.Initialize(
+                fitMessages,
+                rangeStartDate,
+                rangeEndDate,
+                calculateStatisticsFromRange);
 
             // if this is always = true (not runtime calculated) the code could generate the transition (fake) frames.
             // my options is that it's not necessary since the activity is in pause mode. The user can be at one place, not moving, different heart beat
             // but on the other hand the fake frames are something average moving (similar to strava flyBy mode when some one has paused an activity, but was resume far later)
             bool isActiveTime = true;
 
-            System.DateTime startDate = fitMessages.RecordMesgs[0].GetTimestamp().GetDateTime();
-            //System.DateTime originalStartDateTime = startDate;
-
-            System.DateTime endDate = fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
-            // System.DateTime originalEndDateTime = endDate;
-
-            List<RecordMesg> orderedRecordMessages = fitMessages.RecordMesgs.OrderBy(x => x.GetTimestamp().GetDateTime()).ToList();
-
-            // There may not be any records in the selected range.
-            if (calculateStatisticsFromRange)
-            {
-                if (rangeStartDate.HasValue && rangeEndDate.HasValue)
-                {
-                    startDate = rangeStartDate.Value;
-                    endDate = rangeEndDate.Value;
-
-                    orderedRecordMessages = new(orderedRecordMessages.Where(x =>
-                         rangeStartDate.Value < x.GetTimestamp().GetDateTime() && x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
-                }
-                else if (rangeStartDate.HasValue)
-                {
-                    startDate = rangeStartDate.Value;
-
-                    orderedRecordMessages = new(orderedRecordMessages.Where(x => rangeStartDate.Value < x.GetTimestamp().GetDateTime()));
-                }
-                else if (rangeEndDate.HasValue)
-                {
-                    endDate = rangeEndDate.Value;
-
-                    orderedRecordMessages = new(orderedRecordMessages.Where(x => x.GetTimestamp().GetDateTime() < rangeEndDate.Value));
-                }
-            }
-
-            Queue<RecordMesg> queue = new(orderedRecordMessages);
-            System.DateTime currentTimeFrame = startDate;
+            Queue<FitMessageModel> queue = new(initializer.Records);
+            System.DateTime currentTimeFrame = initializer.StartDate;
 
             TimeSpan activeTimeDuration = TimeSpan.Zero;
 
             SKPoint? lastKnownGpsLocation = null;
             // TimeSpan dateDiff = startDate - originalStartDateTime;
-            int indexCurrentRecord = 0;
-            int frame = 0;// ((int)dateDiff.TotalSeconds) * fps;
 
-            // int totalFrames = (int)(originalEndDateTime - originalStartDateTime).TotalSeconds * fps;
+            int frame = 0;// ((int)dateDiff.TotalSeconds) * fps;
 
             SessionData sessionData = new()
             {
-                MaxSpeed = orderedRecordMessages.Max(x => x.GetEnhancedSpeed()) * 3.6 ?? 0,
-                TotalDistance = calculateStatisticsFromRange
-                ? ((orderedRecordMessages[^1].GetDistance() ?? 0) - (orderedRecordMessages[0].GetDistance() ?? 0)) // Check [^1] has distance
-                : fitMessages.SessionMesgs[0].GetTotalDistance() ?? 0,
-                CountOfRecords = orderedRecordMessages.Count,
-                MaxPower = (calculateStatisticsFromRange
-                    ? orderedRecordMessages.Max(x => x.GetPower())
-                    : fitMessages.SessionMesgs[0].GetMaxPower()) ?? 0,
+                MaxSpeed = initializer.MaxSpeed,
+                TotalDistance = initializer.Distance,
+                CountOfRecords = calculateStatisticsFromRange ? initializer.Records.Count : fitMessages.RecordMesgs.Count,
+                MaxPower = initializer.MaxPower
             };
 
-            Dictionary<System.DateTime, double?> gradeValues = CalculateGrades(orderedRecordMessages);
-            int currentGradeIndex = 0;
-            for (int i = 0; i < gradeValues.Count; i++)
-            {
-                System.DateTime gradeDate = gradeValues.ElementAt(i).Key;
-                if (currentTimeFrame >= gradeDate)
-                {
-                    currentGradeIndex = i;
-                }
-            }
-
-            List<ChartDataModel> chartDataStats = []; 
-
-            RecordMesg currentRecord = queue.Dequeue();
+            FitMessageModel currentRecord = queue.Dequeue();
             List<FrameData> framesList = [];
+            var gradesEnumerator = initializer.Grades.GetEnumerator();
+            // advance to the first value
+            gradesEnumerator.MoveNext();
+            KeyValuePair<System.DateTime, double?> currentGradePair = gradesEnumerator.Current;
 
-            double? initialDistance = GetInitialDistance(orderedRecordMessages);
+            double? initialDistance = initializer.FirstDistance;
+
             do
             {
                 double? speed = null;
@@ -186,91 +109,55 @@ namespace TelemetryExporter.Core
                 double? grade = null;
                 ushort? power = null;
 
-                bool gradesHasNextValue = currentGradeIndex + 1 < gradeValues.Count;
-                if (gradesHasNextValue)
+                isActiveTime = initializer.IsRecordInActiveTime(currentTimeFrame);
+
+                if (queue.TryPeek(out FitMessageModel? nextRcordMesg))
                 {
-                    System.DateTime gradeDate = gradeValues.ElementAt(currentGradeIndex + 1).Key;
-                    if (currentTimeFrame >= gradeDate)
-                    {
-                        currentGradeIndex++;
-                    }
-                }
-
-                // First and last 5mins of grades will miss
-                if (currentTimeFrame >= gradeValues.ElementAt(currentGradeIndex).Key
-                    && currentGradeIndex + 1 < gradeValues.Count)
-                {
-                    // currentTimeFrame == gradeValues.ElementAt(currentGradeIndex).Key
-                    if (gradeValues.TryGetValue(currentTimeFrame, out double? newGradeValue))
-                    {
-                        grade = newGradeValue;
-                    }
-                    else
-                    {
-                        int nextGradeIndex = currentGradeIndex + 1 < gradeValues.Count
-                            ? currentGradeIndex + 1
-                            : currentGradeIndex;
-
-                        CalculateModel gradeMetrics = new(
-                            gradeValues.ElementAt(currentGradeIndex).Key,
-                            gradeValues.ElementAt(nextGradeIndex).Key,
-                            gradeValues.ElementAt(currentGradeIndex).Value,
-                            gradeValues.ElementAt(nextGradeIndex).Value,
-                            currentTimeFrame);
-
-                        grade = Helper.GetValueBetweenDates(gradeMetrics);
-                    }
-                }
-
-                isActiveTime = IsRecordInActiveTime(currentTimeFrame, activePeriods);
-
-                if (queue.TryPeek(out RecordMesg? nextRcordMesg))
-                {
-                    System.DateTime recordDate = nextRcordMesg.GetTimestamp().GetDateTime();
-                    System.DateTime? currentRecordDate = currentRecord.GetTimestamp().GetDateTime();
+                    System.DateTime recordDate = nextRcordMesg.RecordDateTime;
+                    System.DateTime? currentRecordDate = currentRecord.RecordDateTime;
 
                     if (currentRecordDate < currentTimeFrame && currentTimeFrame < recordDate && isActiveTime)
                     {
                         CalculateModel speedMetrics = new(
                             currentRecordDate.Value,
                             recordDate,
-                            currentRecord.GetEnhancedSpeed(),
-                            nextRcordMesg.GetEnhancedSpeed(),
+                            currentRecord.Speed,
+                            nextRcordMesg.Speed,
                             currentTimeFrame);
 
                         CalculateModel distanceMetrics = new(
                             currentRecordDate.Value,
                             recordDate,
-                            currentRecord.GetDistance(),
-                            nextRcordMesg.GetDistance(),
+                            currentRecord.Distance,
+                            nextRcordMesg.Distance,
                             currentTimeFrame);
 
                         CalculateModel altitudeMetrics = new(
                             currentRecordDate.Value,
                             recordDate,
-                            currentRecord.GetEnhancedAltitude(),
-                            nextRcordMesg.GetEnhancedAltitude(),
+                            currentRecord.Altitude,
+                            nextRcordMesg.Altitude,
                             currentTimeFrame);
 
                         CalculateModel lattitudeMetrics = new(
                             currentRecordDate.Value,
                             recordDate,
-                            currentRecord.GetPositionLat(),
-                            nextRcordMesg.GetPositionLat(),
+                            currentRecord.Lattitude,
+                            nextRcordMesg.Lattitude,
                             currentTimeFrame);
 
                         CalculateModel longitudeMetrics = new(
                             currentRecordDate.Value,
                             recordDate,
-                            currentRecord.GetPositionLong(),
-                            nextRcordMesg.GetPositionLong(),
+                            currentRecord.Longitude,
+                            nextRcordMesg.Longitude,
                             currentTimeFrame);
 
                         CalculateModel powerMetrics = new(
                             currentRecordDate.Value,
                             recordDate,
-                            currentRecord.GetPower(),
-                            nextRcordMesg.GetPower(),
+                            currentRecord.Power,
+                            nextRcordMesg.Power,
                             currentTimeFrame);
 
                         speed = Helper.GetValueBetweenDates(speedMetrics);
@@ -282,25 +169,47 @@ namespace TelemetryExporter.Core
                         longitude = (int?)Helper.GetValueBetweenDates(longitudeMetrics);
                     }
 
-                    if (currentRecordDate.HasValue && recordDate > currentRecordDate && currentTimeFrame >= recordDate)
+                    // Warning: added the equality symbol in the check: recordDate >= currentRecordDate
+                    // the case is when the activity contains to many records with same data.
+                    // if current functionality affected, revert the change 
+                    if (currentRecordDate.HasValue && recordDate >= currentRecordDate && currentTimeFrame >= recordDate)
                     {
                         if (isActiveTime)
                         {
-                            ChartDataModel chartData = new()
-                            {
-                                Altitude = currentRecord.GetEnhancedAltitude(),
-                                Latitude = currentRecord.GetPositionLat(),
-                                Longitude = currentRecord.GetPositionLong(),
-                                RecordDateTime = currentRecord.GetTimestamp().GetDateTime()
-                            };
-                            chartDataStats.Add(chartData);
-
                             currentRecord = nextRcordMesg;
                         }
 
                         queue.Dequeue();
-                        indexCurrentRecord++;
                     }
+
+                    #region GradeCalulation
+                    if (gradesEnumerator.Current.Key < currentTimeFrame)
+                    {
+                        currentGradePair = gradesEnumerator.Current;
+                        gradesEnumerator.MoveNext();
+                    }
+
+                    if (currentGradePair.Key == currentTimeFrame)
+                    {
+                        grade = currentGradePair.Value;
+                    }
+                    else if (gradesEnumerator.Current.Key == currentTimeFrame)
+                    {
+                        grade = gradesEnumerator.Current.Value;
+                    }
+                    else if (currentGradePair.Key < currentTimeFrame
+                        && currentTimeFrame < gradesEnumerator.Current.Key)
+                    {
+                        CalculateModel gradeMetrics = new(
+                            currentGradePair.Key,
+                            gradesEnumerator.Current.Key,
+                            currentGradePair.Value,
+                            gradesEnumerator.Current.Value,
+                            currentTimeFrame);
+
+                        grade = Helper.GetValueBetweenDates(gradeMetrics);
+                    }
+                    #endregion
                 }
 
                 bool inStartDate = rangeStartDate.HasValue == false
@@ -313,13 +222,13 @@ namespace TelemetryExporter.Core
                 {
                     if (isActiveTime)
                     {
-                        altitude ??= currentRecord?.GetEnhancedAltitude();
-                        speed ??= currentRecord?.GetEnhancedSpeed();
-                        distance ??= currentRecord?.GetDistance();
+                        altitude ??= currentRecord.Altitude;
+                        speed ??= currentRecord.Speed;
+                        distance ??= currentRecord.Distance;
 
-                        longitude ??= currentRecord?.GetPositionLong();
-                        lattitude ??= currentRecord?.GetPositionLat();
-                        power ??= currentRecord?.GetPower();
+                        longitude ??= currentRecord.Longitude;
+                        lattitude ??= currentRecord.Lattitude;
+                        power ??= currentRecord.Power;
 
                         if (lattitude.HasValue && longitude.HasValue)
                         {
@@ -338,12 +247,12 @@ namespace TelemetryExporter.Core
                         Altitude = altitude,
                         Distance = distance,
                         Speed = speed * 3.6 ?? 0,
-                        IndexOfCurrentRecord = indexCurrentRecord,
+                        IndexOfCurrentRecord = currentRecord.IndexOfRecord,
                         Longitude = lastKnownGpsLocation?.X,
                         Latitude = lastKnownGpsLocation?.Y,
                         Grade = grade,
                         Power = power,
-                        ElapsedTime = TimeOnly.FromTimeSpan(currentTimeFrame - startDate),
+                        ElapsedTime = TimeOnly.FromTimeSpan(currentTimeFrame - initializer.StartDate),
                         // It's good to take localTime from garmin settings 
                         CurrentTime = TimeOnly.FromDateTime(currentTimeFrame.ToLocalTime())
                     };
@@ -352,8 +261,8 @@ namespace TelemetryExporter.Core
                 }
 
                 // data for future widgets
-                float? hr = currentRecord?.GetHeartRate(); // beats per minute  
-                sbyte? t = currentRecord?.GetTemperature();
+                // float? hr = currentRecord?.GetHeartRate(); // beats per minute  
+                // sbyte? t = currentRecord?.GetTemperature();
 
                 // https://fpstoms.com/ Example: 2 fps (500ms) = 1000 / 2; 
                 int millsecondsStep = 1000 / fps;
@@ -363,7 +272,7 @@ namespace TelemetryExporter.Core
                 {
                     activeTimeDuration = activeTimeDuration.Add(TimeSpan.FromMilliseconds(millsecondsStep));
                 }
-            } while (currentTimeFrame <= endDate);
+            } while (currentTimeFrame <= initializer.EndDate);
 
             ConcurrentBag<(string, SKData)> zipEntries = [];
             Guid sesstionGuid = Guid.NewGuid();
@@ -381,7 +290,7 @@ namespace TelemetryExporter.Core
 
             Dictionary<string, double> widgetDonePercentage = [];
 
-            IReadOnlyCollection<IWidget> widgets = widgetFactory.GetWidgets(widgetsIds, chartDataStats);
+            IReadOnlyCollection<IWidget> widgets = widgetFactory.GetWidgets(widgetsIds, initializer.ChartDataStats);
 
             try
             {
@@ -435,11 +344,7 @@ namespace TelemetryExporter.Core
                 System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
             }
 
-            static bool IsRecordInActiveTime(System.DateTime date, IReadOnlyCollection<(System.DateTime start, System.DateTime end)> activePeriods)
-            {
-                bool isRecordInActivePeriod = activePeriods.Any(x => x.start <= date && date <= x.end);
-                return isRecordInActivePeriod;
-            }
+            
 
             void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame, double percentage)
             {
@@ -470,70 +375,6 @@ namespace TelemetryExporter.Core
 
                 zipEntries.Add((Path.Combine(widget.Category, widget.Name, fileNameOfFrame), imageData));
             }
-        }
-
-        
-
-        /// <summary>
-        /// Need to iterate the collection because the first item could return null 
-        /// </summary>
-        private static double GetInitialDistance(IReadOnlyCollection<RecordMesg> recordMesgs)
-        {
-            foreach (RecordMesg recordMessage in recordMesgs)
-            {
-                double? distance = recordMessage.GetDistance();
-                if (distance.HasValue)
-                {
-                    return distance.Value;
-                }
-            }
-
-            return 0;
-        }
-
-        private static Dictionary<System.DateTime, double?> CalculateGrades(IList<RecordMesg> recordMesgs)
-        {
-            Dictionary<System.DateTime, double?> res = [];
-
-            if (recordMesgs.Count == 0)
-            {
-                return res;
-            }
-
-            RecordMesg recordMessage = recordMesgs[0];
-
-            for (int i = 0; i < recordMesgs.Count - 1; i++)
-            {
-                RecordMesg nextRecord = recordMesgs[i + 1];
-
-                double? run = nextRecord.GetDistance() - recordMessage.GetDistance();
-
-                // at least 5meters are required to calculate adequate grade %.
-                if (run < 5)
-                {
-                    continue;
-                }
-
-                // distance - currentRecord.GetDistance();
-                double? rise = nextRecord.GetEnhancedAltitude() - recordMessage.GetEnhancedAltitude();
-
-                if (rise.HasValue && Math.Abs(rise.Value) > run)
-                {
-                    // if the climbed/descended altitude is greater than the passed distance it means that it's vertical 
-                    // which is not possible that's why take the next message until "run" is greater
-                    continue;
-                }
-
-                // altitude - currentRecord.GetEnhancedAltitude();
-                double? grade = 100.0f * (float?)(rise / run);
-
-                recordMessage = nextRecord;
-
-                var date = recordMessage.GetTimestamp().GetDateTime();
-                res[date] = grade;
-            }
-
-            return res;
         }
     }
 }

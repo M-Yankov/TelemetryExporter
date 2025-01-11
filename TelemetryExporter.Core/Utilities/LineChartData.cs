@@ -96,7 +96,7 @@ namespace TelemetryExporter.Core.Utilities
 
                 if (i == 0)
                 {
-                    skPath.MoveTo(point);
+                    skPath.MoveTo(new SKPoint() { X = 0, Y = point.Y });
                 }
                 else
                 {
