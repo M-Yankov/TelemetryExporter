@@ -169,7 +169,10 @@ namespace TelemetryExporter.Core
                         longitude = (int?)Helper.GetValueBetweenDates(longitudeMetrics);
                     }
 
-                    if (currentRecordDate.HasValue && recordDate > currentRecordDate && currentTimeFrame >= recordDate)
+                    // Warning: added the equality symbol in the check: recordDate >= currentRecordDate
+                    // the case is when the activity contains to many records with same data.
+                    // if current functionality affected, revert the change 
+                    if (currentRecordDate.HasValue && recordDate >= currentRecordDate && currentTimeFrame >= recordDate)
                     {
                         if (isActiveTime)
                         {
