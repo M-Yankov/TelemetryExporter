@@ -84,7 +84,7 @@ namespace TelemetryExporter.Core
 
             SessionData sessionData = new()
             {
-                MaxSpeed = initializer.MaxSpeed,
+                MaxSpeed = initializer.MaxSpeed * 3.6,
                 TotalDistance = initializer.Distance,
                 CountOfRecords = calculateStatisticsFromRange ? initializer.Records.Count : fitMessages.RecordMesgs.Count,
                 MaxPower = initializer.MaxPower
