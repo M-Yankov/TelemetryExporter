@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel;
 
 using Microsoft.Maui.Controls.Shapes;
@@ -116,7 +117,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
     private async void ExportBtn_Clicked(object sender, EventArgs e)
     {
-        string message = "";
+        string message = string.Empty;
         if (selectWidgetIds?.Count == 0)
         {
             message = "Please select widgets!";
@@ -187,9 +188,9 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     /// </summary>
     /// <param name="progressArgs">A <see cref="Dictionary{TKey, TValue}"/>
     /// of widgets as keys and values are their progress in percentage. From 0 to 1.</param>
-    private void Exporter_OnProgress(object? _, Dictionary<string, double> progressArgs)
+    private void Exporter_OnProgress(object? _, ConcurrentDictionary<string, double> progressArgs)
     {
-        void SetTextDate(Dictionary<string, double> data)
+        void SetTextDate(ConcurrentDictionary<string, double> data)
         {
             string resultProgress = string.Join(
                 Environment.NewLine,
