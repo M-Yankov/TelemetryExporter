@@ -1,4 +1,6 @@
-﻿using SkiaSharp;
+﻿using System.Runtime.CompilerServices;
+
+using SkiaSharp;
 
 using TelemetryExporter.Core.Widgets.Interfaces;
 
@@ -6,24 +8,29 @@ namespace TelemetryExporter.Core.Models
 {
     internal class ImagesGenerator
     {
-        public static async Task GenerateDataForWidgetAsync(
+        public static async IAsyncEnumerable<GeneratedWidgetDataModel> GenerateDataForWidgetAsync(
             SessionData sessionData,
-            IReadOnlyCollection<FrameData> frameData,
+            IReadOnlyCollection<FrameData> framesList,
             IWidget widget,
-            Action<SKData, IWidget, string, double> callBack,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            for (int i = 0; i < frameData.Count; i++)
+            for (int i = 0; i < framesList.Count; i++)
             {
-                FrameData frame = frameData.ElementAt(i);
-                double percentageDone = (double)(i + 1) / frameData.Count;
+                FrameData frameData = framesList.ElementAt(i);
+                double percentageDone = (double)(i + 1) / framesList.Count;
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    return;
+                    yield break;
                 }
 
-                SKData generatedImageData = await widget.GenerateImage(sessionData, frame);
-                callBack(generatedImageData, widget, frame.FileName, percentageDone);
+                SKData imageData = await widget.GenerateImage(sessionData, frameData);
+                yield return new GeneratedWidgetDataModel()
+                {
+                    Filename = frameData.FileName,
+                    ImageData = imageData,
+                    Widget = widget,
+                    PercentageDone = percentageDone
+                };
             }
         }
     }

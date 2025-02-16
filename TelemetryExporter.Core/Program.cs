@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
-using System.IO.Compression;
 
 using Dynastream.Fit;
 
 using SkiaSharp;
 
+using TelemetryExporter.Core.Exporters;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
@@ -14,13 +14,12 @@ namespace TelemetryExporter.Core
     // Check this: /activity-service/activity/12092921949/details
     public class Program
     {
-        private readonly object lockObj = new();
         const int FPS = 2;
 
         /// <summary>
         /// Invoked when processing images, after an certain interval.
         /// </summary>
-        public event EventHandler<Dictionary<string, double>>? OnProgress;
+        public event EventHandler<ConcurrentDictionary<string, double>>? OnProgress;
 
         /// <summary>
         /// Export images.
@@ -274,106 +273,58 @@ namespace TelemetryExporter.Core
                 }
             } while (currentTimeFrame <= initializer.EndDate);
 
-            ConcurrentBag<(string, SKData)> zipEntries = [];
-            Guid sesstionGuid = Guid.NewGuid();
-
-            string genratedFileName = $"{sesstionGuid}.zip";
-
-            if (!Directory.Exists(tempDirectoryPath))
-            {
-                Directory.CreateDirectory(tempDirectoryPath);
-            }
-
-            string tempZipFileDirectory = Path.Combine(tempDirectoryPath, genratedFileName);
-            using FileStream tempDirectoryStream = new(tempZipFileDirectory, FileMode.OpenOrCreate, FileAccess.Write);
-            using ZipArchive zipArchive = new(tempDirectoryStream, ZipArchiveMode.Create);
-
-            Dictionary<string, double> widgetDonePercentage = [];
+            ConcurrentDictionary<string, double> widgetDonePercentage = [];
 
             IReadOnlyCollection<IWidget> widgets = widgetFactory.GetWidgets(widgetsIds, initializer.ChartDataStats);
 
+            CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            CancellationToken linkedToken = linkedCts.Token;
+
+            List<Task> widgetExportTasks = [];
+
+            // Intentionally using IExporeter, so in future to add FileFolderExporter.
+            using IExporter exporter = new ZipArchiveExporter(tempDirectoryPath, saveDirectoryPath, linkedToken);
             try
             {
-                IEnumerable<Task> renderTasks = widgets.Select(widget =>
-                 Task.Run(async () =>
-                 {
-                     await ImagesGenerator.GenerateDataForWidgetAsync(
-                         sessionData,
-                         framesList,
-                         widget,
-                         ProcessImage,
-                         cancellationToken);
-                 },
-                 cancellationToken));
-
-                await Task.WhenAll(renderTasks);
-
-                #region FixingRemainingFramesNotExported
-                foreach (var (zipEntryPath, skImageData) in zipEntries)
+                foreach (IWidget widget in widgets)
                 {
-                    ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
-                    using Stream streamZipFile = entry.Open();
-                    using Stream imageDataStream = skImageData.AsStream();
-                    imageDataStream.CopyTo(streamZipFile);
+                    Task processWidgetTask = Task.Run(async () =>
+                    {
+                        // The try catch should be inside the task, so the exception is not lost
+                        try
+                        {
+                            IAsyncEnumerable<GeneratedWidgetDataModel> dataProcessing =
+                                ImagesGenerator.GenerateDataForWidgetAsync(sessionData, framesList, widget, linkedToken);
+
+                            Action updateProgressAction = () =>
+                            {
+                                OnProgress?.Invoke(this, widgetDonePercentage);
+                            };
+
+                            await exporter.ExportImageData(dataProcessing, widgetDonePercentage, updateProgressAction);  
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // don't throw, the task was canceled by the user for example
+                            linkedCts.Cancel();
+                        }
+                        catch (Exception)
+                        {
+                            linkedCts.Cancel();
+                            throw;
+                        }
+
+                    }, linkedToken);
+
+                    widgetExportTasks.Add(processWidgetTask);
                 }
 
-                zipEntries.Clear();
-
-                OnProgress?.Invoke(this, widgetDonePercentage);
-                #endregion
-
+                await Task.WhenAll(widgetExportTasks);
             }
             catch (Exception)
             {
-                // Don't invoke tempDirectoryStream.Dispose();
-                // It's invoked internally form zipArchive.Dispose().
-                zipArchive.Dispose();
-                System.IO.File.Delete(tempZipFileDirectory);
+                linkedCts.Cancel();
                 throw;
-            }
-
-            zipArchive.Dispose();
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                System.IO.File.Delete(tempZipFileDirectory);
-                return;
-            }
-            else
-            {
-                System.IO.File.Move(tempZipFileDirectory, Path.Combine(saveDirectoryPath, genratedFileName));
-            }
-
-            
-
-            void ProcessImage(SKData imageData, IWidget widget, string fileNameOfFrame, double percentage)
-            {
-                widgetDonePercentage[widget.Name] = percentage;
-
-                const int ThresHold = 100;
-
-                if (zipEntries.Count >= ThresHold)
-                {
-                    lock (lockObj)
-                    {
-                        if (zipEntries.Count >= ThresHold)
-                        {
-                            foreach (var (zipEntryPath, skImageData) in zipEntries)
-                            {
-                                ZipArchiveEntry entry = zipArchive.CreateEntry(zipEntryPath);
-                                using Stream streamZipFile = entry.Open();
-                                using Stream imageDataStream = skImageData.AsStream();
-                                imageDataStream.CopyTo(streamZipFile);
-                            }
-
-                            zipEntries.Clear();
-
-                            OnProgress?.Invoke(this, widgetDonePercentage);
-                        }
-                    }
-                }
-
-                zipEntries.Add((Path.Combine(widget.Category, widget.Name, fileNameOfFrame), imageData));
             }
         }
     }
