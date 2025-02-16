@@ -1,10 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO.Compression;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Xml;
 
 using Dynastream.Fit;
 
@@ -15,16 +9,12 @@ using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
-
 namespace TelemetryExporter.Core
 {
     // Check this: /activity-service/activity/12092921949/details
     public class Program
     {
-        private readonly object lockObj = new();
         const int FPS = 2;
-
-        private readonly SemaphoreSlim semaphore = new(1, 1);
 
         /// <summary>
         /// Invoked when processing images, after an certain interval.
@@ -330,7 +320,6 @@ namespace TelemetryExporter.Core
                 }
 
                 await Task.WhenAll(widgetExportTasks);
-
             }
             catch (Exception)
             {

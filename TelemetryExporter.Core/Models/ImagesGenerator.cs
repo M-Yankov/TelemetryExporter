@@ -23,11 +23,11 @@ namespace TelemetryExporter.Core.Models
                     yield break;
                 }
 
-                SKData skData = await widget.GenerateImage(sessionData, frameData);
+                SKData imageData = await widget.GenerateImage(sessionData, frameData);
                 yield return new GeneratedWidgetDataModel()
                 {
                     Filename = frameData.FileName,
-                    SkData = skData,
+                    ImageData = imageData,
                     Widget = widget,
                     PercentageDone = percentageDone
                 };

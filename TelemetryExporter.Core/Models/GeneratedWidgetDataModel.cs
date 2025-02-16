@@ -6,7 +6,7 @@ namespace TelemetryExporter.Core.Models
 {
     internal class GeneratedWidgetDataModel
     {
-        public required SKData SkData { get; set; }
+        public required SKData ImageData { get; set; }
 
         public required string Filename { get; set; }
 

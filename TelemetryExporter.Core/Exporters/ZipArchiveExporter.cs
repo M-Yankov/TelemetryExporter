@@ -51,7 +51,7 @@ namespace TelemetryExporter.Core.Exporters
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SKData imageData = dataModel.SkData;
+                SKData imageData = dataModel.ImageData;
                 string fileNameOfFrame = dataModel.Filename;
                 IWidget widget = dataModel.Widget;
                 double percentage = dataModel.PercentageDone;
