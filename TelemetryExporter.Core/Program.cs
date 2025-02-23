@@ -46,7 +46,8 @@ namespace TelemetryExporter.Core
             int fps = FPS,
             System.DateTime? rangeStartDate = null,
             System.DateTime? rangeEndDate = null,
-            bool calculateStatisticsFromRange = false)
+            bool calculateStatisticsFromRange = false,
+            ExportType exportType = ExportType.ZipFileArchive)
         {
             if (widgetsIds.Count == 0)
             {
@@ -283,7 +284,7 @@ namespace TelemetryExporter.Core
             List<Task> widgetExportTasks = [];
 
             // Intentionally using IExporeter, so in future to add FileFolderExporter.
-            using IExporter exporter = new ZipArchiveExporter(tempDirectoryPath, saveDirectoryPath, linkedToken);
+            using IExporter exporter = GetExporter(exportType, saveDirectoryPath, tempDirectoryPath, linkedToken);
             try
             {
                 foreach (IWidget widget in widgets)
@@ -327,5 +328,15 @@ namespace TelemetryExporter.Core
                 throw;
             }
         }
+
+        private static IExporter GetExporter(
+            ExportType exportType,
+            string saveDirectoryPath,
+            string tempDirectoryPath,
+            CancellationToken cancellationToken) => exportType switch
+            {
+                ExportType.FolderFile => new FileFolderExporter(saveDirectoryPath, cancellationToken),
+                _ => new ZipArchiveExporter(tempDirectoryPath, saveDirectoryPath, cancellationToken),
+            };
     }
 }
