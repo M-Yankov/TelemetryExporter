@@ -252,7 +252,9 @@ namespace TelemetryExporter.Core
                         Latitude = lastKnownGpsLocation?.Y,
                         Grade = grade,
                         Power = power,
-                        ElapsedTime = TimeOnly.FromTimeSpan(currentTimeFrame - initializer.StartDate),
+                        ElapsedTime = calculateStatisticsFromRange
+                            ? TimeOnly.FromTimeSpan(currentTimeFrame - initializer.StartDate)
+                            : TimeOnly.FromTimeSpan(currentTimeFrame - initializer.ActivityStartDate),
                         // It's good to take localTime from garmin settings 
                         CurrentTime = TimeOnly.FromDateTime(currentTimeFrame.ToLocalTime())
                     };

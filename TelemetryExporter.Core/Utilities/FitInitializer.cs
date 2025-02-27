@@ -14,6 +14,8 @@ namespace TelemetryExporter.Core.Utilities
 
         public System.DateTime StartDate { get; private set; }
 
+        public System.DateTime ActivityStartDate { get; private set; }
+
         public System.DateTime EndDate { get; private set; }
 
         public double FirstDistance { get; set; }
@@ -37,7 +39,7 @@ namespace TelemetryExporter.Core.Utilities
         public IReadOnlyCollection<ChartDataModel> ChartDataStats { get; private set; } = [];
 
         /// <summary>
-        /// Prevent initialization.
+        /// Prevent external initialization.
         /// </summary>
         private FitInitializer()
         {
@@ -56,6 +58,9 @@ namespace TelemetryExporter.Core.Utilities
             FitInitializer fitInitializer = new();
             fitInitializer.StartDate = startDate ?? fitMessages.RecordMesgs[0].GetTimestamp().GetDateTime();
             fitInitializer.EndDate = endDate ?? fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
+            fitInitializer.ActivityStartDate = fitMessages.SessionMesgs.Count > 0
+                ? fitMessages.SessionMesgs[0].GetStartTime().GetDateTime()
+                : fitMessages.RecordMesgs[0].GetTimestamp().GetDateTime();
 
             double maxSpeed = 0;
             ushort maxPower = 0;
