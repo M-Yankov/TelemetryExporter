@@ -7,6 +7,7 @@ using Dynastream.Fit;
 
 using SkiaSharp;
 
+using TelemetryExporter.Core.Exporters;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Elevation;
@@ -18,6 +19,7 @@ namespace TelemetryExporter.UI.ViewModels
     {
         private readonly ICollection<ExpanderDataItem> widgetElements;
         private ImageSource? elevationProfileImage;
+        private ExportType exportType = ExportType.ZipFileArchive;
 
         public SelectWidgetsViewModel()
         {
@@ -50,6 +52,20 @@ namespace TelemetryExporter.UI.ViewModels
         public double TotalDistance { get; set; }
 
         public FitMessages FitMessages { get; private set; }
+
+        public ExportType ExportType
+
+        {
+            get => exportType;
+            set
+            {
+                if (exportType != value)
+                {
+                    exportType = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ExportType)));
+                }
+            }
+        }
 
         public IReadOnlyCollection<(System.DateTime start, System.DateTime end)> PausePeriods { get; private set; } = [];
 

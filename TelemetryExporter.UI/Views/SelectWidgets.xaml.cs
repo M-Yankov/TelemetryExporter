@@ -154,7 +154,8 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
                 (byte)selectedFps.SelectedItem,
                 rangeDatesActivity.StartValue.ToUniversalTime(),
                 rangeDatesActivity.EndValue.ToUniversalTime(),
-                useStartMarker.IsChecked);
+                useStartMarker.IsChecked,
+                model.ExportType);
 
             if (cancellationTokenForExport.Token.IsCancellationRequested)
             {

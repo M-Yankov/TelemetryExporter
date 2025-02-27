@@ -14,6 +14,8 @@ namespace TelemetryExporter.Core.Utilities
 
         public System.DateTime StartDate { get; private set; }
 
+        public System.DateTime ActivityStartDate { get; private set; }
+
         public System.DateTime EndDate { get; private set; }
 
         public double FirstDistance { get; set; }
@@ -37,7 +39,7 @@ namespace TelemetryExporter.Core.Utilities
         public IReadOnlyCollection<ChartDataModel> ChartDataStats { get; private set; } = [];
 
         /// <summary>
-        /// Prevent initialization.
+        /// Prevent external initialization.
         /// </summary>
         private FitInitializer()
         {
@@ -47,7 +49,7 @@ namespace TelemetryExporter.Core.Utilities
             FitMessages fitMessages,
             System.DateTime? startDate = null,
             System.DateTime? endDate = null,
-            bool addChartdataWhenOnlyInRange = false)
+            bool addChartDataWhenOnlyInRange = false)
         {
             List<FitMessageModel> messages = [];
             Dictionary<System.DateTime, double?> gradesResults = [];
@@ -56,13 +58,14 @@ namespace TelemetryExporter.Core.Utilities
             FitInitializer fitInitializer = new();
             fitInitializer.StartDate = startDate ?? fitMessages.RecordMesgs[0].GetTimestamp().GetDateTime();
             fitInitializer.EndDate = endDate ?? fitMessages.RecordMesgs[^1].GetTimestamp().GetDateTime();
+            fitInitializer.ActivityStartDate = fitMessages.SessionMesgs.Count > 0
+                ? fitMessages.SessionMesgs[0].GetStartTime().GetDateTime()
+                : fitMessages.RecordMesgs[0].GetTimestamp().GetDateTime();
 
             double maxSpeed = 0;
             ushort maxPower = 0;
             double? firstDistance = null;
             double lastRecordDitance = 0;
-
-            bool isWholeRange = startDate.HasValue == false && endDate.HasValue == false;
 
             RecordMesg recordMesgForGrade = fitMessages.RecordMesgs[0];
 
@@ -74,8 +77,8 @@ namespace TelemetryExporter.Core.Utilities
                 bool inStartRange = !startDate.HasValue || startDate.Value.ToUniversalTime() <= recordDateTime;
                 bool inEndRange = !endDate.HasValue || recordDateTime <= endDate.Value.ToUniversalTime();
 
-                bool addChartData = (addChartdataWhenOnlyInRange && inStartRange && inEndRange)
-                    || (addChartdataWhenOnlyInRange == false);
+                bool addChartData = (addChartDataWhenOnlyInRange && inStartRange && inEndRange)
+                    || (addChartDataWhenOnlyInRange == false);
 
                 if (addChartData)
                 {
@@ -104,7 +107,7 @@ namespace TelemetryExporter.Core.Utilities
                     Lattitude = rec.GetPositionLat(),
                     Power = rec.GetPower(),
                     RecordDateTime = recordDateTime,
-                    IndexOfRecord = addChartdataWhenOnlyInRange ? messages.Count : i,
+                    IndexOfRecord = addChartDataWhenOnlyInRange ? messages.Count : i,
                 };
 
                 if (message.Speed.HasValue && message.Speed.Value > maxSpeed)
@@ -164,18 +167,18 @@ namespace TelemetryExporter.Core.Utilities
                 messages.Add(message);
             }
 
-            if (isWholeRange && fitMessages.SessionMesgs?.Count > 0)
+            if (addChartDataWhenOnlyInRange)
+            {
+                fitInitializer.Distance = lastRecordDitance - (firstDistance ?? 0);
+                fitInitializer.MaxSpeed = maxSpeed;
+                fitInitializer.MaxPower = maxPower;
+            }
+            else
             {
                 fitInitializer.Distance = fitMessages.SessionMesgs[0].GetTotalDistance() ??
                     (lastRecordDitance - (firstDistance ?? 0)); // for backup if distance is missing from session
                 fitInitializer.MaxSpeed = fitMessages.SessionMesgs[0].GetEnhancedMaxSpeed() ?? maxSpeed;
                 fitInitializer.MaxPower = fitMessages.SessionMesgs[0].GetMaxPower() ?? maxPower;
-            }
-            else
-            {
-                fitInitializer.Distance = lastRecordDitance - (firstDistance ?? 0);
-                fitInitializer.MaxSpeed = maxSpeed;
-                fitInitializer.MaxPower = maxPower;
             }
 
             fitInitializer.Records = messages;
