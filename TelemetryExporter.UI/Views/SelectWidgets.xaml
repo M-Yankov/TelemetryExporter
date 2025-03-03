@@ -19,11 +19,9 @@
         <converters:ExpanderParametersConverter x:Key="expanderParametersConverter" />
         <converters:ExportTypeEnumConverter x:Key="exportTypeEnumConverter" />
     </ContentPage.Resources>
-    
+
     <ScrollView VerticalScrollBarVisibility="Default" >
         <VerticalStackLayout MinimumWidthRequest="800" HorizontalOptions="Fill" Padding="30, 0" >
-
-            
             <Image x:Name="elevationImage"
                    HorizontalOptions="FillAndExpand"
                    VerticalOptions="FillAndExpand" 
@@ -33,7 +31,7 @@
             <Label Text="Select a range from your activity. &#10;The range below works with elapsed time." />
 
             <AbsoluteLayout x:Name="pausedIntervals" ></AbsoluteLayout>
-            
+
             <local:RangeSlider x:Name="rangeDatesActivity" />
 
             <Grid ColumnDefinitions="auto, auto, 20, auto, auto, 20, auto, auto" ColumnSpacing="2">
@@ -144,7 +142,7 @@
                 </Grid.RowDefinitions>
                 <Label Text="Choose save location:" />
                 <Entry Grid.Row="1" Grid.Column="0" x:Name="saveLocation" IsEnabled="False" BackgroundColor="LightGray" Text="C:\..." TextColor="DarkSlateGray" />
-                <Button Grid.Row="1" Grid.Column="1" Text="Browse..." Command="{Binding ChooseSaveFolder}" CommandParameter="{Binding Source={x:Reference saveLocation}}"/> 
+                <Button Grid.Row="1" Grid.Column="1" Text="Browse..." Command="{Binding ChooseSaveFolder}" CommandParameter="{Binding Source={x:Reference saveLocation}}"/>
             </Grid>
 
             <Button Text="Export images" x:Name="exportBtn" BackgroundColor="Green" FontAttributes="Bold" FontSize="Large" Clicked="ExportBtn_Clicked" />
@@ -161,7 +159,6 @@
 
             <ScrollView MaximumHeightRequest="150"  VerticalScrollBarVisibility="Always" WidthRequest="300">
                 <Border Stroke="Black" StrokeThickness="4">
-                    
                     <Label x:Name="statusPanel" MaximumHeightRequest="300" />
                 </Border>
             </ScrollView>
