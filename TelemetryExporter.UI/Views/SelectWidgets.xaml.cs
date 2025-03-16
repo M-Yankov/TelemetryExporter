@@ -13,6 +13,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 {
     private readonly List<int> selectWidgetIds;
     private CancellationTokenSource cancellationTokenForExport;
+    private string selectedFileName;
 
     public SelectWidgets()
     {
@@ -48,6 +49,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
 
         model.Initialize((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
+        selectedFileName = (string)query[TEConstants.QueryKeys.SelectedFileName];
 
         elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
         rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
@@ -153,10 +155,18 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         try
         {
-            await exporter.ExportImageFramesAsync(
+            // This will generate a short unique string. Differentiate multiple exports, avoid file exist.
+            // It is fine for generating one time. .Multiple generating ids for less than millisecond that depends
+            // on dateTime will not work
+            // https://stackoverflow.com/a/41723783/6142097
+            string uniqueIdentifier = DateTime.UtcNow.Ticks.ToString("x");
+            string exportLocation = System.IO.Path.Combine(saveLocation.Text, selectedFileName);
+            exportLocation = $"{exportLocation}-{uniqueIdentifier}";
+
+            string exportedDirectory = await exporter.ExportImageFramesAsync(
                 model.FitMessages,
                 selectWidgetIds!,
-                saveLocation.Text,
+                exportLocation,
                 FileSystem.CacheDirectory,
                 cancellationTokenForExport.Token,
                 (byte)selectedFps.SelectedItem,
@@ -172,7 +182,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
             }
             else
             {
-                await DisplayAlert("Done!", "Export Done!", "OK");
+                await DisplayAlert("Done!", $"Export Done!\n{exportedDirectory}", "OK");
                 this.exportProgress.Progress = 1;
             }
         }

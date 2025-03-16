@@ -10,6 +10,8 @@
         internal static class QueryKeys
         {
             public const string FitStreamKey = "FitStream";
+
+            public const string SelectedFileName = "SelectedFile";
         }
 
         internal static class Extensions

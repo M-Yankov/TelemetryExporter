@@ -92,6 +92,7 @@ namespace TelemetryExporter.UI.ViewModels
                     Dictionary<string, object> navigationParameter = new()
                     {
                         { TEConstants.QueryKeys.FitStreamKey, stream },
+                        { TEConstants.QueryKeys.SelectedFileName, Path.GetFileNameWithoutExtension(result.FileName) }
                     };
 
                     await Shell.Current.GoToAsync(AppShellRouterConfig.WidgetsRoute, navigationParameter);

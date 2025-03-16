@@ -37,7 +37,7 @@ namespace TelemetryExporter.Core
         /// Example:<para/> The activity has 30km distance, but it's provided a range of 5km. All the stats will be calculated from that period.
         /// If "false" stats are calculated from start of the activity, <paramref name="rangeStartDate"/> and <paramref name="rangeEndDate"/> 
         /// still can be used to export images from that range.</param>
-        public async Task ExportImageFramesAsync(
+        public async Task<string> ExportImageFramesAsync(
             FitMessages fitMessages,
             List<int> widgetsIds,
             string saveDirectoryPath,
@@ -51,12 +51,12 @@ namespace TelemetryExporter.Core
         {
             if (widgetsIds.Count == 0)
             {
-                return;
+                return string.Empty;
             }
 
             if (fitMessages.RecordMesgs.Count == 0)
             {
-                return;
+                return string.Empty;
             }
 
             WidgetFactory widgetFactory = new();
@@ -284,8 +284,6 @@ namespace TelemetryExporter.Core
             CancellationToken linkedToken = linkedCts.Token;
 
             List<Task> widgetExportTasks = [];
-
-            // Intentionally using IExporeter, so in future to add FileFolderExporter.
             using IExporter exporter = GetExporter(exportType, saveDirectoryPath, tempDirectoryPath, linkedToken);
             try
             {
@@ -329,6 +327,8 @@ namespace TelemetryExporter.Core
                 linkedCts.Cancel();
                 throw;
             }
+
+            return exporter.GetExportedDirectory();
         }
 
         private static IExporter GetExporter(

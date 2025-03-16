@@ -22,14 +22,18 @@ namespace TelemetryExporter.Core.Exporters
         {
             this.cancellationToken = cancellationToken;
 
-            Guid sessionGuid = Guid.NewGuid();
-            string genratedFileName = $"{sessionGuid}.zip";
+            if (string.IsNullOrWhiteSpace(Path.GetExtension(outputDirectory)))
+            {
+                outputDirectory += ".zip";
+            }
 
-            this.saveDirectoryPath = Path.Combine(outputDirectory, genratedFileName);
+            this.saveDirectoryPath = outputDirectory;
             if (!Directory.Exists(tempDirectoryPath))
             {
                 Directory.CreateDirectory(tempDirectoryPath);
             }
+
+            string genratedFileName = $"{Guid.NewGuid()}.zip";
 
             tempZipFileDirectory = Path.Combine(tempDirectoryPath, genratedFileName);
             FileStream tempDirectoryStream = new(tempZipFileDirectory, FileMode.OpenOrCreate, FileAccess.Write);
@@ -64,7 +68,7 @@ namespace TelemetryExporter.Core.Exporters
                 }
                 finally
                 {
-                   semaphore.Release();
+                    semaphore.Release();
                 }
 
                 processedCounter++;
@@ -80,6 +84,8 @@ namespace TelemetryExporter.Core.Exporters
             updateProgressAction();
         }
 
+        public string GetExportedDirectory() => saveDirectoryPath;
+
         public void Dispose()
         {
             // Don't invoke tempDirectoryStream.Dispose();
@@ -90,7 +96,7 @@ namespace TelemetryExporter.Core.Exporters
             {
                 File.Move(tempZipFileDirectory, saveDirectoryPath);
             }
-            
+
             File.Delete(tempZipFileDirectory);
         }
 
@@ -100,7 +106,7 @@ namespace TelemetryExporter.Core.Exporters
             using Stream streamZipFile = entry.Open();
             using Stream imageDataStream = imageData.AsStream();
             imageDataStream.CopyTo(streamZipFile);
-            return Task.CompletedTask; 
+            return Task.CompletedTask;
         }
     }
 }
