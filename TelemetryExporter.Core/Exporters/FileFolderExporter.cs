@@ -16,10 +16,7 @@ namespace TelemetryExporter.Core.Exporters
         {
             this.cancellationToken = cancellationToken;
 
-            Guid sessionGuid = Guid.NewGuid();
-            string genratedFolderName = $"{sessionGuid}";
-
-            this.saveDirectoryPath = Path.Combine(outputDirectory, genratedFolderName);
+            this.saveDirectoryPath = outputDirectory;
             if (!Directory.Exists(saveDirectoryPath))
             {
                 Directory.CreateDirectory(saveDirectoryPath);
@@ -56,6 +53,8 @@ namespace TelemetryExporter.Core.Exporters
 
             progressUpdateAction();
         }
+
+        public string GetExportedDirectory() => saveDirectoryPath;
 
         public void Dispose()
         {
