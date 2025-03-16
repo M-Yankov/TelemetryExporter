@@ -95,7 +95,15 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         selectedDuration.Text = (e.EndValue - e.StartValue).ToString(TimeFormat);
         if (BindingContext is SelectWidgetsViewModel model)
         {
-            double rangeDistance = (e.EndValuePercentage - e.StartValuePercentage) * model.TotalDistance;
+            var leftMarkerModel = model.GetClosestFitMessage(e.StartValue);
+            var rightMarkerModel = model.GetClosestFitMessage(e.EndValue);
+
+            double? rangeDistance = rightMarkerModel.Distance - leftMarkerModel.Distance;
+
+            // In case range distance cannot be calculated, use old method.
+            double rangeDistanceOld = (e.EndValuePercentage - e.StartValuePercentage) * model.TotalDistance;
+            rangeDistance ??= rangeDistanceOld;
+
             selectedDistance.Text = $"{rangeDistance / 1000f:F3} KM";
         }
 

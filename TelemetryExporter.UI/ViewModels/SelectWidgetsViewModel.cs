@@ -7,6 +7,7 @@ using Dynastream.Fit;
 
 using SkiaSharp;
 
+using TelemetryExporter.Core.ComparerModels;
 using TelemetryExporter.Core.Exporters;
 using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.Utilities;
@@ -20,6 +21,7 @@ namespace TelemetryExporter.UI.ViewModels
         private readonly ICollection<ExpanderDataItem> widgetElements;
         private ImageSource? elevationProfileImage;
         private ExportType exportType = ExportType.ZipFileArchive;
+        private List<FitMessageModel> recordMessages = [];
 
         public SelectWidgetsViewModel()
         {
@@ -93,9 +95,9 @@ namespace TelemetryExporter.UI.ViewModels
             FitInitializer fitInitializer = FitInitializer.Initialize(FitMessages);
             ElevationWidget elevationProfile = new();
             elevationProfile.Initialize(fitInitializer.ChartDataStats);
-
             PausePeriods = fitInitializer.PausePeriods;
             TotalDistance = fitInitializer.Distance;
+            recordMessages = [.. fitInitializer.Records];
 
             StartActivityDate = fitInitializer.StartDate.ToLocalTime();
             EndActivityDate = fitInitializer.EndDate.ToLocalTime();
@@ -134,6 +136,49 @@ namespace TelemetryExporter.UI.ViewModels
             if (result.IsSuccessful)
             {
                 saveLocationEntry.Text = Path.Combine(result.Folder.Path);
+            }
+        }
+
+        /// <summary>
+        /// CoPilot generated.
+        /// </summary>
+        public FitMessageModel GetClosestFitMessage(System.DateTime date)
+        {
+            // Need to convert to UTC, because the UI works with dates in local time
+            System.DateTime searchDateTime = date.ToUniversalTime();
+            int index = recordMessages.BinarySearch(
+                new FitMessageModel { RecordDateTime = searchDateTime },
+                new FitMessageModelComparer());
+
+            if (index >= 0)
+            {
+                // Exact match found
+                return recordMessages[index];
+            }
+            else
+            {
+                // No exact match found, calculate the closest
+                int nextIndex = ~index;
+                int prevIndex = nextIndex - 1;
+
+                if (nextIndex >= recordMessages.Count)
+                {
+                    // The date is after the last element
+                    return recordMessages[prevIndex];
+                }
+                else if (prevIndex < 0)
+                {
+                    // The date is before the first element
+                    return recordMessages[nextIndex];
+                }
+                else
+                {
+                    // The date is between two elements, find the closest one
+                    TimeSpan prevDiff = (searchDateTime - recordMessages[prevIndex].RecordDateTime).Duration();
+                    TimeSpan nextDiff = (recordMessages[nextIndex].RecordDateTime - searchDateTime).Duration();
+
+                    return prevDiff <= nextDiff ? recordMessages[prevIndex] : recordMessages[nextIndex];
+                }
             }
         }
     }
