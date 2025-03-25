@@ -10,5 +10,11 @@ namespace TelemetryExporter.Core.Exporters
             IAsyncEnumerable<GeneratedWidgetDataModel> dataModels,
             ConcurrentDictionary<string, double> widgetDonePercentage,
             Action progressUpdateAction);
+        
+        /// <summary>
+        /// Specially for the zipArchive it will have .zip extension. <br/>
+        /// Just to no avoid type checking.
+        /// </summary>
+        string GetExportedDirectory();
     }
 }
