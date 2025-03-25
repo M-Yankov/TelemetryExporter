@@ -12,7 +12,7 @@ namespace TelemetryExporter.Core.Exporters
             Action progressUpdateAction);
         
         /// <summary>
-        /// Specially fro the zipArchive it will have .zip extension. <br/>
+        /// Specially for the zipArchive it will have .zip extension. <br/>
         /// Just to no avoid type checking.
         /// </summary>
         string GetExportedDirectory();

@@ -155,8 +155,8 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         try
         {
-            // This will generate a short unique string. Differentiate multiple exports, avoid file exist.
-            // It is fine for generating one time. .Multiple generating ids for less than millisecond that depends
+            // This will generate a short unique string. Differentiate multiple exports, avoid check for existing file.
+            // It is fine for generating one time. Multiple generating ids for less than millisecond that depends
             // on dateTime will not work
             // https://stackoverflow.com/a/41723783/6142097
             string uniqueIdentifier = DateTime.UtcNow.Ticks.ToString("x");
