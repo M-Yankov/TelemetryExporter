@@ -125,6 +125,19 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         }
     }
 
+    private void OnTapGestureRecognizerTapped(object sender, TappedEventArgs e)
+    {
+        if (sender is VerticalStackLayout verticalLayout)
+        {
+            IView? child = verticalLayout.Children.FirstOrDefault(x => x is WidgetCheckBox);
+            if (child is WidgetCheckBox checkBox)
+            {
+                // this will trigger the WidgetCheckBox_CheckedChanged method.
+                checkBox.Toggle();
+            }
+        }
+    }
+
     private async void ExportBtn_Clicked(object sender, EventArgs e)
     {
         string message = string.Empty;

@@ -108,6 +108,9 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:WidgetData" >
                                                 <VerticalStackLayout MaximumWidthRequest="300" WidthRequest="300" Padding="10,10" >
+                                                    <VerticalStackLayout.GestureRecognizers>
+                                                        <TapGestureRecognizer Tapped="OnTapGestureRecognizerTapped" CommandParameter="{Binding Index}" />
+                                                    </VerticalStackLayout.GestureRecognizers>
                                                     <Image Source="{Binding ImagePath}" BackgroundColor="SkyBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
                                                     <Label Text="{Binding DisplayName}" FontAttributes="Bold" HorizontalOptions="Center" />
                                                     <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
