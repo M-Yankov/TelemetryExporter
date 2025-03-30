@@ -12,6 +12,8 @@ namespace TelemetryExporter.Core.Widgets.Distance
 
         public string Name => "DistanceWidget";
 
+        public string DisplayName => "Distance";
+
         public string ImagePath => "Images/ExampleDistance.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)

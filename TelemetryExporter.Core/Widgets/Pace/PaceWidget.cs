@@ -17,6 +17,8 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
         public string Name => "PaceWidget";
 
+        public string DisplayName => "Pace";
+
         public string ImagePath => "Images/ExamplePace.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)

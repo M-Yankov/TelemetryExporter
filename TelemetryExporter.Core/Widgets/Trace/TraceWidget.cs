@@ -20,6 +20,8 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
         public string Name => "TraceWidget";
 
+        public string DisplayName => "Trace";
+
         public string ImagePath => "Images/ExampleTrace.png";
 
         public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)

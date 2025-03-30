@@ -12,6 +12,8 @@ namespace TelemetryExporter.Core.Widgets.Grade
 
         public string Name => nameof(GradeWidget);
 
+        public string DisplayName => "Grade";
+
         public string ImagePath => "Images/ExampleGrade.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)

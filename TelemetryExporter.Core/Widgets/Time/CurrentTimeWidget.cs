@@ -15,6 +15,8 @@ namespace TelemetryExporter.Core.Widgets.Time
 
         public string Name => nameof(CurrentTimeWidget);
 
+        public string DisplayName => "Current Time";
+
         public string ImagePath => "Images/ExampleTime.png";
 
         public override int WidgetWidth => 170;

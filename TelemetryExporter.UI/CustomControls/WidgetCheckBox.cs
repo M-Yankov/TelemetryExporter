@@ -26,6 +26,11 @@ public class WidgetCheckBox : ContentView
 
     public bool IsChecked { get => internalCheckBox.IsChecked; }
 
+    public void Toggle()
+    {
+        internalCheckBox.IsChecked = !internalCheckBox.IsChecked;
+    }
+
     private void InternalCheckBox_CheckedChanged(object? sender, CheckedChangedEventArgs e) => 
         CheckedChanged?.Invoke(sender, new WidgetCheckedChangedEventArgs(e.Value, this.Value));
 }
