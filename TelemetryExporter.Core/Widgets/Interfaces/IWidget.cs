@@ -27,6 +27,8 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
         /// </summary>
         string Name { get; }
 
+        string DisplayName { get; }
+
         Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData);
     }
 }

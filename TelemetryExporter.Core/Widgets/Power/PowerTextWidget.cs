@@ -12,6 +12,8 @@ namespace TelemetryExporter.Core.Widgets.Power
 
         public string Name => nameof(PowerTextWidget);
 
+        public string DisplayName => "Power Text";
+
         public string ImagePath => "Images/ExamplePowerTextWidget.png";
 
         public override int WidgetWidth => 136;

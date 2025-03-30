@@ -32,6 +32,7 @@ namespace TelemetryExporter.UI.ViewModels
                 { 
                     Category = x.Value.Category,
                     ImagePath = x.Value.ImagePath,
+                    DisplayName = x.Value.DisplayName,
                     Index = x.Key
                 })
                 .GroupBy(x => x.Category)

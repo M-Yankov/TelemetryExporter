@@ -16,6 +16,8 @@ namespace TelemetryExporter.Core.Widgets.Time
 
         public string Name => nameof(ElapsedTimeWidget);
 
+        public string DisplayName => "Elapsed Time";
+
         public string ImagePath => "Images/ExampleElapsed.png";
 
         public override int WidgetWidth => 250;

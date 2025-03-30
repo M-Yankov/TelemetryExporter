@@ -16,6 +16,8 @@ namespace TelemetryExporter.Core.Widgets.Speed
 
         public string Name => "SpeedWidget";
 
+        public string DisplayName => "Speed";
+
         public string ImagePath => "Images/ExampleSpeed.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)

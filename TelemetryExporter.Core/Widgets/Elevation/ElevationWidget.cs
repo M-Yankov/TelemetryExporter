@@ -12,12 +12,14 @@ namespace TelemetryExporter.Core.Widgets.Elevation
         private const int ElevationPictureHeightPixels = 250;
 
         private SKPath elevationPath = new ();
-        private LineChartData lineChartData = null;
+        private LineChartData? lineChartData = null;
         private bool isInitialized = false;
 
         public string Category => TECoreContsants.Categories.Elevation;
 
         public string Name => "ElevationWidget";
+
+        public string DisplayName => "Elevation";
 
         public string ImagePath => "Images/ExampleElevation.png";
 
@@ -92,7 +94,7 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             canvas.DrawLine(0, 0, ElevationPictureWidthPixels, 0, linePaint);
 
             SKPoint elevationPoint = SKPoint.Empty;
-            if (currentData.Altitude.HasValue)
+            if (currentData.Altitude.HasValue && lineChartData != null)
             {
                 elevationPoint = lineChartData.CalculateImageCoordinates((float)currentData.Altitude.Value, currentData.IndexOfCurrentRecord, sessionData.CountOfRecords);
             }

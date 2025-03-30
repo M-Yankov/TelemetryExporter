@@ -12,6 +12,8 @@ namespace TelemetryExporter.Core.Widgets.Power
 
         public string Name => nameof(PowerMeterWidget);
 
+        public string DisplayName => "Power Meter";
+
         public string ImagePath => "Images/ExamplePowerMeter.png";
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
