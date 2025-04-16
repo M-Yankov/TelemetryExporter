@@ -198,7 +198,7 @@ namespace TelemetryExporter.Core.Utilities
             List<(System.DateTime start, System.DateTime end)> activePeriods = [];
 
             List<EventMesg> eventMessages = eventMesgs
-                //.Where(e => e.GetEvent() == Event.Timer)
+                .Where(e => e.GetEvent() == Event.Timer)
                 .OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
 
             int lastIndexStart = -1;
@@ -241,7 +241,7 @@ namespace TelemetryExporter.Core.Utilities
             List<(System.DateTime start, System.DateTime end)> pausePeriods = [];
 
             List<EventMesg> eventMessages = eventMesgs
-                //.Where(e => e.GetEvent() == Event.Timer)
+                .Where(e => e.GetEvent() == Event.Timer)
                 .OrderBy(e => e.GetTimestamp().GetDateTime()).ToList();
 
             for (int i = 0; i < eventMessages.Count; i++)
