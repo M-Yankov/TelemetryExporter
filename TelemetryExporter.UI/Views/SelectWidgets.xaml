@@ -61,7 +61,7 @@
                         <x:Array Type="{x:Type x:Byte}" >
                             <x:Byte>2</x:Byte >
                             <x:Byte>4</x:Byte>
-                            <x:Byte>6</x:Byte>
+                            <x:Byte>5</x:Byte>
                             <x:Byte>8</x:Byte>
                             <x:Byte>10</x:Byte>
                         </x:Array>
