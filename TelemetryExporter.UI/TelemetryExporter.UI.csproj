@@ -111,6 +111,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="CustomControls\SettingsModal.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Resources\Texts.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

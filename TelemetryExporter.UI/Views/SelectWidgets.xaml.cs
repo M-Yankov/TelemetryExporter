@@ -255,4 +255,9 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
             this.exportProgress.Progress = 0;
         }
     }
+
+    private async void OpenSettingsPage(object sender, EventArgs e)
+    {
+        await Navigation.PushModalAsync(new SettingsModal() { WidthRequest = 100 });
+    }
 }
