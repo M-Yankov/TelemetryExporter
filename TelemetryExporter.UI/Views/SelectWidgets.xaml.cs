@@ -125,7 +125,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         }
     }
 
-    private void OnTapGestureRecognizerTapped(object sender, TappedEventArgs e)
+    private void OnTapGestureRecognizerTapped(object sender, TappedEventArgs _)
     {
         if (sender is VerticalStackLayout verticalLayout)
         {
@@ -258,6 +258,10 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
     private async void OpenSettingsPage(object sender, EventArgs e)
     {
-        await Navigation.PushModalAsync(new SettingsModal() { WidthRequest = 100 });
+        await Navigation.PushModalAsync(new SettingsModal()
+        {
+            WidthRequest = 1000,
+            HeightRequest = 300,
+        }, true);
     }
 }

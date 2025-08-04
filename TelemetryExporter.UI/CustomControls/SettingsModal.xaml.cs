@@ -6,4 +6,9 @@ public partial class SettingsModal : ContentPage
 	{
 		InitializeComponent();
 	}
+
+    private async void CloseModal(object sender, EventArgs e)
+    {
+		await Navigation.PopModalAsync();
+    }
 }
