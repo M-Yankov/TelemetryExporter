@@ -260,8 +260,8 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     {
         await Navigation.PushModalAsync(new SettingsModal()
         {
-            WidthRequest = 1000,
-            HeightRequest = 300,
+            WidthRequest = 800,
+            HeightRequest = 500,
         }, true);
     }
 }
