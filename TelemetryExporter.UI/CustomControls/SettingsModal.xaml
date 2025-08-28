@@ -10,7 +10,8 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="50" />
-                <RowDefinition Height="130" />
+                <RowDefinition Height="160" />
+                <RowDefinition Height="40" />
             </Grid.RowDefinitions>
             <Button
                 CornerRadius="0"
@@ -46,9 +47,10 @@
                 </VisualStateManager.VisualStateGroups>
             </Button>
             <Label Grid.Row="0" Margin="0, 10, 0 ,0"
-                Text="Widget Name xxhere"
+                Text="Widget Name here"
                 HorizontalOptions="Center" />
-            <myControls:ColorPicker HorizontalOptions="Center"  WidthRequest="300" Grid.Row="1" />
+            <myControls:ColorPicker HorizontalOptions="Center" WidthRequest="300" Grid.Row="1" x:Name="colorPicker" SelectedColor="#0909D4"/>
+            <BoxView Grid.Row="2" BackgroundColor="{ Binding Path=SelectedColor}" BindingContext="{x:Reference colorPicker}" />
         </Grid>
     </Border>
 </ContentPage>

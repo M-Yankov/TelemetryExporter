@@ -3,10 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TelemetryExporter.UI.CustomControls.ColorPicker">
 
-    <Grid Padding="20, 0">
+    <Grid Padding="0, 0" >
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
-            <RowDefinition Height="130" />
+            <RowDefinition Height="130" x:Name="secondRowDefinition" />
         </Grid.RowDefinitions>
 
         <BoxView HeightRequest="15" Margin="5,5,5,0" CornerRadius="5">
@@ -15,9 +15,9 @@
                 </LinearGradientBrush>
             </BoxView.Background>
         </BoxView>
-        <Slider ThumbColor="Red" Minimum="0" Maximum="360" 
+        <Slider ThumbColor="Red" Minimum="0" Maximum="360" x:Name="hueSlider"
                 MinimumTrackColor="Transparent" MaximumTrackColor="Transparent"
-                ValueChanged="Slider_ValueChanged"  >
+                ValueChanged="Slider_ValueChanged" >
         </Slider>
         
         <BoxView Grid.Row="1">
@@ -38,7 +38,13 @@
             </BoxView.Background>
         </BoxView>
 
-        <Border Grid.Row="1" TranslationX="130" WidthRequest="30" HeightRequest="30" StrokeThickness="1" Stroke="Black" >
+        <Border x:Name="colorPickerEllipse" Grid.Row="1" 
+                WidthRequest="20" HeightRequest="20" 
+                StrokeThickness="1" Stroke="Black"
+                VerticalOptions="Start"
+                HorizontalOptions="End"
+                Margin="0,-8,-8,0"
+                >
             <Border.StrokeShape>
                 <Ellipse ></Ellipse>
             </Border.StrokeShape>
