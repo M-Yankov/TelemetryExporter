@@ -25,9 +25,7 @@ namespace TelemetryExporter.UI.ViewModels
 
         public SelectWidgetsViewModel()
         {
-            WidgetFactory widgetFactory = new();
-
-            widgetElements = widgetFactory.Widgets
+            widgetElements = WidgetFactory.Widgets
                 .Select(x => new WidgetData() 
                 { 
                     Category = x.Value.Category,
