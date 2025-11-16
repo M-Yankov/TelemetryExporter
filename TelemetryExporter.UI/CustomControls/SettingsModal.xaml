@@ -7,7 +7,7 @@
     <Border 
         StrokeThickness="2"
         Stroke="#512BD4">
-        <Grid>
+        <Grid x:Name="gridContainer">
             <Grid.RowDefinitions>
                 <RowDefinition Height="50" />
                 <RowDefinition Height="160" />
@@ -49,8 +49,9 @@
             <Label Grid.Row="0" Margin="0, 10, 0 ,0"
                 Text="Widget Name here"
                 HorizontalOptions="Center" />
-            <myControls:ColorPicker HorizontalOptions="Center" WidthRequest="300" Grid.Row="1" x:Name="colorPicker" SelectedColor="#0909D4"/>
-            <BoxView Grid.Row="2" BackgroundColor="{ Binding Path=SelectedColor}" BindingContext="{x:Reference colorPicker}" />
+            <!--<myControls:ColorPicker HorizontalOptions="Center" WidthRequest="300" Grid.Row="1" x:Name="colorPicker" SelectedColor="#0909D4"/>
+            <BoxView Grid.Row="2" BackgroundColor="{ Binding Path=SelectedColor}" BindingContext="{x:Reference colorPicker}" />-->
+            <!-- For the preview box, when a widget needs the data (elevation and trace) should provide sample or real? -->
         </Grid>
     </Border>
 </ContentPage>

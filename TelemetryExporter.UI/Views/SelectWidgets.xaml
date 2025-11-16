@@ -117,7 +117,7 @@
                                                         <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
                                                     </VerticalStackLayout>
                                                     <Button ImageSource="settings_cog.png" ToolTipProperties.Text="Widget Settings" CornerRadius="5"
-                                                            Padding="0" WidthRequest="15" Clicked="OpenSettingsPage"
+                                                            Padding="0" WidthRequest="15" Clicked="OpenSettingsPage" CommandParameter="{Binding Index}"
                                                             Margin="0,5,5,0"
                                                             AbsoluteLayout.LayoutBounds="1,0"
                                                             AbsoluteLayout.LayoutFlags="PositionProportional" >
