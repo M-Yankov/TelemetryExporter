@@ -6,7 +6,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Grade
 {
-    public class GradeWidget : IWidget
+    public class GradeWidget : BaseWidget, IWidget
     {
         public string Category => TECoreContsants.Categories.Grade;
 

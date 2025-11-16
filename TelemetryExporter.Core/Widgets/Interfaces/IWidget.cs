@@ -30,5 +30,9 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
         string DisplayName { get; }
 
         Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData);
+
+        IReadOnlyDictionary<string, SettingsModel> SettingsData { get; }
+
+        public IEnumerable<SettingsModel> Settings => SettingsData.Values;
     }
 }

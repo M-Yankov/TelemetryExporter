@@ -6,7 +6,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Elevation
 {
-    public class ElevationWidget : IWidget, INeedInitialization
+    public class ElevationWidget : BaseWidget, IWidget, INeedInitialization
     {
         private const int ElevationPictureWidthPixels = 700;
         private const int ElevationPictureHeightPixels = 250;

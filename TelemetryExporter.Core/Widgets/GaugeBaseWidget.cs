@@ -4,7 +4,7 @@ using TelemetryExporter.Core.Extensions;
 
 namespace TelemetryExporter.Core.Widgets
 {
-    public abstract class GaugeBaseWidget
+    public abstract class GaugeBaseWidget : BaseWidget
     {
         public static Task<SKData> GetImageData(double maxValue, double currentValue, string text)
         {

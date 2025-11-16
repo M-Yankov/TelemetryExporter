@@ -8,10 +8,6 @@ namespace TelemetryExporter.Core.Widgets.Speed
 {
     public class SpeedWidget : GaugeBaseWidget, IWidget
     {
-        private const int WidgetIndex = 1;
-
-        public static int Index => WidgetIndex;
-
         public string Category => TECoreContsants.Categories.Speed;
 
         public string Name => "SpeedWidget";

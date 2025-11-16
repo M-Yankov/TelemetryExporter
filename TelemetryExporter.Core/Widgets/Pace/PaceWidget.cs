@@ -8,7 +8,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Pace
 {
-    public class PaceWidget : IWidget
+    public class PaceWidget : BaseWidget, IWidget
     {
         // below that speed it's assumed as walking (For running only)
         // https://www.convert-me.com/en/convert/speed/?u=minperkm_1&v=30

@@ -7,7 +7,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Trace
 {
-    public class TraceWidget : IWidget, INeedInitialization
+    public class TraceWidget : BaseWidget, IWidget, INeedInitialization
     {
         private const int GpxPictureWidthPixels = 1000;
         private const float GpxPictureOffsetPercentage = .05f;

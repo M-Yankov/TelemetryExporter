@@ -2,7 +2,7 @@
 
 namespace TelemetryExporter.Core.Widgets
 {
-    public abstract class TextBaseWidget
+    public abstract class TextBaseWidget : BaseWidget
     {
         public abstract int WidgetWidth { get; }
 
