@@ -6,6 +6,7 @@
     <Grid Padding="0, 0" >
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
+            <RowDefinition Height="30" />
             <RowDefinition Height="130" x:Name="secondRowDefinition" />
         </Grid.RowDefinitions>
 
@@ -19,17 +20,29 @@
                 MinimumTrackColor="Transparent" MaximumTrackColor="Transparent"
                 ValueChanged="Slider_ValueChanged" >
         </Slider>
+        <BoxView HeightRequest="15" Margin="5,5,5,0" CornerRadius="5" Grid.Row="1">
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop Color="Transparent" Offset="0.0" />
+                    <GradientStop Offset="1.0" x:Name="transparancyLayerColor" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+        <Slider x:Name="transperancySlider" Grid.Row="1" Minimum="0" Maximum="1" 
+                MinimumTrackColor="Transparent" MaximumTrackColor="Transparent"
+                ValueChanged="Transperancy_ValueChanged">
+        </Slider>
         
-        <BoxView Grid.Row="1">
+        <BoxView Grid.Row="2">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5" >
                     <GradientStop Color="Transparent" Offset="0.0" />
-                    <GradientStop Color="Red" Offset="1.0" x:Name="hueLayerStop" />
+                    <GradientStop Offset="1.0" x:Name="hueLayerStop" />
                 </LinearGradientBrush>
             </BoxView.Background>
         </BoxView>
 
-        <BoxView Grid.Row="1">
+        <BoxView Grid.Row="2">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1" >
                     <GradientStop Color="Transparent" Offset="0.0" />
@@ -38,7 +51,7 @@
             </BoxView.Background>
         </BoxView>
 
-        <Border x:Name="colorPickerEllipse" Grid.Row="1" 
+        <Border x:Name="colorPickerEllipse" Grid.Row="2" 
                 WidthRequest="20" HeightRequest="20" 
                 StrokeThickness="1" Stroke="Black"
                 VerticalOptions="Start"
