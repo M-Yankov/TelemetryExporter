@@ -1,8 +1,7 @@
-using System.ComponentModel;
-
 using CommunityToolkit.Maui.Core.Extensions;
 
 using TelemetryExporter.UI.Converters;
+using TelemetryExporter.UI.Extensions;
 
 namespace TelemetryExporter.UI.CustomControls;
 
@@ -45,13 +44,15 @@ public partial class ColorPicker : ContentView
             if ((selectedColor != null && selectedColor.Equals(value))
                 || selectedColor == null && value == null)
             {
-                // no need to update
                 return;
             }
 
-            SetValue(SelectedColorProperty, value);
             selectedColor = value;
             OnColorChanged?.Invoke(this, selectedColor);
+            InitializeColorPickerXYPostion(selectedColor!);
+            
+            // this should come last
+            SetValue(SelectedColorProperty, value);
         }
     }
 
@@ -75,6 +76,9 @@ public partial class ColorPicker : ContentView
             gradientStop.Color = Color.FromHsv(i, 100, 100);
             sliderBackgroundBrush.GradientStops.Add(gradientStop);
         }
+
+        hueSlider.ValueChanged += Slider_ValueChanged;
+        transperancySlider.ValueChanged += Transperancy_ValueChanged;
 
         transperancySlider.BindingContext = this;
         transperancySlider.SetBinding(Slider.ThumbColorProperty, nameof(SelectedColor));
@@ -103,7 +107,7 @@ public partial class ColorPicker : ContentView
     }
 
     // this event is also triggered when setting the slider value from code when "SelectedColor" is still null
-    private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
+    private void Slider_ValueChanged(object? sender, ValueChangedEventArgs e)
     {
         if (this.SelectedColor != null)
         {
@@ -114,7 +118,7 @@ public partial class ColorPicker : ContentView
         }
     }
 
-    private void Transperancy_ValueChanged(object sender, ValueChangedEventArgs e)
+    private void Transperancy_ValueChanged(object? sender, ValueChangedEventArgs e)
     {
         if (this.SelectedColor != null)
         {
@@ -141,7 +145,6 @@ public partial class ColorPicker : ContentView
                 float v = (float)(accumulatedHSVValue / (HsvLayersHeight - MarginBuffer));
 
                 this.SelectedColor = Color.FromHsva(h, 1 - s, 1 - v, (float)transperancySlider.Value);
-
                 break;
             default:
                 break;
@@ -150,21 +153,32 @@ public partial class ColorPicker : ContentView
 
     private void InitializeColorPickerXYPostion(Color newValue)
     {
+        if (Width <= 0)
+        {
+            return; 
+        }
+
+        // prevent change SelectedColor
+        hueSlider.ValueChanged -= Slider_ValueChanged;
+        transperancySlider.ValueChanged -= Transperancy_ValueChanged;
+
         // hue is between 0 and 1, slider is between 0 and 360
         // this also triggers the Slider_ValueChanged event, which sets the hueLayerStop.Color and the slider.ThumbColor
         hueSlider.Value = 360 * newValue.GetHue();
         transperancySlider.Value = newValue.Alpha;
 
-        double saturationX = -(Width - (newValue.GetSaturation() * Width));
+        hueSlider.ValueChanged += Slider_ValueChanged;
+        transperancySlider.ValueChanged += Transperancy_ValueChanged;
+
+        double saturationX = (1 - newValue.GetHsvSaturation()) * -(Width - MarginBuffer);
         double hsvValueY = newValue.GetPercentBlackKey() * (HsvLayersHeight - MarginBuffer);
 
-        // a little code duplication from DragRegognizer_PanUpdated
         accumulatedPickerSaturation
-            = colorPickerEllipse.TranslationX
-            = Math.Clamp(accumulatedPickerSaturation + saturationX, -Width + MarginBuffer, 0);
+           = colorPickerEllipse.TranslationX
+           = Math.Clamp(saturationX, -Width + MarginBuffer, 0);
 
-        accumulatedHSVValue 
+        accumulatedHSVValue
             = colorPickerEllipse.TranslationY
-            = Math.Clamp(accumulatedHSVValue + hsvValueY, 0, HsvLayersHeight - MarginBuffer);
+            = Math.Clamp(hsvValueY, 0, HsvLayersHeight - MarginBuffer);
     }
 }

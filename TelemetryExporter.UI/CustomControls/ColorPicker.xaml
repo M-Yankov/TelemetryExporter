@@ -17,8 +17,7 @@
             </BoxView.Background>
         </BoxView>
         <Slider ThumbColor="Red" Minimum="0" Maximum="360" x:Name="hueSlider"
-                MinimumTrackColor="Transparent" MaximumTrackColor="Transparent"
-                ValueChanged="Slider_ValueChanged" >
+                MinimumTrackColor="Transparent" MaximumTrackColor="Transparent">
         </Slider>
         <BoxView HeightRequest="15" Margin="5,5,5,0" CornerRadius="5" Grid.Row="1">
             <BoxView.Background>
@@ -29,10 +28,9 @@
             </BoxView.Background>
         </BoxView>
         <Slider x:Name="transperancySlider" Grid.Row="1" Minimum="0" Maximum="1" 
-                MinimumTrackColor="Transparent" MaximumTrackColor="Transparent"
-                ValueChanged="Transperancy_ValueChanged">
+                MinimumTrackColor="Transparent" MaximumTrackColor="Transparent">
         </Slider>
-        
+
         <BoxView Grid.Row="2">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5" >
