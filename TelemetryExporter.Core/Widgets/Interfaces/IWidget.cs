@@ -33,6 +33,8 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
 
         IReadOnlyDictionary<string, SettingsModel> SettingsData { get; }
 
-        public IEnumerable<SettingsModel> Settings => SettingsData.Values;
+        public IReadOnlyList<SettingsModel> Settings => [.. SettingsData.Values];
+
+        public void SetSetting(string key, object value);
     }
 }

@@ -2,11 +2,6 @@ namespace TelemetryExporter.UI.Extensions
 {
     public static class ColorExtensions
     {
-        public static float GetHsvBlack(this Color color)
-        {
-            return Math.Max(Math.Max(color.Red, color.Green), color.Blue);
-        }
-
         public static float GetHsvSaturation(this Color color)
         {
             color.ToHsv(out _, out float s, out _);

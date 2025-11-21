@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 
 using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.SettingsTypes;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
@@ -8,7 +9,7 @@ namespace TelemetryExporter.Core.Widgets.Distance
 {
     public class DistanceWidget : BaseWidget, IWidget
     {
-        public DistanceWidget() : base()
+        public DistanceWidget()
         {
             this.LoadDefaultSettings();
         }
@@ -108,9 +109,9 @@ namespace TelemetryExporter.Core.Widgets.Distance
             settingsValues.Add(Keys.TextColor,
                 new SettingsModel(Keys.TextColor, SKColors.White));
             settingsValues.Add(Keys.FontFamily,
-                new SettingsModel(Keys.FontFamily, "Consolas", typeof(List<string>)));// Need to Show more options here
+                new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
             settingsValues.Add(Keys.TitleTextSize,
-                new SettingsModel(Keys.TitleTextSize, 35f));// +-10
+                new SettingsModel(Keys.TitleTextSize, 35f, Min: 25f, Max: 45f));
             //{ Not sure I want this to be configurable yet
             //    "DistanceTextSize",
             //    new SettingsModel("DistanceTextSize", typeof(float), 40f)

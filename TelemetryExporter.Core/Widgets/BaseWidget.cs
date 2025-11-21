@@ -1,17 +1,10 @@
-﻿using System.Xml.Linq;
-
-using TelemetryExporter.Core.Models;
+﻿using TelemetryExporter.Core.Models;
 
 namespace TelemetryExporter.Core.Widgets
 {
     public class BaseWidget
     {
-        public BaseWidget()
-        {
-            this.settingsValues = [];
-        }
-
-        internal protected readonly Dictionary<string, SettingsModel> settingsValues;
+        private protected readonly Dictionary<string, SettingsModel> settingsValues = [];
 
         public IReadOnlyDictionary<string, SettingsModel> SettingsData => settingsValues;
 
@@ -23,6 +16,15 @@ namespace TelemetryExporter.Core.Widgets
             }
 
             throw new KeyNotFoundException($"The setting with key '{key}' was not found in the widget.");
+        }
+
+        public void SetSetting(string key, object value)
+        {
+            if (SettingsData.TryGetValue(key, out SettingsModel? oldSetting) && oldSetting != null)
+            {
+                SettingsModel? newS = oldSetting with { Value = value };
+                settingsValues[key] = newS;
+            }
         }
     }
 }

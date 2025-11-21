@@ -260,33 +260,27 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
     private async void OpenSettingsPage(object sender, EventArgs e)
     {
+        IWidget? widget = null;
         if (sender is Button button && button.CommandParameter is int widgetId)
         {
-            IWidget? widget = WidgetFactory.GetWidget(widgetId);
-            if (widget == null)
-            {
-                //widget.Settings
-                return;
-            }
+            widget = WidgetFactory.GetWidget(widgetId);
         }
 
-        // need the id of the widget:
-        await Navigation.PushModalAsync(new SettingsModal()
+        if (widget != null)
         {
-            WidthRequest = 800,
-            HeightRequest = 500,
-        }, true);
+            SettingsModal settingsModal = new(widget)
+            {
+                WidthRequest = 800,
+                HeightRequest = 500,
+            };
 
-        // each widget should have some default settings implemented somehow
-        // get widget id
-        // pass it to the settings modal
-        // each widget should have a method to get its settings
-        // show them in the UI (how to relate setting to the Control ?, maybe a general switch by type)
-        // .. example when the widget property setting is a color, show a color picker
-        // .. when the widget property setting is a number, show a stepper (but should have min max???)
-        // .. when the widget property setting is a boolean, show a checkbox
-        // .. when the widget property setting is a string, show an entry box, and so on
-        // List<{ string: Label, control: Func -> CustomControl??, object: value }>
-        // 
+            await Navigation.PushModalAsync(settingsModal, true);
+        }
+        else
+        {
+            // Show alert that widget not found
+            await DisplayAlert("Error", "Widget not found!", "OK");
+        }
+
     }
 }

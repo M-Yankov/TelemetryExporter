@@ -7,28 +7,33 @@
     <Border 
         StrokeThickness="2"
         Stroke="#512BD4">
-        <Grid x:Name="gridContainer">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="50" />
-                <RowDefinition Height="160" />
-                <RowDefinition Height="40" />
-            </Grid.RowDefinitions>
-            <Button
-                CornerRadius="0"
-                ContentLayout="20"
-                BorderWidth="3"
-                AnchorX="1"
-                AnchorY="0"
-                Grid.Row="0"
-                Grid.ColumnSpan="2"
-                HorizontalOptions="End"
-                VerticalOptions="Start"
-                ImageSource="cross.png"
-                WidthRequest="10"
-                HeightRequest="10"
-                Scale="0.8"
-                Clicked="CloseModal"
-                Padding="10">
+        <Grid RowDefinitions="50,*">
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <BoxView BackgroundColor="LightSkyBlue" Grid.Row="0" Grid.ColumnSpan="3"></BoxView>
+                <Button
+                  CornerRadius="0"
+                  ContentLayout="20"
+                  BorderWidth="3"
+                  AnchorX="1"
+                  AnchorY="0"
+                  Grid.Row="0"
+                  Grid.ColumnSpan="3"
+                  HorizontalOptions="End"
+                  VerticalOptions="Start"
+                  ImageSource="cross.png"
+                  WidthRequest="10"
+                  HeightRequest="10"
+                  Scale="0.8"
+                  Clicked="CloseModal"
+                  Padding="10">
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroupList>
                         <VisualStateGroup>
@@ -46,12 +51,24 @@
                     </VisualStateGroupList>
                 </VisualStateManager.VisualStateGroups>
             </Button>
-            <Label Grid.Row="0" Margin="0, 10, 0 ,0"
-                Text="Widget Name here"
-                HorizontalOptions="Center" />
-            <!--<myControls:ColorPicker HorizontalOptions="Center" WidthRequest="300" Grid.Row="1" x:Name="colorPicker" SelectedColor="#0909D4"/>
-            <BoxView Grid.Row="2" BackgroundColor="{ Binding Path=SelectedColor}" BindingContext="{x:Reference colorPicker}" />-->
+                <Label Grid.Row="0" Grid.ColumnSpan="3" Margin="0, 10, 0 ,0"
+                  Text="Widget Name here"
+                  HorizontalOptions="Center" x:Name="widgetTitle" />
+            </Grid>
+            <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Always" VerticalOptions="Fill">
+                <Grid x:Name="gridContainer" RowSpacing="5" Margin="0,0,0,10">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- reset button -->
+            <!-- preview button -->
             <!-- For the preview box, when a widget needs the data (elevation and trace) should provide sample or real? -->
+                </Grid>
+            </ScrollView>
         </Grid>
     </Border>
 </ContentPage>
