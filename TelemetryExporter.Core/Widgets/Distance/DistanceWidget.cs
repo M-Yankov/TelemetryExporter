@@ -48,14 +48,14 @@ namespace TelemetryExporter.Core.Widgets.Distance
 
             using SKPaint transparentDistancePaint = new()
             {
-                Color = BackgroundColor,
+                Color = MainColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill
             };
 
             using SKPaint trasparentBlack = new()
             {
-                Color = MainColor,
+                Color = BackgroundColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
             };

@@ -9,6 +9,7 @@ using TelemetryExporter.Core.Models;
 using TelemetryExporter.Core.SettingsTypes;
 using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.Converters;
+using TelemetryExporter.UI.Extensions;
 
 public partial class SettingsModal : ContentPage
 {
@@ -40,8 +41,10 @@ public partial class SettingsModal : ContentPage
         InitializeBurhesAsResource();
 
         widgetTitle.Text = $"{widget.Name} settings";
-        if (widget == null)
+        if (widget == null || widget.Settings.Count == 0)
         {
+            Label notDefinedSettingsMessage = new() { HorizontalOptions = LayoutOptions.Center, Text = "Settings not defined!" };
+            gridContainer.AddWithSpan(notDefinedSettingsMessage, columnSpan: 3);
             return;
         }
 
@@ -53,12 +56,10 @@ public partial class SettingsModal : ContentPage
             switch (setting.GetValueType())
             {
                 case Type t when t == typeof(SKColor):
-                    gridContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                     AddColorPickerRow(gridContainer, setting, row, widget);
-                    
+
                     break;
                 case Type t when t == typeof(FontStringOptions):
-                    gridContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                     Picker fontPicker = new()
                     {
                         ItemsSource = FontStringOptions.Values,
@@ -71,10 +72,10 @@ public partial class SettingsModal : ContentPage
                             widget.SetSetting(setting.Title, fontPicker.SelectedItem);
                         }
                     };
-                    gridContainer.Add(fontPicker, column: 1, row);
+                    gridContainer.AddWithSpan(fontPicker, row, column: 1);
                     break;
+
                 case Type t when t == typeof(string):
-                    gridContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                     Entry inputEntry = new()
                     {
                         Text = setting.GetValue<string>(),
@@ -83,10 +84,10 @@ public partial class SettingsModal : ContentPage
                     {
                         widget.SetSetting(setting.Title, e.NewTextValue);
                     };
-                    gridContainer.Add(inputEntry, column: 1, row);
+                    gridContainer.AddWithSpan(inputEntry, row, column: 1);
                     break;
+
                 case Type t when t == typeof(float):
-                    gridContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                     float value = setting.GetValue<float>();
                     Slider floatSlider = new()
                     {
@@ -107,9 +108,10 @@ public partial class SettingsModal : ContentPage
                     };
 
                     sliderValuePresenter.SetBinding(Label.TextProperty, nameof(floatSlider.Value), stringFormat: "{0:F0}");
-                    gridContainer.Add(floatSlider, column: 1, row);
-                    gridContainer.Add(sliderValuePresenter, column: 1, row);
+                    gridContainer.AddWithSpan(floatSlider, row, column: 1);
+                    gridContainer.AddWithSpan(sliderValuePresenter, row, column: 1);
                     break;
+
                 default:
                     newSettingAdded = false;
                     break;
@@ -124,34 +126,68 @@ public partial class SettingsModal : ContentPage
                     Padding = 10
                 };
 
-                gridContainer.Add(settingNameLabel, column: 0, row);
+                gridContainer.AddWithSpan(settingNameLabel, row);
 
-                // add into and enabled checkbox later
+                //TODO: add into and enabled checkbox later
             }
         }
 
-        gridContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-        Slider currentValue = new() { Minimum = 0, Maximum = 100 };
-        gridContainer.Add(currentValue, 0, gridContainer.RowDefinitions.Count - 1);
-        Button bb = new() { Text = "Preview", HorizontalOptions = LayoutOptions.Center };
-        Image imgPreview = new() { HorizontalOptions = LayoutOptions.Center, WidthRequest = 250 };
-        bb.Pressed += async (s, e) => 
+        Slider sliderExampleUnit = new() { Minimum = 0, Maximum = 100 };
+        gridContainer.AddWithSpan(sliderExampleUnit, widget.Settings.Count);
+
+        Button previewButton = new() { Text = "Preview", HorizontalOptions = LayoutOptions.Center };
+        Image imgPreview = new() { HorizontalOptions = LayoutOptions.Center, WidthRequest = 250 }; // tODO need to remove hardcoded Height, other image dpends on that 
+
+        sliderExampleUnit.PropertyChanged += async (s, e) =>
         {
+            //TODO: These should be dinamic or set static object for SessionData and FrameData
             SKData data = await widget.GenerateImage(
                 new SessionData() { TotalDistance = 1000 },
-                new FrameData() { Distance = currentValue.Value * 10, FileName = string.Empty });
+                new FrameData() { Distance = sliderExampleUnit.Value * 10, FileName = string.Empty });
 
             MemoryStream memoryStream = new(data.ToArray());
 
             imgPreview.Source = ImageSource.FromStream(() => memoryStream);
         };
 
-        gridContainer.Add(bb, 0, gridContainer.RowDefinitions.Count - 1);
-        gridContainer.SetColumnSpan(bb, 3);
+        previewButton.Pressed += async (s, e) =>
+        {
+            // TODO: These should be dinamic or set static object for SessionData and FrameData - still not.
+            // The checkbox will set all FrameStats to null (default), where applicable.
+            SKData data = await widget.GenerateImage(
+                new SessionData() { TotalDistance = 1000 },
+                new FrameData() { Distance = sliderExampleUnit.Value * 10, FileName = string.Empty });
 
-        gridContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-        gridContainer.Add(imgPreview, 0, gridContainer.RowDefinitions.Count - 1);
-        gridContainer.SetColumnSpan(imgPreview, 3);
+            MemoryStream memoryStream = new(data.ToArray());
+            imgPreview.Source = ImageSource.FromStream(() => memoryStream);
+        };
+
+
+        gridContainer.AddWithSpan(previewButton, widget.Settings.Count, columnSpan: 3);
+
+
+        Image imageCheckboard = new() { WidthRequest = imgPreview.WidthRequest, HorizontalOptions = LayoutOptions.Center, HeightRequest = imgPreview.HeightRequest };
+
+        imgPreview.SizeChanged += (s, e) =>
+        {
+            if (imgPreview.Height < 1)
+            {
+                // Cause issues with GenerateCheckedBoardBackground()
+                return;
+            }
+
+            if (Math.Floor(imageCheckboard.HeightRequest) == Math.Floor(imgPreview.Height))
+            {
+                // avoid unnecessary initializations
+                return;
+            }
+
+            imageCheckboard.HeightRequest = imgPreview.Height;
+            imageCheckboard.MaximumHeightRequest = imgPreview.Height;
+            imageCheckboard.GenerateCheckedBoardBackground();
+        };
+        gridContainer.AddWithSpan(imageCheckboard, widget.Settings.Count + 1, columnSpan: 3);
+        gridContainer.AddWithSpan(imgPreview, widget.Settings.Count + 1, columnSpan: 3);
     }
 
     private async void CloseModal(object? sender, EventArgs e)
@@ -179,7 +215,7 @@ public partial class SettingsModal : ContentPage
             if (newColor != null)
             {
                 widget.SetSetting(setting.Title, SKColor.Parse(newColor.ToArgbHex()));
-                
+
             }
         };
 
@@ -195,13 +231,21 @@ public partial class SettingsModal : ContentPage
 
         butt.SetBinding(Button.BackgroundColorProperty, nameof(colorPickerControl.SelectedColor));
 
+        int colorSquareSize = 46;
+        AbsoluteLayout viewAdd = [];
+        Image imageCheckBoard = new() { WidthRequest = colorSquareSize, HeightRequest = colorSquareSize, VerticalOptions = LayoutOptions.Start, HorizontalOptions = LayoutOptions.Center };
+        imageCheckBoard.GenerateCheckedBoardBackground();
+
+        viewAdd.Children.Add(imageCheckBoard);
+        viewAdd.Children.Add(butt);
+
         Border innerBorder = new()
         {
-            HeightRequest = 46,
-            WidthRequest = 46,
+            HeightRequest = colorSquareSize,
+            WidthRequest = colorSquareSize,
             StrokeThickness = 2,
             Stroke = OuterBrushHover,
-            Content = butt
+            Content = viewAdd
         };
 
         string innerBorderName = $"innerBorder_{row}";
@@ -221,7 +265,7 @@ public partial class SettingsModal : ContentPage
 
         VisualStateGroupList gList =
         [
-            new VisualStateGroup() 
+            new VisualStateGroup()
             {
                 Name = "PointerOver",
                 States =
@@ -263,9 +307,9 @@ public partial class SettingsModal : ContentPage
             HeightRequest = 40,
         };
 
-        colorPickerControl.Margin = colorPickerControl.Margin with 
+        colorPickerControl.Margin = colorPickerControl.Margin with
         {
-            Left = colorPickerControl.Margin.Left + colorCodeEntry.WidthRequest + outerBorder .WidthRequest
+            Left = colorPickerControl.Margin.Left + colorCodeEntry.WidthRequest + outerBorder.WidthRequest
         };
 
         outerBorder.Margin = outerBorder.Margin with
@@ -280,8 +324,8 @@ public partial class SettingsModal : ContentPage
             nameof(colorPickerControl.SelectedColor),
             converter: new ARGBColorConverter());
 
-        gridContainer.Add(outerBorder, column: 1, row);
-        gridContainer.Add(colorPickerControl, column: 1, row);
-        gridContainer.Add(colorCodeEntry, column: 1, row);
+        gridContainer.AddWithSpan(outerBorder, row, column: 1);
+        gridContainer.AddWithSpan(colorPickerControl, row, column: 1);
+        gridContainer.AddWithSpan(colorCodeEntry, row, column: 1);
     }
 }
