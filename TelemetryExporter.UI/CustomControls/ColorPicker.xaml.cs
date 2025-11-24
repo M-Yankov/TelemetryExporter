@@ -62,6 +62,18 @@ public partial class ColorPicker : ContentView
         // Where to set the default color
         InitializeComponent();
 
+        checkedBoardImage.SizeChanged += (width, height) =>
+        {
+            if (checkedBoardImage.Width < 1 || checkedBoardImage.Height < 1)
+            {
+                return;
+            }
+
+            checkedBoardImage.WidthRequest = checkedBoardImage.Width;
+            checkedBoardImage.HeightRequest = checkedBoardImage.Height;
+            checkedBoardImage.GenerateCheckedBoardBackground();
+        };
+
         this.secondRowDefinition.Height = new GridLength(HsvLayersHeight);
 
         PanGestureRecognizer dragRegognizer = new();
@@ -86,10 +98,10 @@ public partial class ColorPicker : ContentView
         transparancyLayerColor.SetBinding(GradientStop.ColorProperty, nameof(SelectedColor), converter: new TransperancyColorStopConverter());
 
         hueSlider.BindingContext = hueSlider;
-        hueSlider.SetBinding(Slider.ThumbColorProperty, nameof(hueSlider.Value), converter: new ValueToHueColorConverter());
+        hueSlider.SetBinding(Slider.ThumbColorProperty, nameof(hueSlider.Value), converter: new ValueToHueColorConverter(), mode: BindingMode.OneWay);
 
         hueLayerStop.BindingContext = hueSlider;
-        hueLayerStop.SetBinding(GradientStop.ColorProperty, nameof(hueSlider.ThumbColor));    
+        hueLayerStop.SetBinding(GradientStop.ColorProperty, nameof(hueSlider.ThumbColor), BindingMode.OneWay);    
     }
 
     protected override void OnSizeAllocated(double width, double height)

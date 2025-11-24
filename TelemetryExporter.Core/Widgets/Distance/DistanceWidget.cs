@@ -33,12 +33,6 @@ namespace TelemetryExporter.Core.Widgets.Distance
         private float TitleTextSize => GetSetting<float>(Keys.TitleTextSize);
         #endregion
 
-        /// <summary>
-        /// The idea of this property is to know what option can be configured for this widget.
-        /// <para/> And void using hard-coded values in <see cref="IWidget.GenerateImage(SessionData, FrameData)"/> 
-        /// meaning that the values will come as a parameter.
-        /// </summary>
-
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             const int DistanceImageWidth = 700;

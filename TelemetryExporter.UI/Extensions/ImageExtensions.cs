@@ -4,6 +4,10 @@ namespace TelemetryExporter.UI.Extensions
 {
     public static class ImageExtensions
     {
+        /// <summary>
+        /// <see href="https://learn.microsoft.com/en-us/previous-versions/xamarin/xamarin-forms/user-interface/graphics/skiasharp/effects/shaders/bitmap-tiling">SkiaSharp bitmap tiling</see>
+        /// <a href="" />
+        /// </summary>
         public static void GenerateCheckedBoardBackground(this Image image)
         {
             SKBitmap bitmap = new(16, 16);

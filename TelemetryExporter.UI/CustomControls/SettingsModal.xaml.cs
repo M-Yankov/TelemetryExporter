@@ -2,6 +2,7 @@ namespace TelemetryExporter.UI.CustomControls;
 
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Internals;
+using Microsoft.UI.Xaml.Input;
 
 using SkiaSharp;
 
@@ -35,6 +36,8 @@ public partial class SettingsModal : ContentPage
         ]
     };
 
+    private static readonly FrameData DefaultFrameData = new() { FileName = string.Empty };
+
     public SettingsModal(IWidget widget)
     {
         InitializeComponent();
@@ -47,6 +50,18 @@ public partial class SettingsModal : ContentPage
             gridContainer.AddWithSpan(notDefinedSettingsMessage, columnSpan: 3);
             return;
         }
+
+        Image imgPreview = new() { HorizontalOptions = LayoutOptions.Center, WidthRequest = 250 };
+        Slider sliderExampleUnit = new() { Maximum = 100, Minimum = 0, Value = 50, WidthRequest = 250, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center };
+
+        CheckBox useDefaultOrEmptyUnits = new();
+        Label defaultOrEmptyUnitsLabel = new() { Text = "Empty or default value", VerticalOptions = LayoutOptions.Center };
+        TapGestureRecognizer labelTab = new();
+        labelTab.Tapped += (s, e) =>
+        {
+            useDefaultOrEmptyUnits.IsChecked = !useDefaultOrEmptyUnits.IsChecked;
+        };
+        defaultOrEmptyUnitsLabel.GestureRecognizers.Add(labelTab);
 
         for (int row = 0; row < widget.Settings.Count; row++)
         {
@@ -65,12 +80,14 @@ public partial class SettingsModal : ContentPage
                         ItemsSource = FontStringOptions.Values,
                         SelectedItem = setting.GetValue<string>(),
                     };
-                    fontPicker.SelectedIndexChanged += (_, _) =>
+                    fontPicker.SelectedIndexChanged += async (_, _) =>
                     {
                         if (fontPicker.SelectedItem != null && fontPicker.SelectedIndex != -1)
                         {
                             widget.SetSetting(setting.Title, fontPicker.SelectedItem);
                         }
+
+                        imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
                     };
                     gridContainer.AddWithSpan(fontPicker, row, column: 1);
                     break;
@@ -80,9 +97,10 @@ public partial class SettingsModal : ContentPage
                     {
                         Text = setting.GetValue<string>(),
                     };
-                    inputEntry.TextChanged += (_, e) =>
+                    inputEntry.TextChanged += async (_, e) =>
                     {
                         widget.SetSetting(setting.Title, e.NewTextValue);
+                        imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
                     };
                     gridContainer.AddWithSpan(inputEntry, row, column: 1);
                     break;
@@ -96,9 +114,10 @@ public partial class SettingsModal : ContentPage
                         Value = value,
                         Margin = new Thickness(25, 0, 0, 0)
                     };
-                    floatSlider.ValueChanged += (_, e) =>
+                    floatSlider.ValueChanged += async (_, e) =>
                     {
                         widget.SetSetting(setting.Title, (float)e.NewValue);
+                        imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
                     };
                     Label sliderValuePresenter = new()
                     {
@@ -132,39 +151,28 @@ public partial class SettingsModal : ContentPage
             }
         }
 
-        Slider sliderExampleUnit = new() { Minimum = 0, Maximum = 100 };
-        gridContainer.AddWithSpan(sliderExampleUnit, widget.Settings.Count);
+        gridContainer.AddWithSpan(sliderExampleUnit, widget.Settings.Count, columnSpan: 3);
 
-        Button previewButton = new() { Text = "Preview", HorizontalOptions = LayoutOptions.Center };
-        Image imgPreview = new() { HorizontalOptions = LayoutOptions.Center, WidthRequest = 250 }; // tODO need to remove hardcoded Height, other image dpends on that 
+        HorizontalStackLayout horizontalStackLayout = [];
+        horizontalStackLayout.HorizontalOptions = LayoutOptions.End;
+        
+        horizontalStackLayout.Add(defaultOrEmptyUnitsLabel);
+        horizontalStackLayout.Add(useDefaultOrEmptyUnits);
+        gridContainer.AddWithSpan(horizontalStackLayout, widget.Settings.Count, 2);
+
+        sliderExampleUnit.BindingContext = useDefaultOrEmptyUnits;
+        sliderExampleUnit.SetBinding(Slider.IsEnabledProperty, nameof(useDefaultOrEmptyUnits.IsChecked), BindingMode.OneWay, converter: new DisabledControlConverter());
+
+        Label previewButton = new() { Text = "Preview", HorizontalOptions = LayoutOptions.End, Padding = 10, FontSize = 20 };
+        
 
         sliderExampleUnit.PropertyChanged += async (s, e) =>
         {
-            //TODO: These should be dinamic or set static object for SessionData and FrameData
-            SKData data = await widget.GenerateImage(
-                new SessionData() { TotalDistance = 1000 },
-                new FrameData() { Distance = sliderExampleUnit.Value * 10, FileName = string.Empty });
-
-            MemoryStream memoryStream = new(data.ToArray());
-
-            imgPreview.Source = ImageSource.FromStream(() => memoryStream);
+            // TODO: if widget is INeedInitialization
+            imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
         };
 
-        previewButton.Pressed += async (s, e) =>
-        {
-            // TODO: These should be dinamic or set static object for SessionData and FrameData - still not.
-            // The checkbox will set all FrameStats to null (default), where applicable.
-            SKData data = await widget.GenerateImage(
-                new SessionData() { TotalDistance = 1000 },
-                new FrameData() { Distance = sliderExampleUnit.Value * 10, FileName = string.Empty });
-
-            MemoryStream memoryStream = new(data.ToArray());
-            imgPreview.Source = ImageSource.FromStream(() => memoryStream);
-        };
-
-
-        gridContainer.AddWithSpan(previewButton, widget.Settings.Count, columnSpan: 3);
-
+        gridContainer.AddWithSpan(previewButton, widget.Settings.Count);
 
         Image imageCheckboard = new() { WidthRequest = imgPreview.WidthRequest, HorizontalOptions = LayoutOptions.Center, HeightRequest = imgPreview.HeightRequest };
 
@@ -210,12 +218,12 @@ public partial class SettingsModal : ContentPage
             IsVisible = false
         };
 
-        colorPickerControl.OnColorChanged += (object? sender, Color? newColor) =>
+        colorPickerControl.OnColorChanged += (sender, newColor) =>
         {
             if (newColor != null)
             {
                 widget.SetSetting(setting.Title, SKColor.Parse(newColor.ToArgbHex()));
-
+                //imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
             }
         };
 
@@ -327,5 +335,25 @@ public partial class SettingsModal : ContentPage
         gridContainer.AddWithSpan(outerBorder, row, column: 1);
         gridContainer.AddWithSpan(colorPickerControl, row, column: 1);
         gridContainer.AddWithSpan(colorCodeEntry, row, column: 1);
+    }
+
+    private static async Task<ImageSource> GetPreviewImage(IWidget widget, double value, bool useDefaultValue = false)
+    {
+        SKData data = await widget.GenerateImage(
+                new SessionData() { TotalDistance = 1000 },
+                useDefaultValue ? DefaultFrameData : new FrameData()
+                {
+                    Distance = value * 10,
+                    Altitude = value,
+                    Grade = value - 50, // between -50% +50%
+                    Power = (ushort)value,
+                    FileName = string.Empty,
+                    Speed = value,
+                    ElapsedTime = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(value)),
+                    CurrentTime = TimeOnly.FromDateTime(DateTime.Now.AddSeconds(value)),
+                });
+
+        MemoryStream memoryStream = new(data.ToArray());
+        return ImageSource.FromStream(() => memoryStream);
     }
 }
