@@ -20,8 +20,6 @@ namespace TelemetryExporter.Core.Widgets
 
         public void SetSetting(string key, object value)
         {
-            // TODO: Also apply image preview change here, this could get rid off from the preview button. instead add preview label, swap the label with slider
-            // Bruh.... Its not the UI
             if (SettingsData.TryGetValue(key, out SettingsModel? oldSetting) && oldSetting != null)
             {
                 SettingsModel? newS = oldSetting with { Value = value };

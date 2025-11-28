@@ -281,6 +281,5 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
             // Show alert that widget not found
             await DisplayAlert("Error", "Widget not found!", "OK");
         }
-
     }
 }

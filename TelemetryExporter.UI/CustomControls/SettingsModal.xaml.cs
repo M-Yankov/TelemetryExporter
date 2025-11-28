@@ -2,7 +2,6 @@ namespace TelemetryExporter.UI.CustomControls;
 
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Internals;
-using Microsoft.UI.Xaml.Input;
 
 using SkiaSharp;
 
@@ -63,6 +62,11 @@ public partial class SettingsModal : ContentPage
         };
         defaultOrEmptyUnitsLabel.GestureRecognizers.Add(labelTab);
 
+        async void updatePreview()
+        {
+            imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
+        };
+
         for (int row = 0; row < widget.Settings.Count; row++)
         {
             SettingsModel setting = widget.Settings[row];
@@ -71,64 +75,19 @@ public partial class SettingsModal : ContentPage
             switch (setting.GetValueType())
             {
                 case Type t when t == typeof(SKColor):
-                    AddColorPickerRow(gridContainer, setting, row, widget);
+                    AddColorPickerRow(gridContainer, setting, row, widget, updatePreview);
 
                     break;
                 case Type t when t == typeof(FontStringOptions):
-                    Picker fontPicker = new()
-                    {
-                        ItemsSource = FontStringOptions.Values,
-                        SelectedItem = setting.GetValue<string>(),
-                    };
-                    fontPicker.SelectedIndexChanged += async (_, _) =>
-                    {
-                        if (fontPicker.SelectedItem != null && fontPicker.SelectedIndex != -1)
-                        {
-                            widget.SetSetting(setting.Title, fontPicker.SelectedItem);
-                        }
-
-                        imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
-                    };
-                    gridContainer.AddWithSpan(fontPicker, row, column: 1);
+                   AddFontPickerRow(gridContainer, setting, row, widget, updatePreview);
                     break;
 
                 case Type t when t == typeof(string):
-                    Entry inputEntry = new()
-                    {
-                        Text = setting.GetValue<string>(),
-                    };
-                    inputEntry.TextChanged += async (_, e) =>
-                    {
-                        widget.SetSetting(setting.Title, e.NewTextValue);
-                        imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
-                    };
-                    gridContainer.AddWithSpan(inputEntry, row, column: 1);
+                    AddInputRow(gridContainer, setting, row, widget, updatePreview);
                     break;
 
                 case Type t when t == typeof(float):
-                    float value = setting.GetValue<float>();
-                    Slider floatSlider = new()
-                    {
-                        Minimum = setting.Min ?? 0,
-                        Maximum = setting.Max ?? value,
-                        Value = value,
-                        Margin = new Thickness(25, 0, 0, 0)
-                    };
-                    floatSlider.ValueChanged += async (_, e) =>
-                    {
-                        widget.SetSetting(setting.Title, (float)e.NewValue);
-                        imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
-                    };
-                    Label sliderValuePresenter = new()
-                    {
-                        BindingContext = floatSlider,
-                        HorizontalOptions = LayoutOptions.Start,
-                        VerticalOptions = LayoutOptions.Center,
-                    };
-
-                    sliderValuePresenter.SetBinding(Label.TextProperty, nameof(floatSlider.Value), stringFormat: "{0:F0}");
-                    gridContainer.AddWithSpan(floatSlider, row, column: 1);
-                    gridContainer.AddWithSpan(sliderValuePresenter, row, column: 1);
+                    AddNumericSlider(gridContainer, setting, row, widget, updatePreview);
                     break;
 
                 default:
@@ -148,6 +107,7 @@ public partial class SettingsModal : ContentPage
                 gridContainer.AddWithSpan(settingNameLabel, row);
 
                 //TODO: add into and enabled checkbox later
+                //TODO: reset button
             }
         }
 
@@ -165,10 +125,12 @@ public partial class SettingsModal : ContentPage
 
         Label previewButton = new() { Text = "Preview", HorizontalOptions = LayoutOptions.End, Padding = 10, FontSize = 20 };
         
-
         sliderExampleUnit.PropertyChanged += async (s, e) =>
         {
             // TODO: if widget is INeedInitialization
+            // how to setup needed data?
+            // a) use values from uploaded .fit file (too much data)
+            // b) use static predefined data
             imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
         };
 
@@ -180,7 +142,7 @@ public partial class SettingsModal : ContentPage
         {
             if (imgPreview.Height < 1)
             {
-                // Cause issues with GenerateCheckedBoardBackground()
+                // Causes issues with GenerateCheckedBoardBackground()
                 return;
             }
 
@@ -209,7 +171,8 @@ public partial class SettingsModal : ContentPage
         Content.Resources.Add(nameof(OuterBrushHover), OuterBrushHover);
     }
 
-    private void AddColorPickerRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget)
+    private void AddColorPickerRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+        Action updatePreviewImage)
     {
         ColorPicker colorPickerControl = new()
         {
@@ -223,7 +186,7 @@ public partial class SettingsModal : ContentPage
             if (newColor != null)
             {
                 widget.SetSetting(setting.Title, SKColor.Parse(newColor.ToArgbHex()));
-                //imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
+                updatePreviewImage();
             }
         };
 
@@ -337,6 +300,69 @@ public partial class SettingsModal : ContentPage
         gridContainer.AddWithSpan(colorCodeEntry, row, column: 1);
     }
 
+    private static void AddFontPickerRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+        Action updatePreviewImage)
+    {
+        Picker fontPicker = new()
+        {
+            ItemsSource = FontStringOptions.Values,
+            SelectedItem = setting.GetValue<string>(),
+        };
+        fontPicker.SelectedIndexChanged += (_, _) =>
+        {
+            if (fontPicker.SelectedItem != null && fontPicker.SelectedIndex != -1)
+            {
+                widget.SetSetting(setting.Title, fontPicker.SelectedItem);
+            }
+
+            updatePreviewImage();
+        };
+        gridContainer.AddWithSpan(fontPicker, row, column: 1);
+    }
+
+    private static void AddInputRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+        Action updatePreviewImage)
+    {
+        Entry inputEntry = new()
+        {
+            Text = setting.GetValue<string>(),
+        };
+        inputEntry.TextChanged += (_, e) =>
+        {
+            widget.SetSetting(setting.Title, e.NewTextValue);
+            updatePreviewImage();
+        };
+        gridContainer.AddWithSpan(inputEntry, row, column: 1);
+    }
+
+    private static void AddNumericSlider(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+        Action updatePreviewImage)
+    {
+        float value = setting.GetValue<float>();
+        Slider floatSlider = new()
+        {
+            Minimum = setting.Min ?? 0,
+            Maximum = setting.Max ?? value,
+            Value = value,
+            Margin = new Thickness(25, 0, 0, 0)
+        };
+        floatSlider.ValueChanged += (_, e) =>
+        {
+            widget.SetSetting(setting.Title, (float)e.NewValue);
+            updatePreviewImage();
+        };
+        Label sliderValuePresenter = new()
+        {
+            BindingContext = floatSlider,
+            HorizontalOptions = LayoutOptions.Start,
+            VerticalOptions = LayoutOptions.Center,
+        };
+
+        sliderValuePresenter.SetBinding(Label.TextProperty, nameof(floatSlider.Value), stringFormat: "{0:F0}");
+        gridContainer.AddWithSpan(floatSlider, row, column: 1);
+        gridContainer.AddWithSpan(sliderValuePresenter, row, column: 1);
+    }
+
     private static async Task<ImageSource> GetPreviewImage(IWidget widget, double value, bool useDefaultValue = false)
     {
         SKData data = await widget.GenerateImage(
@@ -345,7 +371,7 @@ public partial class SettingsModal : ContentPage
                 {
                     Distance = value * 10,
                     Altitude = value,
-                    Grade = value - 50, // between -50% +50%
+                    Grade = value - 50,
                     Power = (ushort)value,
                     FileName = string.Empty,
                     Speed = value,
