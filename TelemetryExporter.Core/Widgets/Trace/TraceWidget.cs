@@ -16,6 +16,11 @@ namespace TelemetryExporter.Core.Widgets.Trace
         private SKPath tracePath = new();
         private bool isInitialized = false;
 
+        public TraceWidget()
+        {
+            LoadDefaultSettings();
+        }
+
         public string Category => TECoreContsants.Categories.Trace;
 
         public string Name => "TraceWidget";
@@ -23,6 +28,10 @@ namespace TelemetryExporter.Core.Widgets.Trace
         public string DisplayName => "Trace";
 
         public string ImagePath => "Images/ExampleTrace.png";
+
+        #region WidgetConfigSettings
+        private SKColor PathColor => GetSetting<SKColor>(Keys.PathColor);
+        #endregion
 
         public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
         {
@@ -42,7 +51,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint whitePaint = new()
             {
-                Color = SKColors.White,
+                Color = this.PathColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 3
@@ -77,6 +86,17 @@ namespace TelemetryExporter.Core.Widgets.Trace
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
+        }
+
+        private void LoadDefaultSettings()
+        {
+            settingsValues.Add(Keys.PathColor,
+                new SettingsModel(Keys.PathColor, SKColors.White));
+        }
+
+        private static class Keys
+        {
+            internal const string PathColor = "PathColor";
         }
     }
 }

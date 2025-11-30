@@ -48,6 +48,8 @@ namespace TelemetryExporter.Core.Utilities
 
             // Calculate only X, because it's rectangular
             // *2 because the offset is from one edge and from the other edge
+
+            #region TheValuesInsideAreSameForEachCalculation
             float drawAreaWidthX = PictureWidthPixels - (OffsetPixelsX * 2);
 
             float resX = Math.Abs(FarLeftPoint.X - FarRightPoint.X);
@@ -55,6 +57,7 @@ namespace TelemetryExporter.Core.Utilities
 
             float percentageOfX = resX / drawAreaWidthX;
             float percentageOfY = resY / drawAreaWidthX;
+            #endregion
 
             float y = Math.Abs(latitude - FarTopPoint.Y) / percentageOfY;
             float x = Math.Abs(longitude - FarLeftPoint.X) / percentageOfX;
@@ -64,7 +67,7 @@ namespace TelemetryExporter.Core.Utilities
 
         private SKPath BuildPath(IReadOnlyCollection<ChartDataModel> chartDataStats)
         {
-            List<SKPoint> points = new (); 
+            List<SKPoint> points = []; 
             foreach (ChartDataModel? dataModel in chartDataStats.OrderBy(x => x.RecordDateTime))
             {
                 int? lattitude = dataModel.Latitude; // y  y=0 equator      south ↓ negative  | positive ↑ north  max ±90

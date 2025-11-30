@@ -10,6 +10,7 @@ using TelemetryExporter.Core.SettingsTypes;
 using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.Converters;
 using TelemetryExporter.UI.Extensions;
+using TelemetryExporter.UI.Resources;
 
 public partial class SettingsModal : ContentPage
 {
@@ -48,6 +49,11 @@ public partial class SettingsModal : ContentPage
             Label notDefinedSettingsMessage = new() { HorizontalOptions = LayoutOptions.Center, Text = "Settings not defined!" };
             gridContainer.AddWithSpan(notDefinedSettingsMessage, columnSpan: 3);
             return;
+        }
+
+        if (widget is INeedInitialization widgetWithInitialization)
+        {
+            widgetWithInitialization.Initialize(TEPreviewImageData.GetPreviewData());
         }
 
         Image imgPreview = new() { HorizontalOptions = LayoutOptions.Center, WidthRequest = 250 };
@@ -365,16 +371,21 @@ public partial class SettingsModal : ContentPage
 
     private static async Task<ImageSource> GetPreviewImage(IWidget widget, double value, bool useDefaultValue = false)
     {
+        IReadOnlyList<ChartDataModel> dataStats = TEPreviewImageData.GetPreviewData();
+        int indexOfRecord = Math.Clamp((int)value, 0, 100);
         SKData data = await widget.GenerateImage(
                 new SessionData() { TotalDistance = 1000 },
                 useDefaultValue ? DefaultFrameData : new FrameData()
                 {
                     Distance = value * 10,
-                    Altitude = value,
+                    Altitude = dataStats[indexOfRecord].Altitude,
                     Grade = value - 50,
                     Power = (ushort)value,
                     FileName = string.Empty,
                     Speed = value,
+                    IndexOfCurrentRecord = indexOfRecord,
+                    Latitude = dataStats[indexOfRecord].Latitude,
+                    Longitude = dataStats[indexOfRecord].Longitude,
                     ElapsedTime = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(value)),
                     CurrentTime = TimeOnly.FromDateTime(DateTime.Now.AddSeconds(value)),
                 });
