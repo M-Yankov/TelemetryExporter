@@ -38,6 +38,8 @@ public partial class SettingsModal : ContentPage
 
     private static readonly FrameData DefaultFrameData = new() { FileName = string.Empty };
 
+    private static readonly List<Action> resetFunctions = [];
+
     public SettingsModal(IWidget widget)
     {
         InitializeComponent();
@@ -85,7 +87,7 @@ public partial class SettingsModal : ContentPage
 
                     break;
                 case Type t when t == typeof(FontStringOptions):
-                   AddFontPickerRow(gridContainer, setting, row, widget, updatePreview);
+                    AddFontPickerRow(gridContainer, setting, row, widget, updatePreview);
                     break;
 
                 case Type t when t == typeof(string):
@@ -112,12 +114,9 @@ public partial class SettingsModal : ContentPage
 
                 gridContainer.AddWithSpan(settingNameLabel, row);
 
-                //TODO: add into and enabled checkbox later
-                //TODO: reset button
+                //TODO: add into tooltip
             }
         }
-
-        gridContainer.AddWithSpan(sliderExampleUnit, widget.Settings.Count, columnSpan: 3);
 
         HorizontalStackLayout horizontalStackLayout = [];
         horizontalStackLayout.HorizontalOptions = LayoutOptions.End;
@@ -129,18 +128,27 @@ public partial class SettingsModal : ContentPage
         sliderExampleUnit.BindingContext = useDefaultOrEmptyUnits;
         sliderExampleUnit.SetBinding(Slider.IsEnabledProperty, nameof(useDefaultOrEmptyUnits.IsChecked), BindingMode.OneWay, converter: new DisabledControlConverter());
 
-        Label previewButton = new() { Text = "Preview", HorizontalOptions = LayoutOptions.End, Padding = 10, FontSize = 20 };
+        Label previewLabel = new() { Text = "Preview", FontSize = 20, Padding = 10, HorizontalOptions = LayoutOptions.Center };
         
         sliderExampleUnit.PropertyChanged += async (s, e) =>
         {
-            // TODO: if widget is INeedInitialization
-            // how to setup needed data?
-            // a) use values from uploaded .fit file (too much data)
-            // b) use static predefined data
             imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
         };
 
-        gridContainer.AddWithSpan(previewButton, widget.Settings.Count);
+        Button resetButton = new() { Text = "Reset", HeightRequest = 20, WidthRequest = 100 };
+        resetButton.Clicked += (s, e) =>
+        {
+            widget.LoadDefaultSettings();
+            foreach (Action resetFunc in resetFunctions)
+            {
+                resetFunc();
+            }
+            updatePreview();
+        };
+
+        gridContainer.AddWithSpan(resetButton, widget.Settings.Count);
+        gridContainer.AddWithSpan(previewLabel, widget.Settings.Count, 1);
+        gridContainer.AddWithSpan(sliderExampleUnit, widget.Settings.Count + 1, columnSpan: 3);
 
         Image imageCheckboard = new() { WidthRequest = imgPreview.WidthRequest, HorizontalOptions = LayoutOptions.Center, HeightRequest = imgPreview.HeightRequest };
 
@@ -162,8 +170,8 @@ public partial class SettingsModal : ContentPage
             imageCheckboard.MaximumHeightRequest = imgPreview.Height;
             imageCheckboard.GenerateCheckedBoardBackground();
         };
-        gridContainer.AddWithSpan(imageCheckboard, widget.Settings.Count + 1, columnSpan: 3);
-        gridContainer.AddWithSpan(imgPreview, widget.Settings.Count + 1, columnSpan: 3);
+        gridContainer.AddWithSpan(imageCheckboard, widget.Settings.Count + 2, columnSpan: 3);
+        gridContainer.AddWithSpan(imgPreview, widget.Settings.Count + 2, columnSpan: 3);
     }
 
     private async void CloseModal(object? sender, EventArgs e)
@@ -186,6 +194,13 @@ public partial class SettingsModal : ContentPage
             SelectedColor = Color.FromArgb(setting.GetValue<SKColor>().ToString()),
             IsVisible = false
         };
+
+        void resetFunc()
+        {
+            colorPickerControl.SelectedColor = Color.FromArgb(setting.GetValue<SKColor>().ToString());
+        };
+
+        resetFunctions.Add(resetFunc);
 
         colorPickerControl.OnColorChanged += (sender, newColor) =>
         {
@@ -314,6 +329,14 @@ public partial class SettingsModal : ContentPage
             ItemsSource = FontStringOptions.Values,
             SelectedItem = setting.GetValue<string>(),
         };
+
+        void resetFontPicker()
+        {
+            fontPicker.SelectedItem = setting.GetValue<string>();
+        }
+
+        resetFunctions.Add(resetFontPicker);
+
         fontPicker.SelectedIndexChanged += (_, _) =>
         {
             if (fontPicker.SelectedItem != null && fontPicker.SelectedIndex != -1)
@@ -333,6 +356,13 @@ public partial class SettingsModal : ContentPage
         {
             Text = setting.GetValue<string>(),
         };
+
+        void resetInputEntry()
+        {
+            inputEntry.Text = setting.GetValue<string>();
+        }
+        resetFunctions.Add(resetInputEntry);
+
         inputEntry.TextChanged += (_, e) =>
         {
             widget.SetSetting(setting.Title, e.NewTextValue);
@@ -352,6 +382,13 @@ public partial class SettingsModal : ContentPage
             Value = value,
             Margin = new Thickness(25, 0, 0, 0)
         };
+
+        void resetFloatSlider()
+        {
+            floatSlider.Value = setting.GetValue<float>();
+        }
+        resetFunctions.Add(resetFloatSlider);
+
         floatSlider.ValueChanged += (_, e) =>
         {
             widget.SetSetting(setting.Title, (float)e.NewValue);

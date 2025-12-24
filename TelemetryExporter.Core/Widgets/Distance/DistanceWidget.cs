@@ -94,8 +94,9 @@ namespace TelemetryExporter.Core.Widgets.Distance
             return Task.FromResult(data);
         }
 
-        private void LoadDefaultSettings()
+        public override void LoadDefaultSettings()
         {
+            base.LoadDefaultSettings();
             settingsValues.Add(Keys.BackgroundColor,
                 new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 170)));
             settingsValues.Add(Keys.MainColor,
@@ -107,8 +108,7 @@ namespace TelemetryExporter.Core.Widgets.Distance
             settingsValues.Add(Keys.TitleTextSize,
                 new SettingsModel(Keys.TitleTextSize, 35f, Min: 25f, Max: 45f));
             //{ Not sure I want this to be configurable yet
-            //    "DistanceTextSize",
-            //    new SettingsModel("DistanceTextSize", typeof(float), 40f)
+            //  "DistanceTextSize", new SettingsModel("DistanceTextSize", typeof(float), 40f)
             //}
             settingsValues.Add(Keys.UnitText,
                 new SettingsModel(Keys.UnitText, "KM"));

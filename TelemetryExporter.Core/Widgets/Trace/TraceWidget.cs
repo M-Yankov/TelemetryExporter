@@ -88,8 +88,9 @@ namespace TelemetryExporter.Core.Widgets.Trace
             return Task.FromResult(data);
         }
 
-        private void LoadDefaultSettings()
+        public override void LoadDefaultSettings()
         {
+            base.LoadDefaultSettings();
             settingsValues.Add(Keys.PathColor,
                 new SettingsModel(Keys.PathColor, SKColors.White));
         }

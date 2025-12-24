@@ -46,5 +46,7 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
         public IReadOnlyList<SettingsModel> Settings => [.. SettingsData.Values];
 
         public void SetSetting(string key, object value);
+
+        public void LoadDefaultSettings();
     }
 }

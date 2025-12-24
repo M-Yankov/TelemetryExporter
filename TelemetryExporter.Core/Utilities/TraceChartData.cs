@@ -43,13 +43,11 @@ namespace TelemetryExporter.Core.Utilities
 
         public SKPoint CalculateImageCoordinates(float longitude, float latitude)
         {
-            // TODO: Caching
-
-
             // Calculate only X, because it's rectangular
             // *2 because the offset is from one edge and from the other edge
 
             #region TheValuesInsideAreSameForEachCalculation
+            // TODO: move out calculated data in this region
             float drawAreaWidthX = PictureWidthPixels - (OffsetPixelsX * 2);
 
             float resX = Math.Abs(FarLeftPoint.X - FarRightPoint.X);

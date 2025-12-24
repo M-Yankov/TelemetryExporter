@@ -26,5 +26,10 @@ namespace TelemetryExporter.Core.Widgets
                 settingsValues[key] = newS;
             }
         }
+
+        public virtual void LoadDefaultSettings()
+        {
+            settingsValues.Clear();
+        }
     }
 }
