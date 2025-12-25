@@ -98,11 +98,11 @@ namespace TelemetryExporter.Core.Widgets.Distance
         {
             base.LoadDefaultSettings();
             settingsValues.Add(Keys.BackgroundColor,
-                new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 170)));
+                new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 170), Info: "To disable the background use 100% transparency"));
             settingsValues.Add(Keys.MainColor,
-                new SettingsModel(Keys.MainColor, new SKColor(0, 0, 0, 100)));
+                new SettingsModel(Keys.MainColor, new SKColor(0, 0, 0, 100), Info: "Color of the progress bar"));
             settingsValues.Add(Keys.TextColor,
-                new SettingsModel(Keys.TextColor, SKColors.White));
+                new SettingsModel(Keys.TextColor, SKColors.White, Info: "Color of the text"));
             settingsValues.Add(Keys.FontFamily,
                 new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
             settingsValues.Add(Keys.TitleTextSize,
@@ -111,12 +111,12 @@ namespace TelemetryExporter.Core.Widgets.Distance
             //  "DistanceTextSize", new SettingsModel("DistanceTextSize", typeof(float), 40f)
             //}
             settingsValues.Add(Keys.UnitText,
-                new SettingsModel(Keys.UnitText, "KM"));
+                new SettingsModel(Keys.UnitText, "KM", Info: "Text of the unit"));
             settingsValues.Add(Keys.EmptyDistanceText,
-                new SettingsModel(Keys.EmptyDistanceText, "--"));
+                new SettingsModel(Keys.EmptyDistanceText, "--", Info: "Will be shown when data is missing, could be temporary."));
             // Eventually can set different word, e.g. different language
             settingsValues.Add(Keys.DistanceText,
-                new SettingsModel(Keys.DistanceText, "DISTANCE"));
+                new SettingsModel(Keys.DistanceText, "DISTANCE", Info: "The main text of the widget."));
         }
 
         private static class Keys

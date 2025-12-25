@@ -1,4 +1,4 @@
-namespace TelemetryExporter.UI.CustomControls;
+﻿namespace TelemetryExporter.UI.CustomControls;
 
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Internals;
@@ -113,8 +113,22 @@ public partial class SettingsModal : ContentPage
                 };
 
                 gridContainer.AddWithSpan(settingNameLabel, row);
+            }
 
-                //TODO: add into tooltip
+            if (!string.IsNullOrWhiteSpace(setting.Info))
+            {
+                Label infoLabel =new()
+                {
+                    Text = "ⓘ",
+                    HorizontalOptions = LayoutOptions.Start,
+                    VerticalOptions = LayoutOptions.Center,
+                    TextColor = Colors.Blue,
+                    FontSize = 18,
+                    Padding = 10,
+                };
+
+                ToolTipProperties.SetText(infoLabel, setting.Info);
+                gridContainer.AddWithSpan(infoLabel, row, 2);
             }
         }
 
