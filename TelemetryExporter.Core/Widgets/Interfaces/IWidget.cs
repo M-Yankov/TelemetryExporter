@@ -4,7 +4,7 @@ using TelemetryExporter.Core.Models;
 
 namespace TelemetryExporter.Core.Widgets.Interfaces
 {
-    public interface IWidget
+    public interface IWidget : IHaveSettings
     {
         /// <summary>
         /// Image Properties > Copy to output directory > Copy Always
@@ -30,23 +30,5 @@ namespace TelemetryExporter.Core.Widgets.Interfaces
         string DisplayName { get; }
 
         Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData);
-
-        /// <summary>
-        /// The idea of this property is to know what options can be configured for this widget.
-        /// <para/> And void using hard-coded values in <see cref="IWidget.GenerateImage(SessionData, FrameData)"/> 
-        /// meaning that the values will come as a parameter.
-        /// </summary>
-        IReadOnlyDictionary<string, SettingsModel> SettingsData { get; }
-
-        /// <summary>
-        /// The idea of this property is to know what options can be configured for this widget.
-        /// <para/> And void using hard-coded values in <see cref="IWidget.GenerateImage(SessionData, FrameData)"/> 
-        /// meaning that the values will come as a parameter.
-        /// </summary>
-        public IReadOnlyList<SettingsModel> Settings => [.. SettingsData.Values];
-
-        public void SetSetting(string key, object value);
-
-        public void LoadDefaultSettings();
     }
 }

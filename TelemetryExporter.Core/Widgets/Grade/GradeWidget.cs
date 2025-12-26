@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 
 using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.SettingsTypes;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
@@ -16,12 +17,21 @@ namespace TelemetryExporter.Core.Widgets.Grade
 
         public string ImagePath => "Images/ExampleGrade.png";
 
+        #region WidgetConfigSettings
+        private SKColor TextColor => GetSetting<SKColor>(Keys.TextColor);
+        private SKColor BackgroundColor => GetSetting<SKColor>(Keys.BackgroundColor);
+        private string FontFamily => GetSetting<string>(Keys.FontFamily);
+        private float TitleTextSize => GetSetting<float>(Keys.TitleTextSize);
+
+        private float InclineLineSize => GetSetting<float>(Keys.InclineLineSize);
+        #endregion
+
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
             SKImageInfo info = new(150, 250, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint transparentPaint = new()
             {
-                Color = new SKColor(0, 0, 0, 100),
+                Color = BackgroundColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill
             };
@@ -32,10 +42,10 @@ namespace TelemetryExporter.Core.Widgets.Grade
 
             using SKPaint textPaint = new()
             {
-                Color = SKColors.White,
-                TextSize = 60,
+                Color = TextColor,
+                TextSize = TitleTextSize,
                 TextAlign = SKTextAlign.Center,
-                Typeface = SKTypeface.FromFamilyName("Consolas"),
+                Typeface = SKTypeface.FromFamilyName(FontFamily),
                 IsAntialias = true,
             };
 
@@ -55,7 +65,7 @@ namespace TelemetryExporter.Core.Widgets.Grade
                 // 90 = 65 = -10В
                 float translateXOffset = (float) Math.Abs(currentData.Grade.Value / 9.0) * -1;
 
-                textPaint.TextSize = 35;
+                textPaint.TextSize = InclineLineSize;
                 canvas.Translate(new SKPoint(75 + translateXOffset, 180));
                 canvas.RotateDegrees((float)-currentData.Grade.Value);
                 canvas.DrawText("—————→", SKPoint.Empty, textPaint);
@@ -65,6 +75,30 @@ namespace TelemetryExporter.Core.Widgets.Grade
             using SKImage imageExport = surface.Snapshot();
             SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
+        }
+
+        public override void LoadDefaultSettings()
+        {
+            base.LoadDefaultSettings();
+            settingsValues.Add(Keys.TextColor,
+                new SettingsModel(Keys.TextColor, SKColors.White, Info: "Color of the text"));
+            settingsValues.Add(Keys.BackgroundColor,
+                new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 100)));
+            settingsValues.Add(Keys.FontFamily,
+                new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
+            settingsValues.Add(Keys.TitleTextSize,
+                new SettingsModel(Keys.TitleTextSize, 60f, Min: 50f, Max: 70f));
+            settingsValues.Add(Keys.InclineLineSize,
+                new SettingsModel(Keys.InclineLineSize, 35f, Min: 25f, Max: 45f));
+        }
+
+        private static class Keys
+        {
+            internal const string TextColor = "TextColor";
+            internal const string BackgroundColor = "BackgroundColor";
+            internal const string FontFamily = "FontFamily";
+            internal const string TitleTextSize = "TitleTextSize";
+            internal const string InclineLineSize = "InclineLineSize";
         }
     }
 }

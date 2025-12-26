@@ -9,11 +9,6 @@ namespace TelemetryExporter.Core.Widgets.Distance
 {
     public class DistanceWidget : BaseWidget, IWidget
     {
-        public DistanceWidget()
-        {
-            this.LoadDefaultSettings();
-        }
-
         public string Category => TECoreContsants.Categories.Distance;
 
         public string Name => "DistanceWidget";
@@ -99,12 +94,13 @@ namespace TelemetryExporter.Core.Widgets.Distance
             base.LoadDefaultSettings();
             settingsValues.Add(Keys.BackgroundColor,
                 new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 170), Info: "To disable the background use 100% transparency"));
+            settingsValues.Add(Keys.FontFamily,
+    new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
             settingsValues.Add(Keys.MainColor,
                 new SettingsModel(Keys.MainColor, new SKColor(0, 0, 0, 100), Info: "Color of the progress bar"));
             settingsValues.Add(Keys.TextColor,
                 new SettingsModel(Keys.TextColor, SKColors.White, Info: "Color of the text"));
-            settingsValues.Add(Keys.FontFamily,
-                new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
+
             settingsValues.Add(Keys.TitleTextSize,
                 new SettingsModel(Keys.TitleTextSize, 35f, Min: 25f, Max: 45f));
             //{ Not sure I want this to be configurable yet
@@ -113,10 +109,10 @@ namespace TelemetryExporter.Core.Widgets.Distance
             settingsValues.Add(Keys.UnitText,
                 new SettingsModel(Keys.UnitText, "KM", Info: "Text of the unit"));
             settingsValues.Add(Keys.EmptyDistanceText,
-                new SettingsModel(Keys.EmptyDistanceText, "--", Info: "Will be shown when data is missing, could be temporary."));
+                new SettingsModel(Keys.EmptyDistanceText, "--", Info: "Will be shown when data is missing, could be temporary"));
             // Eventually can set different word, e.g. different language
             settingsValues.Add(Keys.DistanceText,
-                new SettingsModel(Keys.DistanceText, "DISTANCE", Info: "The main text of the widget."));
+                new SettingsModel(Keys.DistanceText, "DISTANCE", Info: "The main text of the widget"));
         }
 
         private static class Keys

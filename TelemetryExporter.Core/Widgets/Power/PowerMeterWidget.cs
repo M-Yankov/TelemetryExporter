@@ -8,6 +8,8 @@ namespace TelemetryExporter.Core.Widgets.Power
 {
     public class PowerMeterWidget : GaugeBaseWidget, IWidget
     {
+        private const string UnitTextKey = "UnitText";
+
         public string Category => TECoreContsants.Categories.Power;
 
         public string Name => nameof(PowerMeterWidget);
@@ -18,7 +20,14 @@ namespace TelemetryExporter.Core.Widgets.Power
 
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData currentData)
         {
-            return GetImageData(sessionData.MaxPower, currentData.Power ?? 0, "W");
+            string unitTextValue = GetSetting<string>(UnitTextKey);
+            return GetImageData(sessionData.MaxPower, currentData.Power ?? 0, unitTextValue);
+        }
+
+        public override void LoadDefaultSettings()
+        {
+            base.LoadDefaultSettings();
+            settingsValues.Add(UnitTextKey, new SettingsModel(UnitTextKey, "W"));
         }
     }
 }

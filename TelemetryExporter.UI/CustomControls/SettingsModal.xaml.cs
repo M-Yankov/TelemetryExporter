@@ -40,6 +40,8 @@ public partial class SettingsModal : ContentPage
 
     private static readonly List<Action> resetFunctions = [];
 
+    private static readonly DateTime CurrentDateTimeForPreview = DateTime.Now;
+
     public SettingsModal(IWidget widget)
     {
         InitializeComponent();
@@ -121,7 +123,7 @@ public partial class SettingsModal : ContentPage
                 {
                     Text = "ⓘ",
                     HorizontalOptions = LayoutOptions.Start,
-                    VerticalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Start,
                     TextColor = Colors.Blue,
                     FontSize = 18,
                     Padding = 10,
@@ -394,7 +396,8 @@ public partial class SettingsModal : ContentPage
             Minimum = setting.Min ?? 0,
             Maximum = setting.Max ?? value,
             Value = value,
-            Margin = new Thickness(25, 0, 0, 0)
+            Margin = new Thickness(25, 0, 0, 0),
+            VerticalOptions = LayoutOptions.Center
         };
 
         void resetFloatSlider()
@@ -423,9 +426,9 @@ public partial class SettingsModal : ContentPage
     private static async Task<ImageSource> GetPreviewImage(IWidget widget, double value, bool useDefaultValue = false)
     {
         IReadOnlyList<ChartDataModel> dataStats = TEPreviewImageData.GetPreviewData();
-        int indexOfRecord = Math.Clamp((int)value, 0, 100);
+        int indexOfRecord = Math.Clamp((int)value, 0, dataStats.Count - 1);
         SKData data = await widget.GenerateImage(
-                new SessionData() { TotalDistance = 1000 },
+                new SessionData() { TotalDistance = 1000, CountOfRecords = dataStats.Count, MaxSpeed = 100, MaxPower = 1000 },
                 useDefaultValue ? DefaultFrameData : new FrameData()
                 {
                     Distance = value * 10,
@@ -438,7 +441,7 @@ public partial class SettingsModal : ContentPage
                     Latitude = dataStats[indexOfRecord].Latitude,
                     Longitude = dataStats[indexOfRecord].Longitude,
                     ElapsedTime = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(value)),
-                    CurrentTime = TimeOnly.FromDateTime(DateTime.Now.AddSeconds(value)),
+                    CurrentTime = TimeOnly.FromDateTime(CurrentDateTimeForPreview.AddSeconds(value))
                 });
 
         MemoryStream memoryStream = new(data.ToArray());

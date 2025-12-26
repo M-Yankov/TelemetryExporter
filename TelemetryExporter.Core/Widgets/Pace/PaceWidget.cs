@@ -3,6 +3,7 @@
 using SkiaSharp;
 
 using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.SettingsTypes;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
@@ -21,6 +22,15 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
         public string ImagePath => "Images/ExamplePace.png";
 
+        #region WidgetConfigSettings
+        private SKColor TextColor => GetSetting<SKColor>(Keys.TextColor);
+        private SKColor BackgroundColor => GetSetting<SKColor>(Keys.BackgroundColor);
+        private string FontFamily => GetSetting<string>(Keys.FontFamily);
+        private float TitleTextSize => GetSetting<float>(Keys.TitleTextSize);
+        private SKColor LineColor => GetSetting<SKColor>(Keys.LineColor);
+        private string UnitText => GetSetting<string>(Keys.UnitText);
+        #endregion
+
         public Task<SKData> GenerateImage(SessionData sessionData, FrameData frameData)
         {
             double currentSpeed = frameData.Speed < SpeedCutoff ? 0 : frameData.Speed;
@@ -34,10 +44,10 @@ namespace TelemetryExporter.Core.Widgets.Pace
             SKImageInfo info = new(PaceImageWidth, PaceImageHeight, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
             {
-                Color = SKColors.Black,
+                Color = LineColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = 2
+                StrokeWidth = 10
             };
 
             using SKSurface surface = SKSurface.Create(info);
@@ -60,7 +70,7 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
             using SKPaint trasparentBlack = new()
             {
-                Color = new SKColor(0, 0, 0, 100),
+                Color = BackgroundColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
                 // StrokeWidth = 2
@@ -68,18 +78,17 @@ namespace TelemetryExporter.Core.Widgets.Pace
 
             canvas.DrawRegion(region, trasparentBlack);
 
-            const int FontSize = 60;
             using SKPaint textColor = new()
             {
-                Color = SKColors.White,
+                Color = TextColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
                 TextAlign = SKTextAlign.Right,
-                Typeface = SKTypeface.FromFamilyName("Consolas", SKFontStyle.Bold),
-                TextSize = FontSize,
+                Typeface = SKTypeface.FromFamilyName(FontFamily, SKFontStyle.Bold),
+                TextSize = TitleTextSize,
             };
 
-            const float MagicNumberAlignFontY = FontSize * 0.25f;
+            float MagicNumberAlignFontY = TitleTextSize * 0.25f;
             float textPointY = (PaceImageHeight / 2) + MagicNumberAlignFontY;
             const string ColonSymbol = ":";
 
@@ -103,19 +112,43 @@ namespace TelemetryExporter.Core.Widgets.Pace
                 text = "--";
             }
 
-            text += "/KM";
+            text += UnitText;
 
             SKPoint textCoordinates = new(bottomRightDrawArea.X - 10, textPointY);
 
-            using SKPaint linePaint = blackPaint.Clone();
-            linePaint.StrokeWidth = 10;
-
             canvas.DrawText(text, textCoordinates, textColor);
-            canvas.DrawLine(bottomLeftDrawArea, bottomRightDrawArea, linePaint);
+            canvas.DrawLine(bottomLeftDrawArea, bottomRightDrawArea, blackPaint);
 
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
+        }
+
+        public override void LoadDefaultSettings()
+        {
+            base.LoadDefaultSettings();
+            settingsValues.Add(Keys.TextColor,
+                new SettingsModel(Keys.TextColor, SKColors.White, Info: "Color of the text"));
+            settingsValues.Add(Keys.BackgroundColor,
+                new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 100)));
+            settingsValues.Add(Keys.FontFamily,
+                new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
+            settingsValues.Add(Keys.TitleTextSize,
+                new SettingsModel(Keys.TitleTextSize, 60f, Min: 50f, Max: 70f));
+            settingsValues.Add(Keys.LineColor,
+                new SettingsModel(Keys.LineColor, SKColors.Black, Info: "Color of the line"));
+            settingsValues.Add(Keys.UnitText,
+                new SettingsModel(Keys.UnitText, "/KM", Info: "Unit text to display after the pace"));
+        }
+
+        private static class Keys
+        {
+            internal const string TextColor = "TextColor";
+            internal const string BackgroundColor = "BackgroundColor";
+            internal const string FontFamily = "FontFamily";
+            internal const string TitleTextSize = "TitleTextSize";
+            internal const string LineColor = "LineColor";
+            internal const string UnitText = "UnitText";
         }
     }
 }

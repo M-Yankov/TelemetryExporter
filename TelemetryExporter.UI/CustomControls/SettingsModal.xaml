@@ -63,10 +63,6 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-
-                    <!-- reset button -->
-            <!-- preview button -->
-            <!-- For the preview box, when a widget needs the data (elevation and trace) should provide sample or real? -->
                 </Grid>
             </ScrollView>
         </Grid>

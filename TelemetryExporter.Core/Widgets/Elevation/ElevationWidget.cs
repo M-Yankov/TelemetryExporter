@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 
 using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.SettingsTypes;
 using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 
@@ -23,6 +24,17 @@ namespace TelemetryExporter.Core.Widgets.Elevation
 
         public string ImagePath => "Images/ExampleElevation.png";
 
+        #region WidgetConfigSettings
+        private string ElevationText => GetSetting<string>(Keys.ElevationText);
+        private SKColor ElevationLine => GetSetting<SKColor>(Keys.ElevationLine);
+        private SKColor BottomColor => GetSetting<SKColor>(Keys.PathBottomColor);
+        private SKColor TextColor => GetSetting<SKColor>(Keys.TextColor);
+        private SKColor BackgroundColor => GetSetting<SKColor>(Keys.BackgroundColor);
+        private SKColor DotColor => GetSetting<SKColor>(Keys.DotColor);
+        private string FontFamily => GetSetting<string>(Keys.FontFamily);
+        private float TitleTextSize => GetSetting<float>(Keys.TitleTextSize);
+        #endregion
+
         public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
         {
             lineChartData = new(dataMessages, ElevationPictureWidthPixels, ElevationPictureHeightPixels, offsetPercentageY: .20f);
@@ -40,7 +52,7 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             SKImageInfo info = new(ElevationPictureWidthPixels, ElevationPictureHeightPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint blackPaint = new()
             {
-                Color = SKColors.Black,
+                Color = ElevationLine, 
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 2
@@ -48,22 +60,22 @@ namespace TelemetryExporter.Core.Widgets.Elevation
 
             using SKPaint trasparentBlack = new()
             {
-                Color = new SKColor(0, 0, 0, 170),
+                Color = BottomColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
             };
 
             using SKPaint textPaint = new()
             {
-                Color = SKColors.White,
+                Color = TextColor,
                 IsAntialias = true,
-                Typeface = SKTypeface.FromFamilyName("Consolas"),
-                TextSize = 35,
+                Typeface = SKTypeface.FromFamilyName(FontFamily),
+                TextSize = TitleTextSize,
             };
 
             using SKPaint redPaint = new()
             {
-                Color = SKColors.Red,
+                Color = DotColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
                 StrokeWidth = 2
@@ -71,7 +83,7 @@ namespace TelemetryExporter.Core.Widgets.Elevation
 
             using SKPaint transparentPaint = new()
             {
-                Color = new SKColor(0, 0, 0, 100),
+                Color = BackgroundColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill
             };
@@ -87,7 +99,7 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             canvas.DrawPath(fillPath, trasparentBlack);
             canvas.DrawPath(elevationPath, blackPaint);
 
-            canvas.DrawText("ELEVATION", new SKPoint(25, 35), textPaint);
+            canvas.DrawText(ElevationText, new SKPoint(25, 35), textPaint);
             using SKPaint linePaint = textPaint.Clone();
             linePaint.StrokeWidth = 10;
 
@@ -130,6 +142,39 @@ namespace TelemetryExporter.Core.Widgets.Elevation
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
             return Task.FromResult(data);
+        }
+
+        public override void LoadDefaultSettings()
+        {
+            base.LoadDefaultSettings();
+            settingsValues.Add(Keys.ElevationLine,
+                           new SettingsModel(Keys.ElevationLine, SKColors.Black, Info: "Color of elevation line"));
+            settingsValues.Add(Keys.PathBottomColor,
+                new SettingsModel(Keys.PathBottomColor, new SKColor(0, 0, 0, 170), Info: "The color below the elevation line"));
+            settingsValues.Add(Keys.TextColor,
+                new SettingsModel(Keys.TextColor, SKColors.White, Info: "Color of the text"));
+            settingsValues.Add(Keys.BackgroundColor,
+                new SettingsModel(Keys.BackgroundColor, new SKColor(0, 0, 0, 100)));
+            settingsValues.Add(Keys.DotColor,
+                new SettingsModel(Keys.DotColor, SKColors.Red, Info: "Color of the progress point"));
+            settingsValues.Add(Keys.FontFamily,
+                new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
+            settingsValues.Add(Keys.TitleTextSize,
+                new SettingsModel(Keys.TitleTextSize, 35f, Min: 25f, Max: 45f));
+            settingsValues.Add(Keys.ElevationText,
+                new SettingsModel(Keys.ElevationText, "ELEVATION", Info: "The main text of the widget"));
+        }
+
+        private static class Keys
+        {
+            internal const string ElevationLine = "ElevationLine";
+            internal const string PathBottomColor = "PathBottomColor";
+            internal const string TextColor = "TextColor";
+            internal const string BackgroundColor = "BackgroundColor";
+            internal const string FontFamily = "FontFamily";
+            internal const string TitleTextSize = "TitleTextSize";
+            internal const string ElevationText = "DistanceText";
+            internal const string DotColor = "DotColor";
         }
     }
 }

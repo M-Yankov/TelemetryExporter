@@ -31,6 +31,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
         #region WidgetConfigSettings
         private SKColor PathColor => GetSetting<SKColor>(Keys.PathColor);
+        private SKColor LocatopPointColor => GetSetting<SKColor>(Keys.LocationPointColor);
         #endregion
 
         public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
@@ -51,15 +52,15 @@ namespace TelemetryExporter.Core.Widgets.Trace
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint whitePaint = new()
             {
-                Color = this.PathColor,
+                Color = PathColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 3
             };
 
-            using SKPaint redPaint = new()
+            using SKPaint locationPointPaint = new()
             {
-                Color = SKColors.Red,
+                Color = LocatopPointColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
                 StrokeWidth = 2
@@ -80,7 +81,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
             if (!gpxPoint.IsEmpty)
             {
                 const int CircleRadius = 8;
-                canvas.DrawCircle(gpxPoint, CircleRadius, redPaint);
+                canvas.DrawCircle(gpxPoint, CircleRadius, locationPointPaint);
             }
 
             using SKImage image = surface.Snapshot();
@@ -92,12 +93,17 @@ namespace TelemetryExporter.Core.Widgets.Trace
         {
             base.LoadDefaultSettings();
             settingsValues.Add(Keys.PathColor,
-                new SettingsModel(Keys.PathColor, SKColors.White));
+                new SettingsModel(Keys.PathColor, SKColors.White, Info: "The color of the path"));
+            settingsValues.Add(Keys.LocationPointColor,
+                new SettingsModel(Keys.LocationPointColor, SKColors.Red, Info: "The color of the location dot"));
+            settingsValues.Add("Test",
+                new SettingsModel("Test", "SKColors.Red"));
         }
 
         private static class Keys
         {
             internal const string PathColor = "PathColor";
+            internal const string LocationPointColor = "LocationPointColor";
         }
     }
 }

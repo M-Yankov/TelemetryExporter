@@ -1,12 +1,18 @@
 ﻿using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets
 {
-    public class BaseWidget
+    public class BaseWidget : IHaveSettings
     {
         private protected readonly Dictionary<string, SettingsModel> settingsValues = [];
 
         public IReadOnlyDictionary<string, SettingsModel> SettingsData => settingsValues;
+
+        public BaseWidget()
+        {
+            LoadDefaultSettings();
+        }
 
         public T GetSetting<T>(string key)
         {
