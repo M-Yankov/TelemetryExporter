@@ -27,7 +27,7 @@ public partial class ColorPicker : ContentView
             nameof(SelectedColor),
             typeof(Color),
             typeof(ColorPicker),
-            null, // Colors.Red
+            null,
             BindingMode.TwoWay);
 
     public Color? SelectedColor
@@ -37,7 +37,6 @@ public partial class ColorPicker : ContentView
         {
             if (selectedColor == null && value != null)
             {
-                // InitializeColorPickerXYPostion(value);
                 adjustColorPickerPosition = true;
             }
 
@@ -58,8 +57,6 @@ public partial class ColorPicker : ContentView
 
     public ColorPicker()
     {
-        // Test with each side of the colorpicker at the edge, or at corners.
-        // Where to set the default color
         InitializeComponent();
 
         checkedBoardImage.SizeChanged += (width, height) =>
@@ -108,7 +105,7 @@ public partial class ColorPicker : ContentView
     {
         base.OnSizeAllocated(width, height);
 
-        // width is -1 before components are not initialized
+        // width is -1 when components are not initialized
         if (width > 0)
         {
             if (this.adjustColorPickerPosition)
@@ -118,7 +115,6 @@ public partial class ColorPicker : ContentView
         }
     }
 
-    // this event is also triggered when setting the slider value from code when "SelectedColor" is still null
     private void Slider_ValueChanged(object? sender, ValueChangedEventArgs e)
     {
         if (this.SelectedColor != null)
@@ -150,7 +146,6 @@ public partial class ColorPicker : ContentView
                 accumulatedPickerSaturation = colorPickerEllipse.TranslationX;
                 accumulatedHSVValue = colorPickerEllipse.TranslationY;
 
-                // Color c = Color.FromHsv((int)this.hueSlider.Value, 100, 100);
                 var h = hueLayerStop.Color?.GetHue() ?? 1;
 
                 float s = (float)(accumulatedPickerSaturation / (-Width + MarginBuffer));

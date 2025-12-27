@@ -118,7 +118,6 @@ namespace TelemetryExporter.UI.Resources
             new ChartDataModel() { Latitude = 38, Longitude = 50, Altitude = 63 },
             new ChartDataModel() { Latitude = 37, Longitude = 50, Altitude = 61 },
             new ChartDataModel() { Latitude = 36, Longitude = 50, Altitude = 58 },
-            //new ChartDataModel() { Latitude = 35, Longitude = 49 },
         ];
     }
 }

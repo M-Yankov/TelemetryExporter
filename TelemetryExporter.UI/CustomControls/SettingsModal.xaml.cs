@@ -48,7 +48,7 @@ public partial class SettingsModal : ContentPage
         InitializeBurhesAsResource();
 
         widgetTitle.Text = $"{widget.Name} settings";
-        if (widget == null || widget.Settings.Count == 0)
+        if (widget.Settings.Count == 0)
         {
             Label notDefinedSettingsMessage = new() { HorizontalOptions = LayoutOptions.Center, Text = "Settings not defined!" };
             gridContainer.AddWithSpan(notDefinedSettingsMessage, columnSpan: 3);
@@ -75,19 +75,19 @@ public partial class SettingsModal : ContentPage
         async void updatePreview()
         {
             imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
-        };
+        }
 
         for (int row = 0; row < widget.Settings.Count; row++)
         {
             SettingsModel setting = widget.Settings[row];
 
-            bool newSettingAdded = true;
+            bool isNewSettingAdded = true;
             switch (setting.GetValueType())
             {
                 case Type t when t == typeof(SKColor):
                     AddColorPickerRow(gridContainer, setting, row, widget, updatePreview);
-
                     break;
+
                 case Type t when t == typeof(FontStringOptions):
                     AddFontPickerRow(gridContainer, setting, row, widget, updatePreview);
                     break;
@@ -101,11 +101,11 @@ public partial class SettingsModal : ContentPage
                     break;
 
                 default:
-                    newSettingAdded = false;
+                    isNewSettingAdded = false;
                     break;
             }
 
-            if (newSettingAdded)
+            if (isNewSettingAdded)
             {
                 Label settingNameLabel = new()
                 {
@@ -119,7 +119,7 @@ public partial class SettingsModal : ContentPage
 
             if (!string.IsNullOrWhiteSpace(setting.Info))
             {
-                Label infoLabel =new()
+                Label infoLabel = new()
                 {
                     Text = "ⓘ",
                     HorizontalOptions = LayoutOptions.Start,
@@ -136,7 +136,7 @@ public partial class SettingsModal : ContentPage
 
         HorizontalStackLayout horizontalStackLayout = [];
         horizontalStackLayout.HorizontalOptions = LayoutOptions.End;
-        
+
         horizontalStackLayout.Add(defaultOrEmptyUnitsLabel);
         horizontalStackLayout.Add(useDefaultOrEmptyUnits);
         gridContainer.AddWithSpan(horizontalStackLayout, widget.Settings.Count, 2);
@@ -145,7 +145,7 @@ public partial class SettingsModal : ContentPage
         sliderExampleUnit.SetBinding(Slider.IsEnabledProperty, nameof(useDefaultOrEmptyUnits.IsChecked), BindingMode.OneWay, converter: new DisabledControlConverter());
 
         Label previewLabel = new() { Text = "Preview", FontSize = 20, Padding = 10, HorizontalOptions = LayoutOptions.Center };
-        
+
         sliderExampleUnit.PropertyChanged += async (s, e) =>
         {
             imgPreview.Source = await GetPreviewImage(widget, sliderExampleUnit.Value, useDefaultOrEmptyUnits.IsChecked);
@@ -214,7 +214,7 @@ public partial class SettingsModal : ContentPage
         void resetFunc()
         {
             colorPickerControl.SelectedColor = Color.FromArgb(setting.GetValue<SKColor>().ToString());
-        };
+        }
 
         resetFunctions.Add(resetFunc);
 

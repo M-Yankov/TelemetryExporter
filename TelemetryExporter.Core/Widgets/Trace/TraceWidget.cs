@@ -31,7 +31,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
         #region WidgetConfigSettings
         private SKColor PathColor => GetSetting<SKColor>(Keys.PathColor);
-        private SKColor LocatopPointColor => GetSetting<SKColor>(Keys.LocationPointColor);
+        private SKColor LocationPointColor => GetSetting<SKColor>(Keys.LocationPointColor);
         #endregion
 
         public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
@@ -60,7 +60,7 @@ namespace TelemetryExporter.Core.Widgets.Trace
 
             using SKPaint locationPointPaint = new()
             {
-                Color = LocatopPointColor,
+                Color = LocationPointColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
                 StrokeWidth = 2

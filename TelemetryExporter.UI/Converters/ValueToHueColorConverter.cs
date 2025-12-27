@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
 namespace TelemetryExporter.UI.Converters
 {
@@ -18,7 +13,7 @@ namespace TelemetryExporter.UI.Converters
         /// <summary>
         /// Need to take in mind the min max Ranges
         /// </summary>
-        private object? Convert(object? value, Type targetType)
+        private static object? Convert(object? value, Type targetType)
         {
             return targetType switch
             {
