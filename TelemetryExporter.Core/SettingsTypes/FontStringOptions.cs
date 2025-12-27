@@ -9,14 +9,14 @@
         /// A limited set of font family names.
         /// </summary>
         public static List<string> Values => [
-            "Consolas",
             "Arial",
-            "Verdana",
-            "Times New Roman",
+            "Consolas",
             "Courier New",
-            "Georgia",
-            "Trebuchet MS",
             "Impact",
+            "Georgia",
+            "Times New Roman",
+            "Trebuchet MS",
+            "Verdana",
             ];
     }
 }
