@@ -107,7 +107,7 @@
                                         </CollectionView.ItemsLayout>
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:WidgetData" >
-                                                <AbsoluteLayout Padding="10,10" >
+                                                <Grid Padding="10,10" >
                                                     <VerticalStackLayout MaximumWidthRequest="300" WidthRequest="300" >
                                                         <VerticalStackLayout.GestureRecognizers>
                                                             <TapGestureRecognizer Tapped="OnTapGestureRecognizerTapped" CommandParameter="{Binding Index}" />
@@ -119,8 +119,8 @@
                                                     <Button ImageSource="settings_cog.png" ToolTipProperties.Text="Widget Settings" CornerRadius="5"
                                                             Padding="0" WidthRequest="15" Clicked="OpenSettingsPage" CommandParameter="{Binding Index}"
                                                             Margin="0,5,5,0"
-                                                            AbsoluteLayout.LayoutBounds="1,0"
-                                                            AbsoluteLayout.LayoutFlags="PositionProportional" >
+                                                            VerticalOptions="Start"
+                                                            HorizontalOptions="End">
                                                         <VisualStateManager.VisualStateGroups>
                                                             <VisualStateGroupList>
                                                                 <VisualStateGroup x:Name="VisualEffect">
@@ -140,7 +140,7 @@
                                                             </VisualStateGroupList>
                                                         </VisualStateManager.VisualStateGroups>
                                                     </Button>
-                                                </AbsoluteLayout>
+                                                </Grid>
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>
                                     </CollectionView>
