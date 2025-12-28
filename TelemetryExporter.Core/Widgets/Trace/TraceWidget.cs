@@ -96,8 +96,6 @@ namespace TelemetryExporter.Core.Widgets.Trace
                 new SettingsModel(Keys.PathColor, SKColors.White, Info: "The color of the path"));
             settingsValues.Add(Keys.LocationPointColor,
                 new SettingsModel(Keys.LocationPointColor, SKColors.Red, Info: "The color of the location dot"));
-            settingsValues.Add("Test",
-                new SettingsModel("Test", "SKColors.Red"));
         }
 
         private static class Keys

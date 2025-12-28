@@ -16,6 +16,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     private readonly List<int> selectWidgetIds;
     private CancellationTokenSource cancellationTokenForExport;
     private string selectedFileName;
+    bool isInitialized = false;
 
     public SelectWidgets()
     {
@@ -48,13 +49,19 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     // First comes ApplyQueryAttributes then OnSizeAllocated
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
+        // the isInitialized protects to reinitialized components, because the method is invoked when setting model is closed. Not sure why....
+        if (isInitialized == false)
+        {
+            SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
 
-        model.Initialize((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
-        selectedFileName = (string)query[TEConstants.QueryKeys.SelectedFileName];
+            model.Initialize((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
+            selectedFileName = (string)query[TEConstants.QueryKeys.SelectedFileName];
 
-        elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
-        rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
+            elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
+            rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
+
+            isInitialized = true;
+        }
     }
 
     protected override void OnSizeAllocated(double width, double height)
