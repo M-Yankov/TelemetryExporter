@@ -38,7 +38,7 @@ public partial class SettingsModal : ContentPage
 
     private static readonly FrameData DefaultFrameData = new() { FileName = string.Empty };
 
-    private static readonly List<Action> resetFunctions = [];
+    private readonly List<Action> resetFunctions = [];
 
     private static readonly DateTime CurrentDateTimeForPreview = DateTime.Now;
 
@@ -213,7 +213,8 @@ public partial class SettingsModal : ContentPage
 
         void resetFunc()
         {
-            colorPickerControl.SelectedColor = Color.FromArgb(setting.GetValue<SKColor>().ToString());
+            colorPickerControl.SelectedColor = Color.FromArgb(
+                widget.SettingsData[setting.Title].GetValue<SKColor>().ToString());
         }
 
         resetFunctions.Add(resetFunc);
@@ -337,7 +338,7 @@ public partial class SettingsModal : ContentPage
         gridContainer.AddWithSpan(colorCodeEntry, row, column: 1);
     }
 
-    private static void AddFontPickerRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+    private void AddFontPickerRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
         Action updatePreviewImage)
     {
         Picker fontPicker = new()
@@ -348,7 +349,7 @@ public partial class SettingsModal : ContentPage
 
         void resetFontPicker()
         {
-            fontPicker.SelectedItem = setting.GetValue<string>();
+            fontPicker.SelectedItem = widget.SettingsData[setting.Title].GetValue<string>();
         }
 
         resetFunctions.Add(resetFontPicker);
@@ -365,7 +366,7 @@ public partial class SettingsModal : ContentPage
         gridContainer.AddWithSpan(fontPicker, row, column: 1);
     }
 
-    private static void AddInputRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+    private void AddInputRow(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
         Action updatePreviewImage)
     {
         Entry inputEntry = new()
@@ -375,7 +376,7 @@ public partial class SettingsModal : ContentPage
 
         void resetInputEntry()
         {
-            inputEntry.Text = setting.GetValue<string>();
+            inputEntry.Text = widget.SettingsData[setting.Title].GetValue<string>();
         }
         resetFunctions.Add(resetInputEntry);
 
@@ -387,7 +388,7 @@ public partial class SettingsModal : ContentPage
         gridContainer.AddWithSpan(inputEntry, row, column: 1);
     }
 
-    private static void AddNumericSlider(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
+    private void AddNumericSlider(Grid gridContainer, SettingsModel setting, int row, IWidget widget,
         Action updatePreviewImage)
     {
         float value = setting.GetValue<float>();
@@ -402,7 +403,7 @@ public partial class SettingsModal : ContentPage
 
         void resetFloatSlider()
         {
-            floatSlider.Value = setting.GetValue<float>();
+            floatSlider.Value = widget.SettingsData[setting.Title].GetValue<float>();
         }
         resetFunctions.Add(resetFloatSlider);
 
