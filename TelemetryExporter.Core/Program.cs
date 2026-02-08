@@ -59,8 +59,6 @@ namespace TelemetryExporter.Core
                 return string.Empty;
             }
 
-            WidgetFactory widgetFactory = new();
-
             FitInitializer initializer = FitInitializer.Initialize(
                 fitMessages,
                 rangeStartDate,
@@ -278,7 +276,7 @@ namespace TelemetryExporter.Core
 
             ConcurrentDictionary<string, double> widgetDonePercentage = [];
 
-            IReadOnlyCollection<IWidget> widgets = widgetFactory.GetWidgets(widgetsIds, initializer.ChartDataStats);
+            IReadOnlyCollection<IWidget> widgets = WidgetFactory.GetWidgets(widgetsIds, initializer.ChartDataStats);
 
             CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             CancellationToken linkedToken = linkedCts.Token;

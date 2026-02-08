@@ -13,36 +13,36 @@ namespace TelemetryExporter.Core.Utilities
 {
     public class WidgetFactory
     {
-        private readonly Dictionary<int, IWidget> widgets;
+        private static readonly Dictionary<int, IWidget> widgets = [];
 
-        public WidgetFactory()
+        static WidgetFactory()
         {
-            IWidget[] widgetsArray = [
-                new DistanceWidget(), new TraceWidget(), new ElevationWidget(),
-                new GradeWidget(), new PaceWidget(), new PowerTextWidget(),
-                new SpeedWidget(), new CurrentTimeWidget(), new ElapsedTimeWidget(),
-                new PowerMeterWidget()
-                ];
-
-            this.widgets = [];
-            for (int i = 0; i < widgetsArray.Length; i++)
-            {
-                int widgetIndex = i + 1;
-                this.widgets[widgetIndex] = widgetsArray[i];
-            }
+            // don't want to work with zero index due to the default value of int
+            // and avoid confusion while debugging.
+            int startIndex = 1;
+            widgets[startIndex++] = new DistanceWidget();
+            widgets[startIndex++] = new TraceWidget();
+            widgets[startIndex++] = new ElevationWidget();
+            widgets[startIndex++] = new GradeWidget();
+            widgets[startIndex++] = new PaceWidget();
+            widgets[startIndex++] = new PowerTextWidget();
+            widgets[startIndex++] = new SpeedWidget();
+            widgets[startIndex++] = new CurrentTimeWidget();
+            widgets[startIndex++] = new ElapsedTimeWidget();
+            widgets[startIndex++] = new PowerMeterWidget();
         }
 
-        public IReadOnlyDictionary<int, IWidget> Widgets
-            => this.widgets.AsReadOnly();
+        public static IReadOnlyDictionary<int, IWidget> Widgets
+            => widgets.AsReadOnly();
 
-        public IReadOnlyCollection<IWidget> GetWidgets(
+        public static IReadOnlyCollection<IWidget> GetWidgets(
             IEnumerable<int> widgetIds,
             IReadOnlyCollection<ChartDataModel> chartDataStats)
         {
             List<IWidget> widgets = [];
             foreach (int id in widgetIds)
             {
-                IWidget? widget = this.GetWidget(id);
+                IWidget? widget = GetWidget(id);
                 if (widget != null)
                 {
                     if (widget is INeedInitialization widgetForInitialization)
@@ -57,17 +57,14 @@ namespace TelemetryExporter.Core.Utilities
             return widgets;
         }
 
-        private IWidget? GetWidget(int id)
+        public static IWidget? GetWidget(int id)
         {
-            IWidget? widget = null;
-
-            if (this.widgets.ContainsKey(id))
+            if (widgets.TryGetValue(id, out IWidget? value))
             {
-                widget = widgets[id];
-                return widget;
+                return value;
             }
 
-            return widget;
+            return null;
         }
     }
 }

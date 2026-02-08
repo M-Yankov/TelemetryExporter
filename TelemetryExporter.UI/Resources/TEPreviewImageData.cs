@@ -1,0 +1,123 @@
+﻿using TelemetryExporter.Core.Models;
+
+namespace TelemetryExporter.UI.Resources
+{
+    public static class TEPreviewImageData
+    {
+        static TEPreviewImageData()
+        {
+            DateTime startDateTime = new(2026, 3, 3, 10, 12, 23);
+            for (int i = 0; i < StaticData.Count; i++)
+            {
+                ChartDataModel data = StaticData[i];
+                data.RecordDateTime = startDateTime.AddSeconds(i);
+            }
+        }
+
+        public static IReadOnlyList<ChartDataModel> GetPreviewData() => StaticData;
+
+        private static readonly IReadOnlyList<ChartDataModel> StaticData =
+        [
+            new ChartDataModel() { Latitude = 94, Longitude = 8, Altitude = 112, },
+            new ChartDataModel() { Latitude = 93, Longitude = 8, Altitude = 112, },
+            new ChartDataModel() { Latitude = 93, Longitude = 9, Altitude = 113, },
+            new ChartDataModel() { Latitude = 92, Longitude = 9, Altitude = 114, },
+            new ChartDataModel() { Latitude = 92, Longitude = 10, Altitude = 115 },
+            new ChartDataModel() { Latitude = 91, Longitude = 10, Altitude = 115 },
+            new ChartDataModel() { Latitude = 90, Longitude = 10, Altitude = 113 },
+            new ChartDataModel() { Latitude = 89, Longitude = 10, Altitude = 112 },
+            new ChartDataModel() { Latitude = 88, Longitude = 10, Altitude = 114 },
+            new ChartDataModel() { Latitude = 87, Longitude = 10, Altitude = 115 },
+            new ChartDataModel() { Latitude = 87, Longitude = 11, Altitude = 116 },
+            new ChartDataModel() { Latitude = 87, Longitude = 12, Altitude = 117 },
+            new ChartDataModel() { Latitude = 86, Longitude = 12, Altitude = 120 },
+            new ChartDataModel() { Latitude = 85, Longitude = 13, Altitude = 122 },
+            new ChartDataModel() { Latitude = 84, Longitude = 14, Altitude = 124 },
+            new ChartDataModel() { Latitude = 83, Longitude = 14, Altitude = 128 },
+            new ChartDataModel() { Latitude = 82, Longitude = 14, Altitude = 130 },
+            new ChartDataModel() { Latitude = 81, Longitude = 14, Altitude = 133 },
+            new ChartDataModel() { Latitude = 81, Longitude = 15, Altitude = 134 },
+            new ChartDataModel() { Latitude = 81, Longitude = 16, Altitude = 138 },
+            new ChartDataModel() { Latitude = 80, Longitude = 16, Altitude = 140 },
+            new ChartDataModel() { Latitude = 79, Longitude = 16, Altitude = 141 },
+            new ChartDataModel() { Latitude = 79, Longitude = 17, Altitude = 142 },
+            new ChartDataModel() { Latitude = 79, Longitude = 18, Altitude = 138 },
+            new ChartDataModel() { Latitude = 78, Longitude = 18, Altitude = 137 },
+            new ChartDataModel() { Latitude = 78, Longitude = 19, Altitude = 135 },
+            new ChartDataModel() { Latitude = 78, Longitude = 20, Altitude = 130 },
+            new ChartDataModel() { Latitude = 78, Longitude = 21, Altitude = 130 },
+            new ChartDataModel() { Latitude = 78, Longitude = 22, Altitude = 128 },
+            new ChartDataModel() { Latitude = 78, Longitude = 23, Altitude = 126 },
+            new ChartDataModel() { Latitude = 78, Longitude = 24, Altitude = 125 },
+            new ChartDataModel() { Latitude = 77, Longitude = 24, Altitude = 125 },
+            new ChartDataModel() { Latitude = 77, Longitude = 25, Altitude = 124 },
+            new ChartDataModel() { Latitude = 77, Longitude = 26, Altitude = 124 },
+            new ChartDataModel() { Latitude = 76, Longitude = 26, Altitude = 123 },
+            new ChartDataModel() { Latitude = 75, Longitude = 27, Altitude = 121 },
+            new ChartDataModel() { Latitude = 74, Longitude = 27, Altitude = 119 },
+            new ChartDataModel() { Latitude = 73, Longitude = 27, Altitude = 118 },
+            new ChartDataModel() { Latitude = 72, Longitude = 27, Altitude = 115 },
+            new ChartDataModel() { Latitude = 72, Longitude = 26, Altitude = 115 },
+            new ChartDataModel() { Latitude = 71, Longitude = 26, Altitude = 115 },
+            new ChartDataModel() { Latitude = 71, Longitude = 25, Altitude = 116 },
+            new ChartDataModel() { Latitude = 70, Longitude = 24, Altitude = 115 },
+            new ChartDataModel() { Latitude = 70, Longitude = 23, Altitude = 114 },
+            new ChartDataModel() { Latitude = 70, Longitude = 22, Altitude = 113 },
+            new ChartDataModel() { Latitude = 70, Longitude = 21, Altitude = 112 },
+            new ChartDataModel() { Latitude = 70, Longitude = 20, Altitude = 111 },
+            new ChartDataModel() { Latitude = 70, Longitude = 19, Altitude = 108 },
+            new ChartDataModel() { Latitude = 69, Longitude = 20, Altitude = 107 },
+            new ChartDataModel() { Latitude = 68, Longitude = 20, Altitude = 105 },
+            new ChartDataModel() { Latitude = 67, Longitude = 20, Altitude = 103 },
+            new ChartDataModel() { Latitude = 66, Longitude = 21, Altitude = 103 },
+            new ChartDataModel() { Latitude = 65, Longitude = 22, Altitude = 104 },
+            new ChartDataModel() { Latitude = 64, Longitude = 23, Altitude = 105 },
+            new ChartDataModel() { Latitude = 63, Longitude = 23, Altitude = 103 },
+            new ChartDataModel() { Latitude = 62, Longitude = 23, Altitude = 103 },
+            new ChartDataModel() { Latitude = 62, Longitude = 24, Altitude = 102 },
+            new ChartDataModel() { Latitude = 61, Longitude = 24, Altitude = 102 },
+            new ChartDataModel() { Latitude = 61, Longitude = 25, Altitude = 101 },
+            new ChartDataModel() { Latitude = 60, Longitude = 26, Altitude = 99 },
+            new ChartDataModel() { Latitude = 59, Longitude = 27, Altitude = 98 },
+            new ChartDataModel() { Latitude = 58, Longitude = 28, Altitude = 98 },
+            new ChartDataModel() { Latitude = 58, Longitude = 29, Altitude = 96 },
+            new ChartDataModel() { Latitude = 58, Longitude = 30, Altitude = 95 },
+            new ChartDataModel() { Latitude = 57, Longitude = 31, Altitude = 94 },
+            new ChartDataModel() { Latitude = 56, Longitude = 32, Altitude = 93 },
+            new ChartDataModel() { Latitude = 55, Longitude = 33, Altitude = 91 },
+            new ChartDataModel() { Latitude = 54, Longitude = 33, Altitude = 90 },
+            new ChartDataModel() { Latitude = 54, Longitude = 32, Altitude = 90 },
+            new ChartDataModel() { Latitude = 53, Longitude = 32, Altitude = 90 },
+            new ChartDataModel() { Latitude = 52, Longitude = 33, Altitude = 87 },
+            new ChartDataModel() { Latitude = 51, Longitude = 34, Altitude = 86 },
+            new ChartDataModel() { Latitude = 50, Longitude = 34, Altitude = 85 },
+            new ChartDataModel() { Latitude = 49, Longitude = 34, Altitude = 83 },
+            new ChartDataModel() { Latitude = 48, Longitude = 35, Altitude = 83 },
+            new ChartDataModel() { Latitude = 47, Longitude = 36, Altitude = 81 },
+            new ChartDataModel() { Latitude = 47, Longitude = 37, Altitude = 78 },
+            new ChartDataModel() { Latitude = 46, Longitude = 38, Altitude = 78 },
+            new ChartDataModel() { Latitude = 45, Longitude = 38, Altitude = 77 },
+            new ChartDataModel() { Latitude = 44, Longitude = 38, Altitude = 78 },
+            new ChartDataModel() { Latitude = 44, Longitude = 39, Altitude = 77 },
+            new ChartDataModel() { Latitude = 44, Longitude = 40, Altitude = 78 },
+            new ChartDataModel() { Latitude = 44, Longitude = 41, Altitude = 76 },
+            new ChartDataModel() { Latitude = 45, Longitude = 42, Altitude = 75 },
+            new ChartDataModel() { Latitude = 46, Longitude = 43, Altitude = 74 },
+            new ChartDataModel() { Latitude = 46, Longitude = 44, Altitude = 73 },
+            new ChartDataModel() { Latitude = 46, Longitude = 45, Altitude = 72 },
+            new ChartDataModel() { Latitude = 46, Longitude = 46, Altitude = 70 },
+            new ChartDataModel() { Latitude = 46, Longitude = 46, Altitude = 68 },
+            new ChartDataModel() { Latitude = 45, Longitude = 47, Altitude = 69 },
+            new ChartDataModel() { Latitude = 45, Longitude = 48, Altitude = 68 },
+            new ChartDataModel() { Latitude = 44, Longitude = 48, Altitude = 68 },
+            new ChartDataModel() { Latitude = 43, Longitude = 48, Altitude = 65 },
+            new ChartDataModel() { Latitude = 42, Longitude = 48, Altitude = 65 },
+            new ChartDataModel() { Latitude = 41, Longitude = 49, Altitude = 64 },
+            new ChartDataModel() { Latitude = 40, Longitude = 49, Altitude = 63 },
+            new ChartDataModel() { Latitude = 39, Longitude = 50, Altitude = 65 },
+            new ChartDataModel() { Latitude = 38, Longitude = 50, Altitude = 63 },
+            new ChartDataModel() { Latitude = 37, Longitude = 50, Altitude = 61 },
+            new ChartDataModel() { Latitude = 36, Longitude = 50, Altitude = 58 },
+        ];
+    }
+}

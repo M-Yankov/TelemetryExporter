@@ -4,7 +4,7 @@ using TelemetryExporter.Core.Models;
 
 namespace TelemetryExporter.Core.Widgets.Interfaces
 {
-    public interface IWidget
+    public interface IWidget : IHaveSettings
     {
         /// <summary>
         /// Image Properties > Copy to output directory > Copy Always

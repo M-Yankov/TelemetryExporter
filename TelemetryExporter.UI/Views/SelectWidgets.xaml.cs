@@ -3,6 +3,8 @@ using System.ComponentModel;
 
 using Microsoft.Maui.Controls.Shapes;
 
+using TelemetryExporter.Core.Utilities;
+using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
 using TelemetryExporter.UI.ViewModels;
@@ -14,6 +16,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     private readonly List<int> selectWidgetIds;
     private CancellationTokenSource cancellationTokenForExport;
     private string selectedFileName;
+    bool isInitialized = false;
 
     public SelectWidgets()
     {
@@ -46,13 +49,19 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     // First comes ApplyQueryAttributes then OnSizeAllocated
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
+        // the isInitialized protects to reinitialized components, because the method is invoked when setting model is closed. Not sure why....
+        if (isInitialized == false)
+        {
+            SelectWidgetsViewModel model = (SelectWidgetsViewModel)BindingContext;
 
-        model.Initialize((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
-        selectedFileName = (string)query[TEConstants.QueryKeys.SelectedFileName];
+            model.Initialize((Stream)query[TEConstants.QueryKeys.FitStreamKey]);
+            selectedFileName = (string)query[TEConstants.QueryKeys.SelectedFileName];
 
-        elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
-        rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
+            elevationImage.SetBinding(Image.SourceProperty, new Binding(nameof(model.MyImage), source: model));
+            rangeDatesActivity.InitializeMinMax(model.StartActivityDate, model.EndActivityDate);
+
+            isInitialized = true;
+        }
     }
 
     protected override void OnSizeAllocated(double width, double height)
@@ -125,7 +134,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         }
     }
 
-    private void OnTapGestureRecognizerTapped(object sender, TappedEventArgs e)
+    private void OnTapGestureRecognizerTapped(object sender, TappedEventArgs _)
     {
         if (sender is VerticalStackLayout verticalLayout)
         {
@@ -253,6 +262,31 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
             this.statusPanel.Text = "Canceled";
             this.exportProgress.Progress = 0;
+        }
+    }
+
+    private async void OpenSettingsPage(object sender, EventArgs e)
+    {
+        IWidget? widget = null;
+        if (sender is Button button && button.CommandParameter is int widgetId)
+        {
+            widget = WidgetFactory.GetWidget(widgetId);
+        }
+
+        if (widget != null)
+        {
+            SettingsModal settingsModal = new(widget)
+            {
+                WidthRequest = 800,
+                HeightRequest = 500,
+            };
+
+            await Navigation.PushModalAsync(settingsModal, true);
+        }
+        else
+        {
+            // Show alert that widget not found
+            await DisplayAlert("Error", "Widget not found!", "OK");
         }
     }
 }

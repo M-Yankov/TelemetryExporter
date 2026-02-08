@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TelemetryExporter.UI.CustomControls.SettingsModal"
+             xmlns:myControls="clr-namespace:TelemetryExporter.UI.CustomControls"
+             Title="SettingsModal">
+    <Border 
+        StrokeThickness="2"
+        Stroke="#512BD4">
+        <Grid RowDefinitions="50,*">
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <BoxView BackgroundColor="LightSkyBlue" Grid.Row="0" Grid.ColumnSpan="3"></BoxView>
+                <Button
+                  CornerRadius="0"
+                  ContentLayout="20"
+                  BorderWidth="3"
+                  AnchorX="1"
+                  AnchorY="0"
+                  Grid.Row="0"
+                  Grid.ColumnSpan="3"
+                  HorizontalOptions="End"
+                  VerticalOptions="Start"
+                  ImageSource="cross.png"
+                  WidthRequest="10"
+                  HeightRequest="10"
+                  Scale="0.8"
+                  Clicked="CloseModal"
+                  Padding="10">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup>
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Red" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+            </Button>
+                <Label Grid.Row="0" Grid.ColumnSpan="3" Margin="0, 10, 0 ,0"
+                  HorizontalOptions="Center" x:Name="widgetTitle" />
+            </Grid>
+            <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Always" VerticalOptions="Fill">
+                <Grid x:Name="gridContainer" RowSpacing="5" Margin="0,0,0,10">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </ScrollView>
+        </Grid>
+    </Border>
+</ContentPage>

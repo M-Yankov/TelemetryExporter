@@ -7,7 +7,7 @@ using TelemetryExporter.Core.Widgets.Interfaces;
 
 namespace TelemetryExporter.Core.Widgets.Trace
 {
-    public class TraceWidget : IWidget, INeedInitialization
+    public class TraceWidget : BaseWidget, IWidget, INeedInitialization
     {
         private const int GpxPictureWidthPixels = 1000;
         private const float GpxPictureOffsetPercentage = .05f;
@@ -16,6 +16,11 @@ namespace TelemetryExporter.Core.Widgets.Trace
         private SKPath tracePath = new();
         private bool isInitialized = false;
 
+        public TraceWidget()
+        {
+            LoadDefaultSettings();
+        }
+
         public string Category => TECoreContsants.Categories.Trace;
 
         public string Name => "TraceWidget";
@@ -23,6 +28,11 @@ namespace TelemetryExporter.Core.Widgets.Trace
         public string DisplayName => "Trace";
 
         public string ImagePath => "Images/ExampleTrace.png";
+
+        #region WidgetConfigSettings
+        private SKColor PathColor => GetSetting<SKColor>(Keys.PathColor);
+        private SKColor LocationPointColor => GetSetting<SKColor>(Keys.LocationPointColor);
+        #endregion
 
         public void Initialize(IReadOnlyCollection<ChartDataModel> dataMessages)
         {
@@ -42,15 +52,15 @@ namespace TelemetryExporter.Core.Widgets.Trace
             SKImageInfo info = new(GpxPictureWidthPixels, GpxPictureWidthPixels, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using SKPaint whitePaint = new()
             {
-                Color = SKColors.White,
+                Color = PathColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 3
             };
 
-            using SKPaint redPaint = new()
+            using SKPaint locationPointPaint = new()
             {
-                Color = SKColors.Red,
+                Color = LocationPointColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
                 StrokeWidth = 2
@@ -71,12 +81,27 @@ namespace TelemetryExporter.Core.Widgets.Trace
             if (!gpxPoint.IsEmpty)
             {
                 const int CircleRadius = 8;
-                canvas.DrawCircle(gpxPoint, CircleRadius, redPaint);
+                canvas.DrawCircle(gpxPoint, CircleRadius, locationPointPaint);
             }
 
             using SKImage image = surface.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
+        }
+
+        public override void LoadDefaultSettings()
+        {
+            base.LoadDefaultSettings();
+            settingsValues.Add(Keys.PathColor,
+                new SettingsModel(Keys.PathColor, SKColors.White, Info: "The color of the path"));
+            settingsValues.Add(Keys.LocationPointColor,
+                new SettingsModel(Keys.LocationPointColor, SKColors.Red, Info: "The color of the location dot"));
+        }
+
+        private static class Keys
+        {
+            internal const string PathColor = "PathColor";
+            internal const string LocationPointColor = "LocationPointColor";
         }
     }
 }

@@ -1,12 +1,23 @@
 ﻿using SkiaSharp;
 
 using TelemetryExporter.Core.Extensions;
+using TelemetryExporter.Core.Models;
+using TelemetryExporter.Core.SettingsTypes;
 
 namespace TelemetryExporter.Core.Widgets
 {
-    public abstract class GaugeBaseWidget
+    public abstract class GaugeBaseWidget : BaseWidget
     {
-        public static Task<SKData> GetImageData(double maxValue, double currentValue, string text)
+        #region WidgetConfigSettings
+        private SKColor RadialColor => GetSetting<SKColor>(Keys.RadialColor);
+        private float TextSize => GetSetting<float>(Keys.TextSize);
+        private string FontFamily => GetSetting<string>(Keys.FontFamily);
+        private SKColor TextColor => GetSetting<SKColor>(Keys.TextColor);
+        private SKColor RadialProgressColor => GetSetting<SKColor>(Keys.RadialProgressColor);
+        private float UnitTextSize => GetSetting<float>(Keys.UnitTextSize);
+        #endregion
+
+        public Task<SKData> GetImageData(double maxValue, double currentValue, string text)
         {
             using SKBitmap radial = SKBitmap.FromImage(
                 SKImage.FromEncodedData(PathExtensions.Combine("Images", "radial_6.png")));
@@ -20,17 +31,17 @@ namespace TelemetryExporter.Core.Widgets
 
             using SKPaint blendPaint = new()
             {
-                ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(200, 0, 0, 255), SKBlendMode.SrcIn)
+                ColorFilter = SKColorFilter.CreateBlendMode(RadialColor, SKBlendMode.SrcIn)
             };
 
             canvas.DrawBitmap(radial, 0, 0, blendPaint);
 
             using SKPaint textPaint = new()
             {
-                Color = SKColors.White,
-                TextSize = 16,
+                Color =  TextColor,
+                TextSize = TextSize,
                 TextAlign = SKTextAlign.Center,
-                Typeface = SKTypeface.FromFamilyName("Consolas"),
+                Typeface = SKTypeface.FromFamilyName(FontFamily),
                 IsAntialias = true,
             };
 
@@ -42,7 +53,7 @@ namespace TelemetryExporter.Core.Widgets
 
             using SKPaint radialTrailPaint = new()
             {
-                Color = new SKColor(255, 255, 255, 100),
+                Color = RadialProgressColor,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 20
@@ -62,7 +73,7 @@ namespace TelemetryExporter.Core.Widgets
             canvas.DrawText($"{maxValue:0}", textMaxValueCoords, textPaint);
             canvas.DrawText($"{(maxValue / 2):0}", textAverageValueCoords, textPaint);
 
-            textPaint.TextSize = 48;
+            textPaint.TextSize = UnitTextSize;
             canvas.DrawText($"{currentValue:0}", textCurrentValueCoords, textPaint);
             canvas.DrawText(text, textUnitValueCoords, textPaint);
 
@@ -83,6 +94,34 @@ namespace TelemetryExporter.Core.Widgets
             using SKImage imageExport = surface.Snapshot();
             SKData data = imageExport.Encode(SKEncodedImageFormat.Png, 100);
             return Task.FromResult(data);
+        }
+
+        public override void LoadDefaultSettings()
+        {
+            base.LoadDefaultSettings();
+            settingsValues.Add(Keys.RadialColor,
+                new SettingsModel(Keys.RadialColor, new SKColor(200, 0, 0, 255), Info: "Color of the arc")); 
+            settingsValues.Add(Keys.TextColor,
+                new SettingsModel(Keys.TextColor, SKColors.White, Info: "Color of the number"));
+            settingsValues.Add(Keys.FontFamily,
+                new SettingsModel(Keys.FontFamily, "Consolas", typeof(FontStringOptions)));
+            settingsValues.Add(Keys.TextSize,
+                new SettingsModel(Keys.TextSize, 16f, Min: 6f, Max: 26f, Info: "Size of text numbers around radial, min, max and avg. "));
+            settingsValues.Add(Keys.RadialProgressColor,
+                new SettingsModel(Keys.RadialProgressColor, new SKColor(255, 255, 255, 100),
+                Info: "Color of the radial progress indicator"));
+            settingsValues.Add(Keys.UnitTextSize,
+                new SettingsModel(Keys.UnitTextSize, 48f, Min: 38f, Max: 58f, Info: "Size of the main text below"));
+        }
+
+        private class Keys
+        {
+            internal const string RadialColor = "RadialColor";
+            internal const string TextColor = "TextColor";
+            internal const string FontFamily = "FontFamily";
+            internal const string TextSize = "RadialNumbersTextSize";
+            internal const string RadialProgressColor = "RadialProgressColor";
+            internal const string UnitTextSize = "UnitTextSize";
         }
     }
 }
