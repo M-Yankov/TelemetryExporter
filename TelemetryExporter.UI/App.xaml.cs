@@ -8,7 +8,7 @@ namespace TelemetryExporter.UI
         {
             InitializeComponent();
 
-            MainPage = new AppShell();
+            //MainPage = new AppShell();
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
@@ -17,9 +17,12 @@ namespace TelemetryExporter.UI
             if (window != null)
             {
                 window.Title = TEConstants.ApplicationName;
+                return window;
             }
-
-            return window;
+            else
+            {
+                return new Window(new AppShell());
+            }
         }
     }
 }

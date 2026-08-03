@@ -23,6 +23,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         selectWidgetIds = [];
         InitializeComponent();
 
+        // Binding.Create(static (RangeSlider slider) => slider.EndValue)
         selectedEndTime.SetBinding(Label.TextProperty, new Binding(nameof(rangeDatesActivity.EndValue), source: rangeDatesActivity));
         selectedStartTime.SetBinding(Label.TextProperty, new Binding(nameof(rangeDatesActivity.StartValue), source: rangeDatesActivity));
 
