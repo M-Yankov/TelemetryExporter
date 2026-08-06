@@ -1,11 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+    <!--<TargetFrameworks>net10.0</TargetFrameworks>
+    -->
+    <!--<TargetFramework>net10.0</TargetFramework>-->
 		<!--<TargetFrameworks>net8.0-maccatalyst</TargetFrameworks>-->
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.26100.0</TargetFrameworks>
+
+    <!--<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>-->
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
-    <WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">None</WindowsPackageType>
+
 		<!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
 		When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
@@ -32,6 +38,9 @@
 		<ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
 		<ApplicationVersion>12</ApplicationVersion>
 
+    <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
+    <WindowsPackageType>None</WindowsPackageType>
+
     <!-- Comment out iOS Android and Tizen, since the app is for desktops and laptops -->
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -39,6 +48,7 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+		<!--<Version>$(ApplicationDisplayVersion)</Version>-->
 		<!--<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
 		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 		<PackageCertificateThumbprint>E573CDA537303027C816252BBF421922E3B86BF5</PackageCertificateThumbprint>
@@ -53,35 +63,35 @@
     <PublisherName>TelemetryExporter</PublisherName>-->
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
-	  <ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
+	<!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|x64'">
-	  <ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|x86,win-x64,win-x86'">
-	  <ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86,win-x64,win-x86'">
+	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
-	  <ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|x64'">
-	  <ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|x86,win-x64,win-x86'">
-	  <ApplicationDisplayVersion>0.0.12</ApplicationDisplayVersion>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86,win-x64,win-x86'">
+	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
-	</PropertyGroup>
+	</PropertyGroup>-->
 
 	<ItemGroup>
 		<!-- App Icon -->
