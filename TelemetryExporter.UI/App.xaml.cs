@@ -7,22 +7,12 @@ namespace TelemetryExporter.UI
         public App()
         {
             InitializeComponent();
-
-            //MainPage = new AppShell();
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
-        {
-            var window = base.CreateWindow(activationState);
-            if (window != null)
+            => new(new AppShell())
             {
-                window.Title = TEConstants.ApplicationName;
-                return window;
-            }
-            else
-            {
-                return new Window(new AppShell());
-            }
-        }
+                Title = TEConstants.ApplicationName
+            };
     }
 }
