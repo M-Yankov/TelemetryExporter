@@ -1,15 +1,17 @@
-﻿using TelemetryExporter.UI.ViewModels;
+﻿using LukeMauiFilePicker;
+
+using TelemetryExporter.UI.ViewModels;
 
 namespace TelemetryExporter.UI
 {
     public partial class MainPage : ContentPage
     {
-        public MainPage()
+        public MainPage(IFilePickerService filePicker)
         {
             InitializeComponent();
 
             Title = "";
-            HomePageViewModel homePageViewModel = new ();
+            HomePageViewModel homePageViewModel = new (filePicker);
             BrowseButton.Command = homePageViewModel.OpenActivityFileCommand;
             
             // elevationImage.Source = homePageViewModel.MyImage;

@@ -1,19 +1,23 @@
 ﻿using System.ComponentModel;
 using System.Windows.Input;
 
+using LukeMauiFilePicker;
+
 using TelemetryExporter.UI.Resources;
 
 namespace TelemetryExporter.UI.ViewModels
 {
     public class HomePageViewModel : INotifyPropertyChanged
     {
+        private readonly IFilePickerService filePicker;
         private string _selectedFileName;
         private bool _isLoading = false;
 
         // Button to be with cursor-hand
         // https://vladislavantonyuk.github.io/articles/Setting-a-cursor-for-.NET-MAUI-VisualElement/
-        public HomePageViewModel()
+        public HomePageViewModel(IFilePickerService filePicker)
         {
+            this.filePicker = filePicker;
             OpenActivityFileCommand = new Command(DoPickActivityFile);
         }
 
@@ -54,33 +58,33 @@ namespace TelemetryExporter.UI.ViewModels
             // .gpx files will be added in future
             string[] fileTiles = [TEConstants.Extensions.GarminActivity];
 
-            FilePickerFileType customFileType =
-                new(new Dictionary<DevicePlatform, IEnumerable<string>>
+            Dictionary<DevicePlatform, IEnumerable<string>> customFileTypes =
+                new()
                 {
                     { DevicePlatform.WinUI, fileTiles },
-                    { DevicePlatform.macOS, fileTiles },
+                    { DevicePlatform.MacCatalyst, [] }, // "fit"
                     /* currently do need for other systems
                      * { DevicePlatform.iOS, new[] { "public.my.comic.extension" } }, // or general UTType values
                     { DevicePlatform.Android, new[] { "application/comics" } },
                     { DevicePlatform.Tizen, new[] { "* / *" } },
                     */
-                });
+                };
 
             PickOptions options = new()
             {
                 PickerTitle = "Select your .fit file activity from Garmin",
-                FileTypes = customFileType,
+                // FileTypes = customFileType,
             };
 
-            await PickAndShow(options);
+            await PickAndShow(options.PickerTitle, customFileTypes);
         }
 
-        private async Task<FileResult?> PickAndShow(PickOptions options)
+        private async Task<IPickFile?> PickAndShow(string title, Dictionary<DevicePlatform, IEnumerable<string>> types)
         {
             try
             {
                 IsLoading = true;
-                FileResult? result = await FilePicker.PickAsync(options);
+                IPickFile? result = await filePicker.PickFileAsync(title, types);
 
                 if (result != null && string.Equals(
                     Path.GetExtension(result.FileName).ToLowerInvariant(),

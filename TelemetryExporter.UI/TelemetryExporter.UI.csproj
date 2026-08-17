@@ -5,7 +5,7 @@
     -->
     <!--<TargetFramework>net10.0</TargetFramework>-->
 		<!--<TargetFrameworks>net8.0-maccatalyst</TargetFrameworks>-->
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-maccatalyst26.2</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.26100.0</TargetFrameworks>
 
     <!--<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>-->
@@ -63,6 +63,10 @@
     <PublisherName>TelemetryExporter</PublisherName>-->
 	</PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)'=='net10.0-maccatalyst26.2'">
+    <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
+  </PropertyGroup>
+
 	<!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	  <ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
 	  <ApplicationTitle>Telemetry Exporter</ApplicationTitle>
@@ -113,6 +117,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
+		<PackageReference Include="LukeMauiFilePicker" Version="1.2.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.18" />
 	</ItemGroup>

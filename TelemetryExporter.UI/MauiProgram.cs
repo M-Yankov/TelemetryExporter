@@ -18,6 +18,8 @@ namespace TelemetryExporter.UI
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            builder.Services.AddFilePicker();
+
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
