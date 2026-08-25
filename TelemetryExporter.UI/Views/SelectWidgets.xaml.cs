@@ -7,6 +7,7 @@ using TelemetryExporter.Core.Utilities;
 using TelemetryExporter.Core.Widgets.Interfaces;
 using TelemetryExporter.UI.CustomControls;
 using TelemetryExporter.UI.Resources;
+using TelemetryExporter.UI.Services;
 using TelemetryExporter.UI.ViewModels;
 
 namespace TelemetryExporter.UI.Views;
@@ -44,7 +45,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         // XAML SelectedIndex not working :/
         selectedFps.SelectedIndex = 0;
-        saveLocation.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        saveLocation.Text = DirectoryProvider.GetDesktopDirectory() ?? string.Empty;
     }
 
     // First comes ApplyQueryAttributes then OnSizeAllocated
@@ -163,7 +164,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
 
         if (!string.IsNullOrWhiteSpace(message))
         {
-            await DisplayAlert("Error", message, "OK");
+            await DisplayAlertAsync("Error", message, "OK");
             return;
         }
 
@@ -205,13 +206,13 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
             }
             else
             {
-                await DisplayAlert("Done!", $"Export Done!\n{exportedDirectory}", "OK");
+                await DisplayAlertAsync("Done!", $"Export Done!\n{exportedDirectory}", "OK");
                 this.exportProgress.Progress = 1;
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", ex.Message, "OK");
+            await DisplayAlertAsync("Error", ex.Message, "OK");
 
             this.statusPanel.Text = "Canceled";
             this.exportProgress.Progress = 0;
@@ -287,7 +288,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
         else
         {
             // Show alert that widget not found
-            await DisplayAlert("Error", "Widget not found!", "OK");
+            await DisplayAlertAsync("Error", "Widget not found!", "OK");
         }
     }
 }
