@@ -118,6 +118,14 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
 		<PackageReference Include="LukeMauiFilePicker" Version="1.2.0" />
+    <!--
+			I need this package due to issues:
+      https://github.com/dotnet/maui/issues/11088
+			https://github.com/dotnet/maui/issues/15126
+			https://github.com/dotnet/maui/issues/20741
+      Even issues closed the problem still persists.
+      Cannot verify on MAc due to compatibility issues with xCode need to use older version of the MAUI framework. 
+    -->
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.18" />
 	</ItemGroup>

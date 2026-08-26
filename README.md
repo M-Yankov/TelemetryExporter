@@ -13,23 +13,23 @@ https://github.com/M-Yankov/TelemetryExporter/assets/10440078/203a892f-10af-4912
 - Extract _.zip_ contents
 - Open `TelemetryExporter.UI.exe`
 
-For now only Windows 10, 11 is supported (MacOS could be added in future, but may need help)
+For now only Windows 10, 11 is supported (MacOS in progress)
 
 ## Usage
 Check the video below for detailed usage:  
 [![Usage](https://github.com/M-Yankov/TelemetryExporter/assets/10440078/7713b733-fca4-47ba-8ce2-e4d64f1feee0)](https://www.youtube.com/watch?v=4XD5BiTeCWI)
 
 - You need the `.fit` file activity from Garmin device or downloaded from their website (https://connect.garmin.com/)
-- Open `Telemetry Exporter` and select the `.fit` file
+- Open `Telemetry Exporter` and browse the `.fit` file
 - In `Telemetry Exporter` configure the settings you want and select widgets
 - Click `Export` and take a coffee :)
 
 ## User data privacy
 - This program doesn't use any personal data
-- This program doesn't share data to 3-rd party service
+- This program doesn't share data to 3-rd party services
 - This program doesn't require registration
 - It's free and open-source, the owner (developers, contributors) doesn't take responsibility for any malfunctions caused by the bugs
-- Using this program is at your own risk
+- **Using this program is at your own risk**
 
 ## Detailed description
 - In the first page you need to enter the `.fit` file from Garmin
@@ -74,13 +74,22 @@ Each category may contain one or more widgets presented with an example image. T
 **At least one widget needs to be selected.**
 
 ## Development
-- Visual Studio 2022 (_or newer_) with installed tools for MAUI development
+- Visual Studio 2026 with installed tools for MAUI development
 - ![img](./Media/vs-workloads.png)
 - Set-up `TelemetryExporter.UI` as start-up project
 - Hit `F5` to run te project
-- .NET 8 with C# 12
+- .NET 10 with C# 14
 
-Checkout more info about [Getting started with MAUI](https://learn.microsoft.com/en-us/dotnet/maui/get-started/first-app?pivots=devices-windows&view=net-maui-8.0&tabs=vswin) and [Visual Studio 2022 MAUI release](https://devblogs.microsoft.com/dotnet/dotnet-maui-visualstudio-2022-release/)
+### Development with MAC
+- Visual Studio Code with extensions: [C# DevKit, C#, .NET MAUI, .NET Install Tool]
+- Latest supported version of XCode.
+- Install maui workload compatible with XCode.
+- Example for MACBook Pro 2018 Sequoia 15.7.3, latest supported XCode is 26.3 (_same SDK tools work for 26.2, there is no special SDK release for 26.3_ [more info](https://github.com/dotnet/macios/releases?page=2#release-dotnet-10.0.1xx-xcode26.2-10217))
+- https://github.com/dotnet/macios/releases?page=2#release-dotnet-10.0.1xx-xcode26.2-10233
+- https://learn.microsoft.com/en-us/dotnet/ios/troubleshooting/xcode-requirement#install-older-version-of-a-workload
+- In `.csproj` it might need to update the version used for MacCatalyst.
+
+Checkout more info about [Getting started with MAUI](https://learn.microsoft.com/en-us/dotnet/maui/get-started/first-app?view=net-maui-10.0&pivots=devices-windows&tabs=vswin) and [Visual Studio 2022 MAUI release](https://devblogs.microsoft.com/dotnet/dotnet-maui-visualstudio-2022-release/)
 
 ### Contribution
 - It's absolutely free for anyone to open PRs with fixes or new functionality
@@ -92,12 +101,3 @@ In case of error, this temporary directory contains generated frames:
 > `C:\Users\<your-user-name>\AppData\Local\M-Yankov\com.telemetryexporter\Cache`
 
 Contents can be safety deleted.
-
-### Future
-- More widgets will be added (_from garmin virb_)
-- Each widget could have separate settings (size, font, color scheme etc.)
-- More configuration settings will be added, check [Issues](https://github.com/M-Yankov/TelemetryExporter/issues)
-- integrating map layers as navigation
-- quick fixes
-- Possibility to set exact start/end times (_to second_)
-- The MAUI seems not a stable technology for extensibility, may try something different in future
