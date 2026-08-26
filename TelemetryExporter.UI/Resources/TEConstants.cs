@@ -14,9 +14,10 @@
             public const string SelectedFileName = "SelectedFile";
         }
 
-        internal static class Extensions
+        internal static class FileExtensions
         {
             public const string GarminActivity = ".fit";
+            public const string GarminMacCatalystActivity = "fit";
         }
     }
 }

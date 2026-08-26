@@ -56,13 +56,13 @@ namespace TelemetryExporter.UI.ViewModels
         private async void DoPickActivityFile()
         {
             // .gpx files will be added in future
-            string[] fileTiles = [TEConstants.Extensions.GarminActivity];
+            string[] fileTiles = [TEConstants.FileExtensions.GarminActivity];
 
             Dictionary<DevicePlatform, IEnumerable<string>> customFileTypes =
                 new()
                 {
                     { DevicePlatform.WinUI, fileTiles },
-                    { DevicePlatform.MacCatalyst, [] }, // "fit"
+                    { DevicePlatform.MacCatalyst, [TEConstants.FileExtensions.GarminMacCatalystActivity] },
                     /* currently do need for other systems
                      * { DevicePlatform.iOS, new[] { "public.my.comic.extension" } }, // or general UTType values
                     { DevicePlatform.Android, new[] { "application/comics" } },
@@ -88,7 +88,7 @@ namespace TelemetryExporter.UI.ViewModels
 
                 if (result != null && string.Equals(
                     Path.GetExtension(result.FileName).ToLowerInvariant(),
-                    TEConstants.Extensions.GarminActivity))
+                    TEConstants.FileExtensions.GarminActivity))
                 {
                     Stream stream = await result.OpenReadAsync();
                     this.SelectedFileName = result.FileName;
