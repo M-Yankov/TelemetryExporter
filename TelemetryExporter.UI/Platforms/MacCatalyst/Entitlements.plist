@@ -14,19 +14,21 @@
    Posted by camionkraken, modified by community. See post 'Timeline' for change history
    Retrieved 2026-08-17, License - CC BY-SA 4.0  -->
 
-       <key>com.apple.security.assets.movies.read-only</key>
-       <true/>
-       <key>com.apple.security.assets.music.read-only</key>
-       <true/>
-       <key>com.apple.security.assets.pictures.read-only</key>
-       <true/>
-       <key>com.apple.security.files.downloads.read-only</key>
-       <true/>
-       <key>com.apple.security.files.user-selected.read-only</key>
-       <true/>
-       <key>com.apple.security.personal-information.photos-library</key>
-       <true/>
-
+        <key>com.apple.security.assets.movies.read-only</key>
+        <true/>
+        <key>com.apple.security.assets.music.read-only</key>
+        <true/>
+        <key>com.apple.security.assets.pictures.read-only</key>
+        <true/>
+        <key>com.apple.security.files.downloads.read-only</key>
+        <true/>
+        <!-- https://github.com/CommunityToolkit/Maui/issues/1569 -->
+        <key>com.apple.security.files.desktop.read-write</key>
+        <true/>
+        <key>com.apple.security.files.user-selected.read-write</key>
+        <true/>
+        <key>com.apple.security.personal-information.photos-library</key>
+        <true/>
     </dict>
 </plist>
 
