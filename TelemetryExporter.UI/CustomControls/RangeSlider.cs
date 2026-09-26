@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics;
 
 using MAUI = Microsoft.Maui.Controls.Shapes;
 
@@ -86,6 +85,10 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
                 selectedRangeBoundaries, selectedRange, startPoint, endPoint
             }
         };
+
+        // Events are subscribed in RangeSliderBehavior that depends on specific platform (Mac/Windows).
+        // this.Loaded += OnContentLoaded;
+        // this.SizeChanged += OnContentSizeChanged;
     }
 
     public DateTime MinValue { get; private set; }
@@ -146,49 +149,6 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
         EndValue = MaxValue = max;
     }
 
-     // Using this event to use Content.Width
-    protected override void OnSizeAllocated(double width, double height)
-    {
-        base.OnSizeAllocated(width, height);
-
-        if (this.Window == null)
-        {
-            return;
-        }
-
-        // initialize
-        if (accumolatedXEnd == 0)
-        {
-            accumolatedXEnd = Content.Width - endPoint.Width;
-        }
-
-        if (lastUsedWidth != 0)
-        {
-            double percentage = accumolatedX / lastUsedWidth;
-
-            // set new relative value according to new resized window
-            accumolatedX = Content.Width * percentage;
-
-            double percentageForEnd = accumolatedXEnd / lastUsedWidth;
-            accumolatedXEnd = Content.Width * percentageForEnd;
-        }
-
-        double boundsX = Content.Width;
-        lastUsedWidth = Content.Width;
-        double value = Math.Clamp(accumolatedX, 0, boundsX - startPoint.Width);
-        startPoint.TranslationX = value;
-
-        double valueEnd = Math.Clamp(accumolatedXEnd, 0, boundsX - endPoint.Width);
-        endPoint.TranslationX = valueEnd;
-
-        AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(value, 0, endPoint.Width + valueEnd - accumolatedX, selectedRange.MinimumHeightRequest));
-    }
-
-    //protected override void LayoutChildren(double x, double y, double width, double height)
-    //{
-    //    base.LayoutChildren(x, y, width, height);
-    //}
-
     // unfortunately https://github.com/dotnet/maui/issues/15576
     // could be fixed with: https://stackoverflow.com/questions/28472205/c-sharp-event-debounce
     public void OnPanUpdated(object? sender, PanUpdatedEventArgs e)
@@ -240,5 +200,50 @@ public class RangeSlider : ContentView, INotifyPropertyChanged
             case GestureStatus.Canceled:
                 break;
         }
+    }
+
+    public void OnContentSizeChanged(object? sender, EventArgs e)
+    {
+        CalculateRangeStartEndPoints();
+    }
+
+    public void OnContentLoaded(object? sender, EventArgs e)
+    {
+        CalculateRangeStartEndPoints();
+    }
+
+    private void CalculateRangeStartEndPoints()
+    {
+        if (this.Window == null || this.Content == null || this.Content.Width <= 0)
+        {
+            return;
+        }
+
+        // initialize
+        if (accumolatedXEnd <= 0)
+        {
+            accumolatedXEnd = Content.Width - endPoint.Width;
+        }
+
+        if (lastUsedWidth != 0)
+        {
+            double percentage = accumolatedX / lastUsedWidth;
+
+            // set new relative value according to new resized window
+            accumolatedX = Content.Width * percentage;
+
+            double percentageForEnd = accumolatedXEnd / lastUsedWidth;
+            accumolatedXEnd = Content.Width * percentageForEnd;
+        }
+
+        double boundsX = Content.Width;
+        lastUsedWidth = Content.Width;
+        double value = Math.Clamp(accumolatedX, 0, boundsX - startPoint.Width);
+        startPoint.TranslationX = value;
+
+        double valueEnd = Math.Clamp(accumolatedXEnd, 0, boundsX - endPoint.Width);
+        endPoint.TranslationX = valueEnd;
+
+        AbsoluteLayout.SetLayoutBounds(selectedRange, new Rect(value, 0, endPoint.Width + valueEnd - accumolatedX, selectedRange.MinimumHeightRequest));
     }
 }

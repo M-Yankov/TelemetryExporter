@@ -7,6 +7,7 @@
              xmlns:viewModels="clr-namespace:TelemetryExporter.UI.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:TelemetryExporter.UI.Converters"
+             xmlns:behaviors="clr-namespace:TelemetryExporter.UI.Platforms.Behaviors"
              Title="Settings">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior />
@@ -32,7 +33,11 @@
 
             <AbsoluteLayout x:Name="pausedIntervals" ></AbsoluteLayout>
 
-            <local:RangeSlider x:Name="rangeDatesActivity" />
+            <local:RangeSlider x:Name="rangeDatesActivity" >
+                <local:RangeSlider.Behaviors>
+                    <behaviors:RangeSliderBehavior />
+                </local:RangeSlider.Behaviors>
+            </local:RangeSlider>
 
             <Grid ColumnDefinitions="auto, auto, 20, auto, auto, 20, auto, auto" ColumnSpacing="2">
                 <Grid.RowDefinitions>
@@ -80,7 +85,7 @@
             <Label Text="Select Widgets below:" Style="{StaticResource SubHeadline}" Margin="0,20" />
             <CollectionView ItemsSource="{Binding WidgetCategories}" >
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:ExpanderDataItem">
+                    <DataTemplate x:DataType="{x:Reference theExpander}">
                         <toolkit:Expander x:Name="theExpander" Command="{Binding SwitchStateCommand}" >
                             <toolkit:Expander.CommandParameter>
                                 <MultiBinding Converter="{StaticResource expanderParametersConverter}">
@@ -88,8 +93,8 @@
                                     <Binding Source="{x:Reference theLabel}" />
                                 </MultiBinding>
                             </toolkit:Expander.CommandParameter>
-                            <toolkit:Expander.Header >
-                                <AbsoluteLayout BackgroundColor="LightSkyBlue" HeightRequest="50">
+                            <toolkit:Expander.Header>
+                                <AbsoluteLayout x:DataType="models:ExpanderDataItem" BackgroundColor="LightSkyBlue" HeightRequest="50">
                                     <Rectangle Stroke="Black" StrokeThickness="2" 
                                                 AbsoluteLayout.LayoutBounds="0,0, 1, 1"
                                                 AbsoluteLayout.LayoutFlags="SizeProportional"/>
@@ -100,7 +105,7 @@
                                 </AbsoluteLayout>
                             </toolkit:Expander.Header>
                             <toolkit:Expander.Content >
-                                <HorizontalStackLayout >
+                                <HorizontalStackLayout x:DataType="models:ExpanderDataItem">
                                     <CollectionView ItemsSource="{Binding Widgets}" >
                                         <CollectionView.ItemsLayout>
                                             <LinearItemsLayout Orientation="Horizontal"/>
