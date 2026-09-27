@@ -270,7 +270,7 @@ public partial class SelectWidgets : ContentPage, IQueryAttributable
     private async void OpenSettingsPage(object sender, EventArgs e)
     {
         IWidget? widget = null;
-        if (sender is Button button && button.CommandParameter is int widgetId)
+        if (sender is ImageButton button && button.CommandParameter is int widgetId)
         {
             widget = WidgetFactory.GetWidget(widgetId);
         }

@@ -57,7 +57,7 @@
                 <Label Grid.Row="1" Grid.Column="7" x:Name="selectedDuration" />
             </Grid>
 
-            <Grid ColumnDefinitions="150"  ColumnSpacing="2" Margin="0,10" >
+            <Grid ColumnDefinitions="150" ColumnSpacing="2" Margin="0,10" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
@@ -74,7 +74,7 @@
                 </Picker>
             </Grid>
 
-            <Grid ColumnDefinitions="auto, 300"  ColumnSpacing="2" Margin="0,10" >
+            <Grid ColumnDefinitions="auto, 300" ColumnSpacing="2" Margin="0,10" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
@@ -101,55 +101,51 @@
                                     <Label Text="{Binding Category}" FontAttributes="Bold" Style="{StaticResource SubHeadline}"
                                             AbsoluteLayout.LayoutFlags="XProportional,YProportional"
                                             AbsoluteLayout.LayoutBounds="0.5, 0.5" />
-                                    <Label Text="V" x:Name="theLabel" FontSize="Large" HorizontalOptions="Start" AbsoluteLayout.LayoutBounds="25, 0" />
+                                    <Label Text="V" x:Name="theLabel" FontSize="Large" HorizontalOptions="Start" 
+                                           AbsoluteLayout.LayoutBounds="{OnPlatform MacCatalyst='25,10', Default='25, 0'}" />
                                 </AbsoluteLayout>
                             </toolkit:Expander.Header>
                             <toolkit:Expander.Content >
-                                <HorizontalStackLayout x:DataType="models:ExpanderDataItem">
-                                    <CollectionView ItemsSource="{Binding Widgets}" >
-                                        <CollectionView.ItemsLayout>
-                                            <LinearItemsLayout Orientation="Horizontal"/>
-                                        </CollectionView.ItemsLayout>
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:WidgetData" >
-                                                <Grid Padding="10,10" >
-                                                    <VerticalStackLayout MaximumWidthRequest="300" WidthRequest="300" >
-                                                        <VerticalStackLayout.GestureRecognizers>
-                                                            <TapGestureRecognizer Tapped="OnTapGestureRecognizerTapped" CommandParameter="{Binding Index}" />
-                                                        </VerticalStackLayout.GestureRecognizers>
-                                                        <Image Source="{Binding ImagePath}" BackgroundColor="SkyBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
-                                                        <Label Text="{Binding DisplayName}" FontAttributes="Bold" HorizontalOptions="Center" />
-                                                        <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
-                                                    </VerticalStackLayout>
-                                                    <Button ImageSource="settings_cog.png" ToolTipProperties.Text="Widget Settings" CornerRadius="5"
+                                <StackLayout BindableLayout.ItemsSource="{Binding Widgets}" Orientation="Horizontal">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:WidgetData" >
+                                            <Grid Padding="10,10" >
+                                                <VerticalStackLayout MaximumWidthRequest="300" WidthRequest="300" >
+                                                    <VerticalStackLayout.GestureRecognizers>
+                                                        <TapGestureRecognizer Tapped="OnTapGestureRecognizerTapped" CommandParameter="{Binding Index}" />
+                                                    </VerticalStackLayout.GestureRecognizers>
+                                                    <Image Source="{Binding ImagePath}" BackgroundColor="SkyBlue" VerticalOptions="FillAndExpand" HeightRequest="230" />
+                                                    <Label Text="{Binding DisplayName}" FontAttributes="Bold" HorizontalOptions="Center" />
+                                                    <local:WidgetCheckBox Value="{Binding Index}" CheckedChanged="WidgetCheckBox_CheckedChanged" HorizontalOptions="Center" />
+                                                </VerticalStackLayout>
+                                                <ImageButton Source="settings_cog.png" ToolTipProperties.Text="Widget Settings" CornerRadius="5"
                                                             Padding="0" WidthRequest="15" Clicked="OpenSettingsPage" CommandParameter="{Binding Index}"
                                                             Margin="0,5,5,0"
                                                             VerticalOptions="Start"
                                                             HorizontalOptions="End">
-                                                        <VisualStateManager.VisualStateGroups>
-                                                            <VisualStateGroupList>
-                                                                <VisualStateGroup x:Name="VisualEffect">
-                                                                    <VisualState x:Name="Normal">
-                                                                        <VisualState.Setters >
-                                                                            <Setter Property="BackgroundColor" Value="Transparent" />
-                                                                            <Setter Property="Padding" Value="0" />
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                    <VisualState x:Name="PointerOver">
-                                                                        <VisualState.Setters >
-                                                                            <Setter Property="BackgroundColor" Value="Blue" />
-                                                                            <Setter Property="Padding" Value="2" />
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                </VisualStateGroup>
-                                                            </VisualStateGroupList>
-                                                        </VisualStateManager.VisualStateGroups>
-                                                    </Button>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>
-                                </HorizontalStackLayout>
+                                                    <VisualStateManager.VisualStateGroups>
+                                                        <VisualStateGroupList>
+                                                            <VisualStateGroup x:Name="VisualEffect">
+                                                                <VisualState x:Name="Normal">
+                                                                    <VisualState.Setters >
+                                                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                                                        <Setter Property="Padding" Value="0" />
+                                                                    </VisualState.Setters>
+                                                                </VisualState>
+                                                                <VisualState x:Name="PointerOver">
+                                                                    <VisualState.Setters >
+                                                                        <Setter Property="BackgroundColor" Value="Blue" />
+                                                                        <Setter Property="Padding" Value="2" />
+                                                                    </VisualState.Setters>
+                                                                </VisualState>
+                                                            </VisualStateGroup>
+                                                        </VisualStateGroupList>
+                                                    </VisualStateManager.VisualStateGroups>
+                                                </ImageButton>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </StackLayout>
                             </toolkit:Expander.Content>
                         </toolkit:Expander>
                     </DataTemplate>
